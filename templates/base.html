@@ -24,6 +24,7 @@
       <nav class="hidden md:flex items-center gap-1">
         <a href="{{ url_for('home') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-700 hover:bg-slate-100' }}">Home</a>
         <a href="{{ url_for('shop') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-700 hover:bg-slate-100' }}">Shop Footwear</a>
+        <a href="{{ url_for('reviews_page') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'text-slate-700 hover:bg-slate-100' }}">Reviews</a>
 
         {% if current_user and current_user.role == 'customer' %}
           <a href="{{ url_for('my_orders') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-700 hover:bg-slate-100' }}">My Orders</a>
@@ -49,6 +50,18 @@
           <a href="{{ url_for('logout') }}" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100">Logout</a>
         {% endif %}
       </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="md:hidden flex items-center justify-around border-t border-slate-100 bg-white py-2 px-2 text-xs font-semibold">
+      <a href="{{ url_for('home') }}" class="px-3 py-1.5 rounded-lg text-slate-700">Home</a>
+      <a href="{{ url_for('shop') }}" class="px-3 py-1.5 rounded-lg text-slate-700">Shop</a>
+      <a href="{{ url_for('reviews_page') }}" class="px-3 py-1.5 rounded-lg text-slate-700">Reviews</a>
+      {% if current_user and current_user.role == 'customer' %}
+        <a href="{{ url_for('my_orders') }}" class="px-3 py-1.5 rounded-lg text-slate-700">My Orders</a>
+      {% elif current_user and current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="px-3 py-1.5 rounded-lg text-indigo-600 bg-indigo-50">Admin</a>
+      {% endif %}
     </div>
   </header>
 

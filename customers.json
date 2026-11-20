@@ -16,5 +16,14 @@
     "gender": "Male",
     "ageGroup": "41-55",
     "password": "124578"
+  },
+  {
+    "name": "komal",
+    "email": "pallvi.samyak@gmail.com",
+    "phone": "9888856794",
+    "city": "kota",
+    "gender": "Female",
+    "ageGroup": "26-40",
+    "password": "kota123"
   }
 ]

@@ -31,12 +31,14 @@
   </div>
 
   <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 no-print">
-    <a href="{{ mailto_link }}" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">
-      Send via Email App
+    <a href="{{ mailto_link }}" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">
+      Send Email
     </a>
     <div class="flex items-center gap-2">
-      <a href="{{ url_for('my_orders') }}" class="px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 text-xs font-bold">My Orders</a>
-      <a href="{{ url_for('shop') }}" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold">Done</a>
+      <a href="{{ url_for('reviews_page', product_id=order.productId) }}" class="px-3.5 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400">
+        &#9733; Rate Shoe
+      </a>
+      <a href="{{ url_for('shop') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold">Done</a>
     </div>
   </div>
 </div>

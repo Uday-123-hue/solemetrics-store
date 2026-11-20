@@ -25,12 +25,21 @@ app.secret_key = "solemetrics_pure_python_key"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EXCEL_FILE = os.path.join(BASE_DIR, "orders.xlsx")
 CSV_BACKUP_FILE = os.path.join(BASE_DIR, "orders_backup.csv")
+REVIEWS_CSV_FILE = os.path.join(BASE_DIR, "reviews_backup.csv")
 CUSTOMERS_FILE = os.path.join(BASE_DIR, "customers.json")
 
 AGE_GROUPS = ["Under 18", "18-25", "26-40", "41-55", "55+"]
 GENDERS = ["Male", "Female", "Other"]
 UK_SIZES = ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
 COST_PRICE_MAP = {p["id"]: int(p.get("cost_price", int(p["price"] * 0.6))) for p in PRODUCTS}
+
+INITIAL_DEMO_REVIEWS = [
+    {"reviewId": "REV-101", "date": "2026-11-15", "customerName": "Aarav Verma", "customerEmail": "aarav.v@example.com", "brand": "Nike", "productId": "NK-01", "productName": "Nike Air Force 1 '07 Low", "rating": 5, "experienceTag": "Build Quality", "comment": "Premium leather finish and super comfortable cushioning for daily college wear.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-102", "date": "2026-11-16", "customerName": "Rajendra Prasad", "customerEmail": "rprasad@example.com", "brand": "Skechers", "productId": "SK-01", "productName": "Skechers Go Walk Flex Orthopedic", "rating": 5, "experienceTag": "Comfort & Fit", "comment": "Bought these for my morning walk—zero heel pain and effortless slip-on fit.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-103", "date": "2026-11-17", "customerName": "Kabir Mehta", "customerEmail": "kabir.m@example.com", "brand": "Crocs", "productId": "CR-01", "productName": "Crocs Classic Clog Unisex", "rating": 4, "experienceTag": "Lightweight", "comment": "Very light and easy to wash. Great ventilation for all-day indoor and outdoor use.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-104", "date": "2026-11-18", "customerName": "Sneha Gupta", "customerEmail": "sneha.g@example.com", "brand": "Skechers", "productId": "SK-02", "productName": "Skechers Ladies Arch Fit Pastel", "rating": 5, "experienceTag": "Comfort & Fit", "comment": "Arch support feels amazing during long standing hours and the pastel shade looks clean.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-105", "date": "2026-11-19", "customerName": "Pooja Sharma", "customerEmail": "pooja.s@example.com", "brand": "Sparx", "productId": "SP-01", "productName": "Sparx SFG-549 Anti-Skid Flip-Flops", "rating": 4, "experienceTag": "Value for Money", "comment": "Strong wet-surface grip and soft EVA sole at a very budget-friendly price.", "verifiedBuyer": "Yes"}
+]
 
 
 # =========================================================================
@@ -65,7 +74,7 @@ def firebase_request(path: str, method: str = "GET", payload=None):
 
 
 # =========================================================================
-# 2. CUSTOMER ACCOUNT STORAGE (WITH GENDER & AGE GROUP)
+# 2. CUSTOMER ACCOUNT STORAGE
 # =========================================================================
 def load_local_customers() -> list:
     if not os.path.exists(CUSTOMERS_FILE):
@@ -129,7 +138,47 @@ def save_new_customer(customer: dict, all_customers: list):
 
 
 # =========================================================================
-# 3. PANDAS EXCEL + PROFIT MARGIN ANALYTICS ENGINE
+# 3. REVIEWS STORAGE (PANDAS + EXCEL + FIREBASE)
+# =========================================================================
+def clean_reviews_df(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(columns=list(INITIAL_DEMO_REVIEWS[0].keys()))
+    df = df.fillna("")
+    df["rating"] = pd.to_numeric(df["rating"], errors="coerce").fillna(5).clip(1, 5).astype(int)
+    if "verifiedBuyer" not in df.columns:
+        df["verifiedBuyer"] = "No"
+    if "experienceTag" not in df.columns:
+        df["experienceTag"] = "Comfort & Fit"
+    return df
+
+
+def load_reviews_df() -> pd.DataFrame:
+    if firebase_enabled():
+        cloud_rev = firebase_request("reviews", "GET")
+        if cloud_rev is None:
+            if os.path.exists(REVIEWS_CSV_FILE):
+                df = clean_reviews_df(pd.read_csv(REVIEWS_CSV_FILE, dtype=str))
+            else:
+                df = clean_reviews_df(pd.DataFrame(INITIAL_DEMO_REVIEWS))
+            rev_dict = {row["reviewId"]: row for row in df.to_dict(orient="records")}
+            firebase_request("reviews", "PUT", rev_dict)
+            df.to_csv(REVIEWS_CSV_FILE, index=False)
+            return df
+        rows = list(cloud_rev.values()) if isinstance(cloud_rev, dict) else [r for r in cloud_rev if r]
+        df = clean_reviews_df(pd.DataFrame(rows))
+        df.to_csv(REVIEWS_CSV_FILE, index=False)
+        return df
+
+    if os.path.exists(REVIEWS_CSV_FILE):
+        return clean_reviews_df(pd.read_csv(REVIEWS_CSV_FILE, dtype=str))
+
+    df = clean_reviews_df(pd.DataFrame(INITIAL_DEMO_REVIEWS))
+    df.to_csv(REVIEWS_CSV_FILE, index=False)
+    return df
+
+
+# =========================================================================
+# 4. PANDAS EXCEL + PROFIT & RATINGS ANALYTICS ENGINE
 # =========================================================================
 def clean_orders_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
@@ -161,9 +210,11 @@ def clean_orders_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def write_local_excel_files(df: pd.DataFrame, customers_list: list = None):
-    """5 Sheets ke saath orders.xlsx aur orders_backup.csv save karta hai"""
+def write_local_excel_files(df: pd.DataFrame, customers_list: list = None, reviews_df: pd.DataFrame = None):
+    """7 Sheets ke saath orders.xlsx aur CSV backups save karta hai"""
     df.to_csv(CSV_BACKUP_FILE, index=False)
+    rev_df = reviews_df if reviews_df is not None else load_reviews_df()
+    rev_df.to_csv(REVIEWS_CSV_FILE, index=False)
 
     if not df.empty:
         brand_summary = df.groupby("brand", as_index=False).agg(
@@ -197,6 +248,15 @@ def write_local_excel_files(df: pd.DataFrame, customers_list: list = None):
         cat_summary = pd.DataFrame(columns=["category", "Total_Orders", "Units_Sold", "Revenue_INR", "Gross_Profit_INR", "Profit_Margin_%"])
         city_demo = pd.DataFrame(columns=["city", "ageGroup", "gender", "Orders", "Units_Sold", "Revenue_INR", "Gross_Profit_INR"])
 
+    if not rev_df.empty:
+        ratings_summary = rev_df.groupby(["brand", "productName"], as_index=False).agg(
+            Total_Reviews=("reviewId", "count"),
+            Avg_Rating=("rating", "mean")
+        )
+        ratings_summary["Avg_Rating"] = ratings_summary["Avg_Rating"].round(2)
+    else:
+        ratings_summary = pd.DataFrame(columns=["brand", "productName", "Total_Reviews", "Avg_Rating"])
+
     cust_data = customers_list if customers_list is not None else load_local_customers()
     if cust_data:
         cust_df = pd.DataFrame(cust_data)
@@ -213,6 +273,8 @@ def write_local_excel_files(df: pd.DataFrame, customers_list: list = None):
             brand_summary.to_excel(writer, sheet_name="Brand_Profit_Summary", index=False)
             cat_summary.to_excel(writer, sheet_name="Category_Profit_Summary", index=False)
             city_demo.to_excel(writer, sheet_name="City_And_Demographics", index=False)
+            rev_df.to_excel(writer, sheet_name="Customer_Reviews", index=False)
+            ratings_summary.to_excel(writer, sheet_name="Product_Ratings_Summary", index=False)
             cust_df.to_excel(writer, sheet_name="Registered_Customers", index=False)
     except PermissionError:
         print("Note: Close orders.xlsx in MS Excel so live changes write directly.")
@@ -248,9 +310,9 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 4. PYTHON PLOTLY ANIMATED MULTI-CHART GENERATOR
+# 5. PYTHON PLOTLY ANIMATED MULTI-CHART GENERATOR
 # =========================================================================
-def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str) -> str:
+def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
     if metric == "revenue":
         col = "totalAmount"
         y_label = "Revenue (₹)"
@@ -264,7 +326,15 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
     is_currency = metric in ("revenue", "profit")
     labels, values, title = [], [], ""
 
-    if mode == "category":
+    if mode == "ratings":
+        rdf = rev_df if rev_df is not None else load_reviews_df()
+        agg = rdf.groupby("brand")["rating"].mean().round(2).to_dict() if not rdf.empty else {}
+        labels = BRANDS
+        values = [float(agg.get(b, 0)) for b in BRANDS]
+        y_label = "Average Star Rating (out of 5)"
+        is_currency = False
+        title = "Average Customer Rating by Brand (★)"
+    elif mode == "category":
         agg = df.groupby("category")[col].sum().to_dict() if not df.empty else {}
         labels = [c["name"] for c in CATEGORIES]
         values = [int(agg.get(c["name"], 0)) for c in CATEGORIES]
@@ -320,7 +390,12 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6",
         "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#0f172a"
     ]
-    text_labels = [f"₹{v:,}" if is_currency else str(v) for v in values]
+    if mode == "ratings":
+        text_labels = [f"{v} ★" if v > 0 else "0" for v in values]
+    elif is_currency:
+        text_labels = [f"₹{v:,}" for v in values]
+    else:
+        text_labels = [str(v) for v in values]
 
     if chart_type == "bar":
         bar_colors = [palette[i % len(palette)] for i in range(len(labels))]
@@ -330,7 +405,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             text=text_labels,
             textposition="outside",
             marker=dict(color=bar_colors),
-            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y:,}<extra></extra>"
+            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
     elif chart_type == "area":
         trace = go.Scatter(
@@ -343,7 +418,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             fillcolor="rgba(79, 70, 229, 0.16)",
             line=dict(color="#4f46e5", width=3.5, shape="spline"),
             marker=dict(size=9, color="#0f172a", line=dict(width=2, color="#ffffff")),
-            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y:,}<extra></extra>"
+            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
     elif chart_type == "pie":
         trace = go.Pie(
@@ -352,7 +427,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             hole=0.46,
             marker=dict(colors=palette, line=dict(color="#ffffff", width=2)),
             textinfo="label+percent",
-            hovertemplate="<b>%{label}</b><br>" + y_label + ": %{value:,} (%{percent})<extra></extra>"
+            hovertemplate="<b>%{label}</b><br>" + y_label + ": %{value} (%{percent})<extra></extra>"
         )
     else:
         trace = go.Scatter(
@@ -363,7 +438,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             textposition="top center",
             line=dict(color="#4f46e5", width=3.5, shape="spline"),
             marker=dict(size=10, color="#0f172a", line=dict(width=2.5, color="#ffffff")),
-            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y:,}<extra></extra>"
+            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
 
     fig = go.Figure(data=[trace])
@@ -382,12 +457,13 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 
     if chart_type != "pie":
         fig.update_xaxes(showgrid=False, tickangle=-18)
+        y_max = 5.8 if mode == "ratings" else (max_val * 1.24 if max_val > 0 else 10)
         fig.update_yaxes(
             title_text=y_label,
             gridcolor="#e2e8f0",
             zeroline=True,
             zerolinecolor="#cbd5e1",
-            range=[0, max_val * 1.24 if max_val > 0 else 10]
+            range=[0, y_max]
         )
 
     return fig.to_html(
@@ -398,7 +474,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 
 
 # =========================================================================
-# 5. GLOBAL TEMPLATE HELPERS
+# 6. GLOBAL TEMPLATE HELPERS
 # =========================================================================
 @app.context_processor
 def inject_globals():
@@ -414,7 +490,7 @@ def format_inr(value):
 
 
 # =========================================================================
-# 6. STOREFRONT, AUTH & ORDER ROUTES
+# 7. STOREFRONT, AUTH, REVIEWS & ORDER ROUTES
 # =========================================================================
 @app.route("/")
 def home():
@@ -460,6 +536,81 @@ def shop():
         selected_category=selected_category,
         query=request.args.get("q", "")
     )
+
+
+@app.route("/reviews")
+def reviews_page():
+    selected_product_id = request.args.get("product_id", "NK-01")
+    rev_df = load_reviews_df()
+    reviews = rev_df.to_dict(orient="records")
+
+    avg_rating = round(float(rev_df["rating"].mean()), 1) if not rev_df.empty else 0.0
+    star_counts = {s: int((rev_df["rating"] == s).sum()) if not rev_df.empty else 0 for s in [5, 4, 3, 2, 1]}
+
+    return render_template(
+        "reviews.html",
+        active_page="reviews",
+        products=PRODUCTS,
+        selected_product_id=selected_product_id,
+        reviews=reviews,
+        avg_rating=avg_rating,
+        star_counts=star_counts
+    )
+
+
+@app.route("/submit-review", methods=["POST"])
+def submit_review():
+    user = session.get("user")
+    if user and user.get("role") == "customer":
+        customer_name = user["name"]
+        customer_email = user["email"].strip().lower()
+    else:
+        customer_name = request.form.get("customer_name", "").strip()
+        customer_email = request.form.get("customer_email", "").strip().lower()
+
+    product_id = request.form.get("product_id", "NK-01")
+    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    if not product or not customer_name or not customer_email:
+        flash("Please fill in all review details.", "error")
+        return redirect(url_for("reviews_page"))
+
+    rating = max(1, min(5, int(request.form.get("rating", 5))))
+    experience_tag = request.form.get("experience_tag", "Comfort & Fit").strip()
+    comment = request.form.get("comment", "").strip()
+
+    # Check if customer actually ordered this product -> Verified Buyer
+    orders_df = load_orders_df()
+    is_verified = False
+    if not orders_df.empty:
+        is_verified = bool(
+            (
+                (orders_df["customerEmail"].str.lower() == customer_email)
+                & (orders_df["productId"] == product_id)
+            ).any()
+        )
+
+    review_id = f"REV-{random.randint(100, 9999)}"
+    new_review = {
+        "reviewId": review_id,
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "customerName": customer_name,
+        "customerEmail": customer_email,
+        "brand": product["brand"],
+        "productId": product["id"],
+        "productName": product["name"],
+        "rating": rating,
+        "experienceTag": experience_tag,
+        "comment": comment,
+        "verifiedBuyer": "Yes" if is_verified else "No"
+    }
+
+    rev_df = load_reviews_df()
+    rev_df = pd.concat([pd.DataFrame([new_review]), rev_df], ignore_index=True)
+    write_local_excel_files(orders_df, reviews_df=rev_df)
+    firebase_request(f"reviews/{review_id}", "PUT", new_review)
+
+    flash("Thank you! Your review has been published and saved to Excel.", "success")
+    return redirect(url_for("reviews_page"))
 
 
 @app.route("/login")
@@ -679,7 +830,7 @@ def my_orders():
 
 
 # =========================================================================
-# 7. PRIVATE ADMIN ANALYTICS ROUTES
+# 8. PRIVATE ADMIN ANALYTICS ROUTES
 # =========================================================================
 @app.route("/admin")
 def admin_dashboard():
@@ -689,6 +840,7 @@ def admin_dashboard():
         return redirect(url_for("login_page", tab="admin-login"))
 
     df = load_orders_df()
+    rev_df = load_reviews_df()
 
     chart_mode = request.args.get("chart", "category")
     chart_type = request.args.get("type", "bar")
@@ -703,7 +855,7 @@ def admin_dashboard():
     total_orders = int(len(df))
     total_units = int(df["qty"].sum()) if not df.empty else 0
     top_brand = df.groupby("brand")["qty"].sum().idxmax() if not df.empty else "N/A"
-    top_city = df.groupby("city")["qty"].sum().idxmax() if not df.empty else "N/A"
+    avg_rating = round(float(rev_df["rating"].mean()), 1) if not rev_df.empty else 0.0
 
     kpis = [
         {"label": "Total Revenue", "value": f"₹{total_revenue:,}", "sub": "Gross top-line sales"},
@@ -711,10 +863,10 @@ def admin_dashboard():
         {"label": "Total Orders", "value": total_orders, "sub": "Confirmed orders"},
         {"label": "Pairs Sold", "value": total_units, "sub": "Total units shipped"},
         {"label": "Top Brand", "value": top_brand, "sub": "Highest unit demand"},
-        {"label": "Top City", "value": top_city, "sub": "Highest city demand"}
+        {"label": "Avg Rating", "value": f"{avg_rating} ★", "sub": f"{len(rev_df)} customer reviews"}
     ]
 
-    chart_html = build_animated_chart_html(df, chart_mode, chart_type, metric)
+    chart_html = build_animated_chart_html(df, chart_mode, chart_type, metric, rev_df)
 
     filtered_df = df.copy()
     if filter_brand != "All" and not filtered_df.empty:
@@ -742,6 +894,7 @@ def admin_dashboard():
         metric=metric,
         chart_html=chart_html,
         orders=filtered_df.to_dict(orient="records"),
+        reviews=rev_df.to_dict(orient="records"),
         total_orders_count=total_orders,
         brands=BRANDS,
         categories=CATEGORIES,
@@ -780,6 +933,20 @@ def admin_delete_order(order_id):
     return redirect(url_for("admin_dashboard"))
 
 
+@app.route("/admin/delete-review/<review_id>", methods=["POST"])
+def admin_delete_review(review_id):
+    user = session.get("user")
+    if not user or user.get("role") != "admin":
+        return redirect(url_for("login_page", tab="admin-login"))
+
+    rev_df = load_reviews_df()
+    rev_df = rev_df[rev_df["reviewId"] != review_id]
+    write_local_excel_files(load_orders_df(), reviews_df=rev_df)
+    firebase_request(f"reviews/{review_id}", "DELETE")
+    flash(f"Review #{review_id} deleted.", "info")
+    return redirect(url_for("admin_dashboard"))
+
+
 @app.route("/admin/reset-demo", methods=["POST"])
 def admin_reset_demo():
     user = session.get("user")
@@ -787,11 +954,12 @@ def admin_reset_demo():
         return redirect(url_for("login_page", tab="admin-login"))
 
     df = clean_orders_df(pd.DataFrame(INITIAL_DEMO_ORDERS))
-    write_local_excel_files(df)
+    rev_df = clean_reviews_df(pd.DataFrame(INITIAL_DEMO_REVIEWS))
+    write_local_excel_files(df, reviews_df=rev_df)
     if firebase_enabled():
-        orders_dict = {row["orderId"]: row for row in df.to_dict(orient="records")}
-        firebase_request("orders", "PUT", orders_dict)
-    flash("Demo dataset restored.", "success")
+        firebase_request("orders", "PUT", {row["orderId"]: row for row in df.to_dict(orient="records")})
+        firebase_request("reviews", "PUT", {row["reviewId"]: row for row in rev_df.to_dict(orient="records")})
+    flash("Demo orders & reviews restored.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -807,6 +975,7 @@ def admin_download_excel():
 
 if __name__ == "__main__":
     load_customers()
+    load_reviews_df()
     load_orders_df()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
