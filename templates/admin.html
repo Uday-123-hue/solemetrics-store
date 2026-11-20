@@ -13,11 +13,11 @@
 <div class="space-y-6">
 
   <!-- Header & Excel Download -->
-  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+  <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
     <div>
       <span class="inline-block px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold uppercase mb-1">Private Admin Workspace</span>
-      <h1 class="text-2xl font-extrabold text-slate-900">Sales, Profit, Ratings &amp; Demographic Analytics</h1>
-      <p class="text-sm text-slate-500">Orders, profit margins, demographics &amp; customer reviews auto-save into <b>orders.xlsx</b></p>
+      <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Sales, Profit, Ratings &amp; Demographic Analytics</h1>
+      <p class="text-xs sm:text-sm text-slate-500">Orders, profit margins, demographics &amp; customer reviews auto-save into <b>orders.xlsx</b></p>
     </div>
     <div class="flex flex-wrap items-center gap-2.5">
       <a href="{{ url_for('admin_download_excel') }}" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
@@ -32,62 +32,64 @@
   </div>
 
   <!-- 6 KPI Cards -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
     {% for k in kpis %}
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ k.label }}</p>
-        <p class="text-xl font-extrabold text-slate-900 mt-1 truncate">{{ k.value }}</p>
+        <p class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1 truncate">{{ k.value }}</p>
         <p class="text-[11px] font-semibold {{ 'text-emerald-600' if k.label == 'Gross Profit' else ('text-amber-600' if k.label == 'Avg Rating' else 'text-slate-500') }} mt-0.5">{{ k.sub }}</p>
       </div>
     {% endfor %}
   </div>
 
-  <!-- Animated Multi-Type Chart Section -->
-  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+  <!-- Animated Multi-Type Chart Section (Mobile-Responsive) -->
+  <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4">
       <div>
-        <h2 class="text-lg font-extrabold text-slate-900">Interactive BI Visualization</h2>
+        <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Interactive BI Visualization</h2>
         <p class="text-xs text-slate-500">Analyze Units Sold, Revenue, Gross Profit, or Brand Star Ratings</p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5">
-        <div class="flex items-center gap-1 bg-indigo-50 p-1 rounded-xl border border-indigo-100">
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='bar', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'bar' else 'text-indigo-700 hover:bg-indigo-100' }}">Bar Graph</a>
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='line', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'line' else 'text-indigo-700 hover:bg-indigo-100' }}">Line Chart</a>
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='area', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'area' else 'text-indigo-700 hover:bg-indigo-100' }}">Area Chart</a>
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='pie', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'pie' else 'text-indigo-700 hover:bg-indigo-100' }}">Doughnut Chart</a>
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Chart Type Switcher -->
+        <div class="flex flex-wrap items-center gap-1 bg-indigo-50 p-1 rounded-xl border border-indigo-100">
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='bar', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'bar' else 'text-indigo-700 hover:bg-indigo-100' }}">Bar Graph</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='line', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'line' else 'text-indigo-700 hover:bg-indigo-100' }}">Line Chart</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='area', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'area' else 'text-indigo-700 hover:bg-indigo-100' }}">Area Chart</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='pie', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'pie' else 'text-indigo-700 hover:bg-indigo-100' }}">Doughnut</a>
         </div>
 
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='units', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'units' else 'text-slate-600' }}">Units Sold</a>
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='revenue', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'revenue' else 'text-slate-600' }}">Revenue (₹)</a>
-          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='profit', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-emerald-600 text-white shadow-sm' if metric == 'profit' else 'text-emerald-700' }}">Gross Profit (₹)</a>
+        <!-- Metric Toggle -->
+        <div class="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='units', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'units' else 'text-slate-600' }}">Units Sold</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='revenue', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'revenue' else 'text-slate-600' }}">Revenue (₹)</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='profit', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold {{ 'bg-emerald-600 text-white shadow-sm' if metric == 'profit' else 'text-emerald-700' }}">Gross Profit (₹)</a>
         </div>
       </div>
     </div>
 
-    <!-- Data Dimension Pills -->
-    <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-xl">
-      <a href="{{ url_for('admin_dashboard', chart='category', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'category' else 'text-slate-600 hover:text-slate-900' }}">By Category</a>
-      <a href="{{ url_for('admin_dashboard', chart='brand', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'brand' else 'text-slate-600 hover:text-slate-900' }}">By Brand</a>
-      <a href="{{ url_for('admin_dashboard', chart='ratings', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-amber-500 text-slate-950 shadow-sm' if chart_mode == 'ratings' else 'text-amber-700 hover:text-slate-900' }}">&#9733; Brand Ratings</a>
-      <a href="{{ url_for('admin_dashboard', chart='city', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'city' else 'text-slate-600 hover:text-slate-900' }}">By City</a>
-      <a href="{{ url_for('admin_dashboard', chart='size', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'size' else 'text-slate-600 hover:text-slate-900' }}">By UK Size</a>
-      <a href="{{ url_for('admin_dashboard', chart='age', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'age' else 'text-slate-600 hover:text-slate-900' }}">By Age Group</a>
-      <a href="{{ url_for('admin_dashboard', chart='gender', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'gender' else 'text-slate-600 hover:text-slate-900' }}">By Gender</a>
-      <a href="{{ url_for('admin_dashboard', chart='model', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'model' else 'text-slate-600 hover:text-slate-900' }}">By Shoe Model</a>
-      <a href="{{ url_for('admin_dashboard', chart='timeline', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'timeline' else 'text-slate-600 hover:text-slate-900' }}">Sales Timeline</a>
-      <a href="{{ url_for('admin_dashboard', chart='payment', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'payment' else 'text-slate-600 hover:text-slate-900' }}">Payment Mode</a>
+    <!-- Data Dimension Pills (Horizontal Swipe on Mobile) -->
+    <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap sm:flex-wrap bg-slate-100 p-1.5 rounded-xl">
+      <a href="{{ url_for('admin_dashboard', chart='category', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'category' else 'text-slate-600 hover:text-slate-900' }}">By Category</a>
+      <a href="{{ url_for('admin_dashboard', chart='brand', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'brand' else 'text-slate-600 hover:text-slate-900' }}">By Brand</a>
+      <a href="{{ url_for('admin_dashboard', chart='ratings', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-amber-500 text-slate-950 shadow-sm' if chart_mode == 'ratings' else 'text-amber-700 hover:text-slate-900' }}">&#9733; Brand Ratings</a>
+      <a href="{{ url_for('admin_dashboard', chart='city', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'city' else 'text-slate-600 hover:text-slate-900' }}">By City</a>
+      <a href="{{ url_for('admin_dashboard', chart='size', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'size' else 'text-slate-600 hover:text-slate-900' }}">By UK Size</a>
+      <a href="{{ url_for('admin_dashboard', chart='age', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'age' else 'text-slate-600 hover:text-slate-900' }}">By Age Group</a>
+      <a href="{{ url_for('admin_dashboard', chart='gender', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'gender' else 'text-slate-600 hover:text-slate-900' }}">By Gender</a>
+      <a href="{{ url_for('admin_dashboard', chart='model', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'model' else 'text-slate-600 hover:text-slate-900' }}">By Shoe Model</a>
+      <a href="{{ url_for('admin_dashboard', chart='timeline', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'timeline' else 'text-slate-600 hover:text-slate-900' }}">Sales Timeline</a>
+      <a href="{{ url_for('admin_dashboard', chart='payment', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'payment' else 'text-slate-600 hover:text-slate-900' }}">Payment Mode</a>
     </div>
 
-    <div class="w-full overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 animate-chart-box">
+    <div class="w-full min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white p-1 sm:p-2 animate-chart-box">
       {{ chart_html | safe }}
     </div>
   </div>
 
   <!-- Orders Ledger Table -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-    <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="p-5 sm:p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h2 class="text-lg font-extrabold text-slate-900">Customer Orders &amp; Profit Ledger</h2>
         <p class="text-xs text-slate-500">Showing {{ orders | length }} of {{ total_orders_count }} total orders</p>
@@ -180,12 +182,12 @@
 
   <!-- Customer Reviews Management Table -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-    <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+    <div class="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-2">
       <div>
         <h2 class="text-lg font-extrabold text-slate-900">Customer Reviews &amp; Ratings Ledger</h2>
         <p class="text-xs text-slate-500">All reviews also export into the <b>Customer_Reviews</b> sheet of orders.xlsx</p>
       </div>
-      <a href="{{ url_for('reviews_page') }}" class="text-xs font-bold text-indigo-600 hover:underline">Open Public Reviews Page &rarr;</a>
+      <a href="{{ url_for('reviews_page') }}" class="text-xs font-bold text-indigo-600 hover:underline shrink-0">Public Reviews &rarr;</a>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-xs">

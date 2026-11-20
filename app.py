@@ -310,7 +310,7 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 5. PYTHON PLOTLY ANIMATED MULTI-CHART GENERATOR
+# 5. PYTHON PLOTLY MOBILE-RESPONSIVE ANIMATED MULTI-CHART GENERATOR
 # =========================================================================
 def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
     if metric == "revenue":
@@ -331,14 +331,14 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         agg = rdf.groupby("brand")["rating"].mean().round(2).to_dict() if not rdf.empty else {}
         labels = BRANDS
         values = [float(agg.get(b, 0)) for b in BRANDS]
-        y_label = "Average Star Rating (out of 5)"
+        y_label = "Avg Rating (★)"
         is_currency = False
-        title = "Average Customer Rating by Brand (★)"
+        title = "Brand Star Ratings (out of 5)"
     elif mode == "category":
         agg = df.groupby("category")[col].sum().to_dict() if not df.empty else {}
         labels = [c["name"] for c in CATEGORIES]
         values = [int(agg.get(c["name"], 0)) for c in CATEGORIES]
-        title = f"{y_label} by Footwear Category"
+        title = f"{y_label} by Category"
     elif mode == "brand":
         agg = df.groupby("brand")[col].sum().to_dict() if not df.empty else {}
         labels = BRANDS
@@ -348,54 +348,54 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         s = df.groupby("city")[col].sum().sort_values(ascending=False) if not df.empty else pd.Series(dtype=int)
         labels = list(s.index)
         values = [int(v) for v in s.values]
-        title = f"City-Wise Demand — {y_label}"
+        title = f"City Demand — {y_label}"
     elif mode == "size":
         agg = df.groupby("size")[col].sum().to_dict() if not df.empty else {}
         labels = UK_SIZES
         values = [int(agg.get(sz, 0)) for sz in UK_SIZES]
-        title = f"UK Size Distribution — {y_label}"
+        title = f"UK Size — {y_label}"
     elif mode == "age":
         agg = df.groupby("ageGroup")[col].sum().to_dict() if not df.empty else {}
         labels = AGE_GROUPS
         values = [int(agg.get(ag, 0)) for ag in AGE_GROUPS]
-        title = f"Customer Age Group Segmentation — {y_label}"
+        title = f"Age Group — {y_label}"
     elif mode == "gender":
         agg = df.groupby("gender")[col].sum().to_dict() if not df.empty else {}
         labels = GENDERS
         values = [int(agg.get(g, 0)) for g in GENDERS]
-        title = f"Customer Gender Segmentation — {y_label}"
+        title = f"Gender — {y_label}"
     elif mode == "model":
         s = (
-            df.groupby("productName")[col].sum().sort_values(ascending=False).head(10)
+            df.groupby("productName")[col].sum().sort_values(ascending=False).head(8)
             if not df.empty else pd.Series(dtype=int)
         )
-        labels = list(s.index)
+        labels = [name[:18] + "…" if len(name) > 18 else name for name in s.index]
         values = [int(v) for v in s.values]
-        title = f"Top 10 Shoe Models — {y_label}"
+        title = f"Top Models — {y_label}"
     elif mode == "payment":
         s = df.groupby("paymentMethod")[col].sum() if not df.empty else pd.Series(dtype=int)
         labels = list(s.index)
         values = [int(v) for v in s.values]
-        title = f"Payment Mode Breakdown — {y_label}"
+        title = f"Payment Mode — {y_label}"
     elif mode == "timeline":
         s = df.groupby("date")[col].sum().sort_index() if not df.empty else pd.Series(dtype=int)
-        labels = list(s.index)
+        labels = [str(d)[5:] for d in s.index]
         running = 0
         for v in s.values:
             running += int(v)
             values.append(running)
-        title = f"Cumulative {y_label} Growth Timeline"
+        title = f"Cumulative {y_label}"
 
     palette = [
         "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6",
         "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#0f172a"
     ]
     if mode == "ratings":
-        text_labels = [f"{v} ★" if v > 0 else "0" for v in values]
+        text_labels = [f"{v}★" if v > 0 else "" for v in values]
     elif is_currency:
-        text_labels = [f"₹{v:,}" for v in values]
+        text_labels = [f"₹{v:,}" if v > 0 else "" for v in values]
     else:
-        text_labels = [str(v) for v in values]
+        text_labels = [str(v) if v > 0 else "" for v in values]
 
     if chart_type == "bar":
         bar_colors = [palette[i % len(palette)] for i in range(len(labels))]
@@ -403,7 +403,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             x=labels,
             y=values,
             text=text_labels,
-            textposition="outside",
+            textposition="auto",
             marker=dict(color=bar_colors),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
@@ -411,33 +411,30 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         trace = go.Scatter(
             x=labels,
             y=values,
-            mode="lines+markers+text",
-            text=text_labels,
-            textposition="top center",
+            mode="lines+markers",
             fill="tozeroy",
             fillcolor="rgba(79, 70, 229, 0.16)",
-            line=dict(color="#4f46e5", width=3.5, shape="spline"),
-            marker=dict(size=9, color="#0f172a", line=dict(width=2, color="#ffffff")),
+            line=dict(color="#4f46e5", width=3, shape="spline"),
+            marker=dict(size=8, color="#0f172a", line=dict(width=2, color="#ffffff")),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
     elif chart_type == "pie":
         trace = go.Pie(
             labels=labels,
             values=values,
-            hole=0.46,
+            hole=0.48,
             marker=dict(colors=palette, line=dict(color="#ffffff", width=2)),
-            textinfo="label+percent",
+            textinfo="percent",
+            textposition="inside",
             hovertemplate="<b>%{label}</b><br>" + y_label + ": %{value} (%{percent})<extra></extra>"
         )
     else:
         trace = go.Scatter(
             x=labels,
             y=values,
-            mode="lines+markers+text",
-            text=text_labels,
-            textposition="top center",
-            line=dict(color="#4f46e5", width=3.5, shape="spline"),
-            marker=dict(size=10, color="#0f172a", line=dict(width=2.5, color="#ffffff")),
+            mode="lines+markers",
+            line=dict(color="#4f46e5", width=3, shape="spline"),
+            marker=dict(size=9, color="#0f172a", line=dict(width=2, color="#ffffff")),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
 
@@ -445,31 +442,57 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
     max_val = max(values) if values else 10
 
     fig.update_layout(
-        title=dict(text=f"<b>{title}</b>", font=dict(size=16, color="#0f172a", family="Inter, sans-serif")),
+        title=dict(
+            text=f"<b>{title}</b>",
+            x=0.02,
+            font=dict(size=14, color="#0f172a", family="Inter, sans-serif")
+        ),
+        autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(248,250,252,0.7)",
-        font=dict(family="Inter, sans-serif", size=12, color="#334155"),
-        height=400,
-        margin=dict(l=40, r=25, t=55, b=65),
+        font=dict(family="Inter, sans-serif", size=11, color="#334155"),
+        height=360,
+        margin=dict(l=12, r=12, t=48, b=35),
+        uniformtext_minsize=9,
+        uniformtext_mode="hide",
         hoverlabel=dict(bgcolor="#0f172a", font_size=12, font_color="#ffffff"),
-        transition=dict(duration=650, easing="cubic-in-out")
+        transition=dict(duration=550, easing="cubic-in-out")
     )
 
-    if chart_type != "pie":
-        fig.update_xaxes(showgrid=False, tickangle=-18)
-        y_max = 5.8 if mode == "ratings" else (max_val * 1.24 if max_val > 0 else 10)
+    if chart_type == "pie":
+        fig.update_layout(
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="top",
+                y=-0.06,
+                xanchor="center",
+                x=0.5,
+                font=dict(size=10)
+            )
+        )
+    else:
+        fig.update_xaxes(
+            showgrid=False,
+            tickangle=-35,
+            automargin=True,
+            tickfont=dict(size=10)
+        )
+        y_max = 5.6 if mode == "ratings" else (max_val * 1.18 if max_val > 0 else 10)
         fig.update_yaxes(
-            title_text=y_label,
+            title_text="",
             gridcolor="#e2e8f0",
             zeroline=True,
             zerolinecolor="#cbd5e1",
+            automargin=True,
+            tickfont=dict(size=10),
             range=[0, y_max]
         )
 
     return fig.to_html(
         full_html=False,
         include_plotlyjs="cdn",
-        config={"displayModeBar": True, "displaylogo": False}
+        config={"responsive": True, "displayModeBar": "hover", "displaylogo": False}
     )
 
 
@@ -578,7 +601,6 @@ def submit_review():
     experience_tag = request.form.get("experience_tag", "Comfort & Fit").strip()
     comment = request.form.get("comment", "").strip()
 
-    # Check if customer actually ordered this product -> Verified Buyer
     orders_df = load_orders_df()
     is_verified = False
     if not orders_df.empty:
