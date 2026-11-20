@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Uday Mittal",
+    "email": "udmittal2005@gmail.com",
+    "phone": "9468877203",
+    "city": "kota",
+    "gender": "Male",
+    "ageGroup": "18-25",
+    "password": "12345"
+  },
+  {
+    "name": "Ram",
+    "email": "ram123@gmail.com",
+    "phone": "123456789",
+    "city": "jaipur",
+    "gender": "Male",
+    "ageGroup": "41-55",
+    "password": "124578"
+  }
+]

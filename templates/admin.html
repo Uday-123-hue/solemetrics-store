@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  @keyframes chartSmoothReveal {
+    0% { opacity: 0; transform: translateY(14px) scale(0.985); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .animate-chart-box {
+    animation: chartSmoothReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+</style>
+
+<div class="space-y-6">
+
+  <!-- Header & Excel Download -->
+  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div>
+      <span class="inline-block px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold uppercase mb-1">Private Admin Workspace</span>
+      <h1 class="text-2xl font-extrabold text-slate-900">Sales, Profit &amp; Demographic Analytics</h1>
+      <p class="text-sm text-slate-500">All orders, profit margins &amp; demographics auto-save into <b>orders.xlsx</b></p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2.5">
+      <a href="{{ url_for('admin_download_excel') }}" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+        Download Excel (.xlsx)
+      </a>
+      <form method="POST" action="{{ url_for('admin_reset_demo') }}">
+        <button type="submit" class="px-3.5 py-2.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100">
+          Reset Demo Data
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6 KPI Cards (Including Gross Profit & Margin %) -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    {% for k in kpis %}
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ k.label }}</p>
+        <p class="text-xl font-extrabold text-slate-900 mt-1 truncate">{{ k.value }}</p>
+        <p class="text-[11px] font-semibold {{ 'text-emerald-600' if k.label == 'Gross Profit' else 'text-slate-500' }} mt-0.5">{{ k.sub }}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Animated Multi-Type Chart Section -->
+  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-extrabold text-slate-900">Interactive BI Visualization</h2>
+        <p class="text-xs text-slate-500">Analyze Units Sold, Revenue, or Gross Profit across Category, Brand, City, UK Size, Age Group &amp; Gender</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Chart Type Switcher -->
+        <div class="flex items-center gap-1 bg-indigo-50 p-1 rounded-xl border border-indigo-100">
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='bar', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'bar' else 'text-indigo-700 hover:bg-indigo-100' }}">Bar Graph</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='line', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'line' else 'text-indigo-700 hover:bg-indigo-100' }}">Line Chart</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='area', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'area' else 'text-indigo-700 hover:bg-indigo-100' }}">Area Chart</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='pie', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'pie' else 'text-indigo-700 hover:bg-indigo-100' }}">Doughnut Chart</a>
+        </div>
+
+        <!-- Metric Toggle: Units vs Revenue vs Gross Profit -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='units', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'units' else 'text-slate-600' }}">Units Sold</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='revenue', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'revenue' else 'text-slate-600' }}">Revenue (₹)</a>
+          <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='profit', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-emerald-600 text-white shadow-sm' if metric == 'profit' else 'text-emerald-700' }}">Gross Profit (₹)</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Dimension Pills (Added City, UK Size, Age Group & Gender) -->
+    <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-xl">
+      <a href="{{ url_for('admin_dashboard', chart='category', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'category' else 'text-slate-600 hover:text-slate-900' }}">By Category</a>
+      <a href="{{ url_for('admin_dashboard', chart='brand', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'brand' else 'text-slate-600 hover:text-slate-900' }}">By Brand</a>
+      <a href="{{ url_for('admin_dashboard', chart='city', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'city' else 'text-slate-600 hover:text-slate-900' }}">By City</a>
+      <a href="{{ url_for('admin_dashboard', chart='size', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'size' else 'text-slate-600 hover:text-slate-900' }}">By UK Size</a>
+      <a href="{{ url_for('admin_dashboard', chart='age', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'age' else 'text-slate-600 hover:text-slate-900' }}">By Age Group</a>
+      <a href="{{ url_for('admin_dashboard', chart='gender', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'gender' else 'text-slate-600 hover:text-slate-900' }}">By Gender</a>
+      <a href="{{ url_for('admin_dashboard', chart='model', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'model' else 'text-slate-600 hover:text-slate-900' }}">By Shoe Model</a>
+      <a href="{{ url_for('admin_dashboard', chart='timeline', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'timeline' else 'text-slate-600 hover:text-slate-900' }}">Sales Timeline</a>
+      <a href="{{ url_for('admin_dashboard', chart='payment', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'payment' else 'text-slate-600 hover:text-slate-900' }}">Payment Mode</a>
+    </div>
+
+    <!-- Animated Plotly Chart Container -->
+    <div class="w-full overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 animate-chart-box">
+      {{ chart_html | safe }}
+    </div>
+  </div>
+
+  <!-- Orders Ledger Table -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-extrabold text-slate-900">Customer Orders &amp; Profit Ledger</h2>
+        <p class="text-xs text-slate-500">Showing {{ orders | length }} of {{ total_orders_count }} total orders</p>
+      </div>
+      <form method="GET" action="{{ url_for('admin_dashboard') }}" class="flex flex-wrap items-center gap-2">
+        <input type="hidden" name="chart" value="{{ chart_mode }}" />
+        <input type="hidden" name="type" value="{{ chart_type }}" />
+        <input type="hidden" name="metric" value="{{ metric }}" />
+        <input type="text" name="q" value="{{ search_q }}" placeholder="Search customer, city, age, shoe..." class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs" />
+        <select name="brand" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold bg-white">
+          <option value="All">All Brands</option>
+          {% for b in brands %}
+            <option value="{{ b }}" {{ 'selected' if filter_brand == b else '' }}>{{ b }}</option>
+          {% endfor %}
+        </select>
+        <select name="category" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold bg-white">
+          <option value="All">All Categories</option>
+          {% for c in categories %}
+            <option value="{{ c.name }}" {{ 'selected' if filter_cat == c.name else '' }}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Filter</button>
+        <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric=metric) }}" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Clear</a>
+      </form>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold">
+            <th class="py-3.5 px-4">Order ID &amp; Date</th>
+            <th class="py-3.5 px-4">Customer &amp; Demographics</th>
+            <th class="py-3.5 px-4">Brand &amp; Footwear</th>
+            <th class="py-3.5 px-4">Category</th>
+            <th class="py-3.5 px-4">Size / Qty</th>
+            <th class="py-3.5 px-4">Revenue &amp; Profit</th>
+            <th class="py-3.5 px-4">Status</th>
+            <th class="py-3.5 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for o in orders %}
+            <tr class="hover:bg-slate-50/80">
+              <td class="py-3.5 px-4">
+                <span class="font-mono font-bold text-slate-900 block">#{{ o.orderId }}</span>
+                <span class="text-[11px] text-slate-400">{{ o.date }}</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="font-bold text-slate-900 block">{{ o.customerName }}</span>
+                <span class="text-[11px] text-slate-500 block">{{ o.city }} &bull; {{ o.gender }} ({{ o.ageGroup }})</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="text-[10px] font-bold uppercase text-indigo-600 block">{{ o.brand }}</span>
+                <span class="font-semibold text-slate-800">{{ o.productName }}</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="px-2 py-1 rounded-md bg-slate-100 text-slate-700 font-semibold">{{ o.category }}</span>
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-700">{{ o.size }} &times; {{ o.qty }}</td>
+              <td class="py-3.5 px-4">
+                <span class="font-extrabold text-slate-900 block">{{ o.totalAmount | inr }}</span>
+                <span class="text-[11px] font-bold text-emerald-600">+{{ o.profit | inr }} Profit</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <form method="POST" action="{{ url_for('admin_update_status', order_id=o.orderId) }}" class="flex items-center gap-1">
+                  <select name="status" class="px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold bg-white">
+                    <option value="Confirmed" {{ 'selected' if o.status == 'Confirmed' else '' }}>Confirmed</option>
+                    <option value="Shipped" {{ 'selected' if o.status == 'Shipped' else '' }}>Shipped</option>
+                    <option value="Delivered" {{ 'selected' if o.status == 'Delivered' else '' }}>Delivered</option>
+                  </select>
+                  <button type="submit" class="px-2 py-1 rounded-md bg-slate-900 text-white text-[10px] font-bold">Save</button>
+                </form>
+              </td>
+              <td class="py-3.5 px-4 text-right space-x-2">
+                <a href="{{ url_for('receipt', order_id=o.orderId) }}" class="text-indigo-600 font-bold hover:underline">Receipt</a>
+                <form method="POST" action="{{ url_for('admin_delete_order', order_id=o.orderId) }}" class="inline">
+                  <button type="submit" class="text-rose-600 font-bold hover:underline">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="8" class="py-8 text-center text-slate-500 font-semibold">No matching orders found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-12">
+
+  <!-- Hero Banner -->
+  <div class="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 sm:p-12 lg:p-14 grid lg:grid-cols-12 gap-8 items-center">
+    <div class="lg:col-span-7 space-y-5">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-semibold uppercase">
+        10 Top Brands &bull; 10 Footwear Categories
+      </span>
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+        Authentic Footwear for Every Step &amp; Generation.
+      </h1>
+      <p class="text-slate-300 text-base sm:text-lg max-w-xl leading-relaxed">
+        Shop genuine sneakers, running shoes, formal leather, ladies' styles, kids' footwear, orthopedic senior comfort, slippers, flip-flops, and Crocs.
+      </p>
+      <div class="pt-2 flex flex-wrap gap-3">
+        <a href="{{ url_for('shop') }}" class="px-6 py-3.5 rounded-xl bg-white text-slate-900 font-bold text-sm hover:bg-slate-100">
+          Explore All Shoes &rarr;
+        </a>
+        <a href="{{ url_for('shop', category='Senior Comfort') }}" class="px-5 py-3.5 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/15">
+          Senior Comfort Range
+        </a>
+      </div>
+    </div>
+    <div class="lg:col-span-5">
+      <div class="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl aspect-[4/3] bg-slate-800">
+        <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80" alt="Featured Nike" class="w-full h-full object-cover" />
+        <div class="absolute bottom-3 left-3 right-3 bg-slate-950/80 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400">Featured Drop</p>
+            <p class="text-sm font-bold text-white">Nike Pegasus &amp; Air Force Series</p>
+          </div>
+          <a href="{{ url_for('shop', brand='Nike') }}" class="text-xs font-bold bg-white text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-200">
+            Shop Nike
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop by Brand -->
+  <div class="space-y-4">
+    <div class="flex items-end justify-between">
+      <div>
+        <h2 class="text-2xl font-extrabold text-slate-900">Shop by Brand</h2>
+        <p class="text-sm text-slate-500">Tap any brand to view strictly its verified footwear models</p>
+      </div>
+      <a href="{{ url_for('shop') }}" class="text-sm font-semibold text-indigo-600 hover:underline">View All &rarr;</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {% for brand in brands %}
+        <a href="{{ url_for('shop', brand=brand) }}" class="bg-white p-4 rounded-2xl border border-slate-200 hover:border-slate-900 hover:shadow-sm transition flex items-center justify-between">
+          <div>
+            <span class="font-extrabold text-slate-900 text-sm block">{{ brand }}</span>
+            <span class="text-[11px] text-slate-500">{{ brand_counts[brand] }} Models</span>
+          </div>
+          <span class="text-slate-400 font-bold text-sm">&rarr;</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Browse by Category -->
+  <div class="space-y-4">
+    <div>
+      <h2 class="text-2xl font-extrabold text-slate-900">Browse by Category</h2>
+      <p class="text-sm text-slate-500">From everyday slippers and Crocs to formal leather and orthopedic senior shoes</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {% for cat in categories %}
+        <a href="{{ url_for('shop', category=cat.name) }}" class="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-slate-900 border border-slate-200 shadow-sm">
+          <img src="{{ cat.image }}" alt="{{ cat.name }}" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-300" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent"></div>
+          <div class="absolute bottom-3 left-3 right-3">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">{{ cat.tag }}</span>
+            <span class="text-sm font-extrabold text-white">{{ cat.name }}</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Popular Picks -->
+  <div class="space-y-4">
+    <div class="flex items-end justify-between">
+      <div>
+        <h2 class="text-2xl font-extrabold text-slate-900">Popular Picks</h2>
+        <p class="text-sm text-slate-500">Instant order confirmation &amp; digital email receipt</p>
+      </div>
+      <a href="{{ url_for('shop') }}" class="text-sm font-semibold text-indigo-600 hover:underline">Full Catalog &rarr;</a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for product in featured %}
+        <div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+          <div class="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+            <img src="{{ product.image }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-900/85 text-white text-[11px] font-bold">{{ product.brand }}</span>
+            <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-white/95 text-slate-800 text-[11px] font-bold shadow-sm">{{ product.badge }}</span>
+          </div>
+          <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                <span>{{ product.category }}</span>
+                <span>&#9733; {{ product.rating }}</span>
+              </div>
+              <h3 class="font-extrabold text-slate-900 text-base mt-1">{{ product.name }}</h3>
+              <p class="text-xs text-slate-500 mt-1">{{ product.desc }}</p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] text-slate-400 block">Price</span>
+                <span class="text-base font-extrabold text-slate-900">{{ product.price | inr }}</span>
+              </div>
+              <a href="{{ url_for('checkout', product_id=product.id) }}" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600">
+                Buy Now
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

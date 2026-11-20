@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoleMetrics — Multi-Brand Footwear Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <a href="{{ url_for('home') }}" class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-extrabold text-lg">S</div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight text-slate-900 block leading-none">SoleMetrics</span>
+          <span class="text-[11px] font-medium text-slate-500">FOOTWEAR STORE</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-1">
+        <a href="{{ url_for('home') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-700 hover:bg-slate-100' }}">Home</a>
+        <a href="{{ url_for('shop') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-700 hover:bg-slate-100' }}">Shop Footwear</a>
+
+        {% if current_user and current_user.role == 'customer' %}
+          <a href="{{ url_for('my_orders') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-700 hover:bg-slate-100' }}">My Orders</a>
+        {% endif %}
+
+        {% if current_user and current_user.role == 'admin' %}
+          <a href="{{ url_for('admin_dashboard') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100">Admin Analytics</a>
+        {% endif %}
+      </nav>
+
+      <!-- Auth Buttons -->
+      <div class="flex items-center gap-2.5">
+        {% if not current_user %}
+          <a href="{{ url_for('login_page') }}" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-slate-800">
+            Login / Sign Up
+          </a>
+        {% elif current_user.role == 'admin' %}
+          <span class="hidden sm:inline-block text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg">Admin</span>
+          <a href="{{ url_for('logout') }}" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-rose-50 hover:text-rose-700">Logout</a>
+        {% else %}
+          <span class="hidden sm:inline-block text-xs font-semibold text-slate-700">Hi, <b>{{ current_user.name.split(' ')[0] }}</b></span>
+          <a href="{{ url_for('my_orders') }}" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200">My Orders</a>
+          <a href="{{ url_for('logout') }}" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100">Logout</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 no-print">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2">
+          {% for category, msg in messages %}
+            <div class="px-4 py-3 rounded-xl text-xs font-bold {{ 'bg-rose-600 text-white' if category == 'error' else ('bg-emerald-600 text-white' if category == 'success' else 'bg-slate-900 text-white') }}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

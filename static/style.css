@@ -1,0 +1,23 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media print {
+  header, .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+  }
+}

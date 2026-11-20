@@ -1,0 +1,10 @@
+brand,category,city,customerEmail,customerName,customerPhone,date,orderId,paymentMethod,productId,productName,qty,size,status,totalAmount,unitPrice,ageGroup,costPrice,gender,profit
+Nike,Sneakers,Jaipur,aarav.v@example.com,Aarav Verma,9829011223,2026-11-14,ORD-1041,UPI,NK-01,Nike Air Force 1 '07 Low,1,UK 9,Delivered,7495,7495,18-25,4500,Male,2995
+Skechers,Ladies,Kota,sneha.g@example.com,Sneha Gupta,9414055667,2026-11-15,ORD-1042,Credit/Debit Card,SK-02,Skechers Ladies Arch Fit Pastel,1,UK 6,Delivered,4999,4999,18-25,2900,Male,2099
+Skechers,Senior Comfort,Udaipur,rprasad@example.com,Rajendra Prasad,9828123456,2026-11-16,ORD-1043,UPI,SK-01,Skechers Go Walk Flex Orthopedic,2,UK 8,Shipped,8998,4499,18-25,2600,Male,3798
+Crocs,Crocs & Clogs,Delhi,kabir.m@example.com,Kabir Mehta,9782099881,2026-11-17,ORD-1044,UPI,CR-01,Crocs Classic Clog Unisex,2,UK 8,Delivered,7990,3995,18-25,2100,Male,3790
+Adidas,Sneakers,Pune,ananya.j@example.com,Ananya Joshi,9660044332,2026-11-18,ORD-1045,Credit/Debit Card,AD-01,Adidas Samba OG White,1,UK 7,Shipped,9999,9999,18-25,6200,Male,3799
+Bata,Formal,Kota,vikram.r@example.com,Vikram Rathore,9461122334,2026-11-19,ORD-1046,Cash on Delivery,BT-01,Bata Ambassador Black Oxford,2,UK 9,Confirmed,3598,1799,18-25,1050,Male,1498
+Sparx,Flip-Flops,Jodhpur,pooja.s@example.com,Pooja Sharma,9928877665,2026-11-19,ORD-1047,UPI,SP-01,Sparx SFG-549 Anti-Skid Flip-Flops,3,UK 7,Confirmed,1047,349,18-25,180,Male,507
+Adidas,Slippers,kota,udmittal2005@gmail.com,Uday Mittal,9468877203,2026-11-20,ORD-3041,Cash on Delivery,AD-03,Adidas Adilette Comfort Slides,1,UK 8,Confirmed,2999,2999,18-25,1650,Male,1349
+Woodland,Formal,jaipur,ram123@gmail.com,Ram,123456789,2026-11-20,ORD-6867,Credit/Debit Card,WD-02,Woodland Tan Leather Derby,1,UK 8,Confirmed,3195,3195,41-55,1900,Male,1295
