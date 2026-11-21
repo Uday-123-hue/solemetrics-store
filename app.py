@@ -8,7 +8,6 @@ import urllib.request
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from urllib.parse import quote
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import pandas as pd
 import plotly.graph_objects as go
@@ -48,7 +47,7 @@ INITIAL_DEMO_REVIEWS = [
 
 
 # =========================================================================
-# 1. FREE AUTOMATIC ORDER CONFIRMATION EMAIL (BREVO SMTP + API)
+# 1. AUTOMATIC ORDER CONFIRMATION EMAIL ENGINE (BREVO API + SMTP)
 # =========================================================================
 def send_order_confirmation_email(order_items: list, display_order_id: str, grand_total: int):
     if not order_items:
@@ -67,46 +66,64 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
     if not to_email:
         return
 
+    total_pairs = sum(int(i.get("qty", 1)) for i in order_items)
     rows_html = ""
     for item in order_items:
         rows_html += f"""
         <tr>
-          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;">
-            <b>{item['brand']}</b> — {item['productName']}
+          <td style="padding:12px 10px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;">
+            <span style="font-size:10px;font-weight:700;color:#4f46e5;text-transform:uppercase;display:block;">{item['brand']}</span>
+            <b>{item['productName']}</b>
           </td>
-          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
+          <td style="padding:12px 10px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
             {item['size']}
           </td>
-          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
+          <td style="padding:12px 10px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
             {item['qty']}
           </td>
-          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;font-weight:700;text-align:right;">
+          <td style="padding:12px 10px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;font-weight:700;text-align:right;">
             &#8377;{int(item['totalAmount']):,}
           </td>
         </tr>
         """
 
-    subject = f"Order Confirmed #{display_order_id} — SoleMetrics Footwear Studio"
+    subject = f"Your Order Has Been Confirmed (#{display_order_id}) — SoleMetrics"
     html_body = f"""
-    <div style="font-family:'Inter',Arial,sans-serif;background:#fafafa;padding:24px;">
-      <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden;">
-        <div style="background:#09090b;color:#ffffff;padding:22px 24px;">
-          <p style="margin:0;font-size:11px;letter-spacing:2px;color:#fbbf24;font-weight:700;text-transform:uppercase;">Order Confirmed</p>
-          <h1 style="margin:6px 0 0;font-size:20px;">SoleMetrics Footwear Studio</h1>
+    <div style="font-family:'Inter',Arial,sans-serif;background:#f4f4f5;padding:28px 16px;">
+      <div style="max-width:580px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:18px;overflow:hidden;">
+
+        <!-- Dark Minimal Header -->
+        <div style="background:#09090b;color:#ffffff;padding:24px 28px;">
+          <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,185,129,0.18);color:#6ee7b7;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+            &#10003; Order Confirmed
+          </span>
+          <h1 style="margin:10px 0 4px;font-size:22px;letter-spacing:-0.4px;">Your Order Has Been Confirmed!</h1>
+          <p style="margin:0;font-size:12px;color:#a1a1aa;">SoleMetrics Footwear Studio &bull; Order #{display_order_id}</p>
         </div>
-        <div style="padding:24px;">
+
+        <!-- Body -->
+        <div style="padding:26px 28px;">
           <p style="margin:0 0 12px;font-size:14px;color:#18181b;">Hi <b>{to_name}</b>,</p>
-          <p style="margin:0 0 18px;font-size:13px;color:#52525b;line-height:1.6;">
-            Thank you for shopping with SoleMetrics! Your order <b>#{display_order_id}</b> has been confirmed and is being prepared for dispatch to <b>{first['city']}</b>.
+          <p style="margin:0 0 20px;font-size:13px;color:#52525b;line-height:1.6;">
+            Thank you for shopping with <b>SoleMetrics</b>. Your order has been confirmed and is now being packed for dispatch. Here is your complete order summary:
           </p>
 
-          <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+          <!-- Order Metadata Box -->
+          <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:#52525b;line-height:1.7;">
+            <div><b style="color:#18181b;">Order ID:</b> #{display_order_id}</div>
+            <div><b style="color:#18181b;">Order Date:</b> {first['date']}</div>
+            <div><b style="color:#18181b;">Delivery City:</b> {first['city']}</div>
+            <div><b style="color:#18181b;">Payment Mode:</b> {first['paymentMethod']}</div>
+          </div>
+
+          <!-- Itemized Footwear Table -->
+          <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
             <thead>
               <tr style="background:#f4f4f5;color:#52525b;font-size:11px;text-transform:uppercase;">
-                <th style="padding:8px;text-align:left;">Footwear</th>
-                <th style="padding:8px;text-align:center;">Size</th>
-                <th style="padding:8px;text-align:center;">Qty</th>
-                <th style="padding:8px;text-align:right;">Amount</th>
+                <th style="padding:10px;text-align:left;border-radius:8px 0 0 8px;">Footwear</th>
+                <th style="padding:10px;text-align:center;">Size</th>
+                <th style="padding:10px;text-align:center;">Qty</th>
+                <th style="padding:10px;text-align:right;border-radius:0 8px 8px 0;">Price</th>
               </tr>
             </thead>
             <tbody>
@@ -114,61 +131,68 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
             </tbody>
           </table>
 
-          <div style="background:#f4f4f5;padding:12px 16px;border-radius:10px;font-size:14px;color:#09090b;">
-            <b>Total Paid ({first['paymentMethod']}): &#8377;{grand_total:,}</b>
+          <!-- Total Summary -->
+          <div style="background:#09090b;color:#ffffff;padding:14px 18px;border-radius:12px;font-size:14px;">
+            <table style="width:100%;border-collapse:collapse;">
+              <tr>
+                <td style="color:#d4d4d8;font-size:12px;">Total Paid ({total_pairs} Pair{'s' if total_pairs > 1 else ''})</td>
+                <td style="text-align:right;font-size:17px;font-weight:800;color:#ffffff;">&#8377;{grand_total:,}</td>
+              </tr>
+            </table>
           </div>
 
-          <p style="margin:20px 0 0;font-size:12px;color:#71717a;">
-            Order Date: {first['date']} &bull; Delivery City: {first['city']}
+          <p style="margin:22px 0 0;font-size:12px;color:#71717a;line-height:1.5;">
+            You can view or download your PDF tax invoice anytime from the <b>My Orders</b> section on SoleMetrics.
           </p>
         </div>
+
       </div>
     </div>
     """
 
-    # Case 1: Brevo SMTP Key (starts with xsmtpsib-)
-    if brevo_key.startswith("xsmtpsib-"):
+    # Option A: Brevo HTTPS REST API (xkeysib-...) — Fastest & never blocked by cloud firewalls
+    if brevo_key.startswith("xkeysib-"):
+        payload = {
+            "sender": {"name": "SoleMetrics Store", "email": sender_email},
+            "to": [{"email": to_email, "name": to_name}],
+            "subject": subject,
+            "htmlContent": html_body
+        }
+        req = urllib.request.Request(
+            "https://api.brevo.com/v3/smtp/email",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "accept": "application/json",
+                "api-key": brevo_key,
+                "content-type": "application/json"
+            },
+            method="POST"
+        )
         try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = f"SoleMetrics Store <{sender_email}>"
-            msg["To"] = to_email
-            msg.attach(MIMEText(html_body, "html"))
-
-            with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=10) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(smtp_login, brevo_key)
-                server.sendmail(sender_email, to_email, msg.as_string())
-                print("Confirmation email sent via Brevo SMTP Relay")
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                print("Order confirmation email sent via Brevo API:", resp.status)
                 return
         except Exception as e:
-            print("Brevo SMTP skipped:", e)
+            print("Brevo API email error:", e)
             return
 
-    # Case 2: Brevo REST API Key (starts with xkeysib-)
-    payload = {
-        "sender": {"name": "SoleMetrics Store", "email": sender_email},
-        "to": [{"email": to_email, "name": to_name}],
-        "subject": subject,
-        "htmlContent": html_body
-    }
-    req = urllib.request.Request(
-        "https://api.brevo.com/v3/smtp/email",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "accept": "application/json",
-            "api-key": brevo_key,
-            "content-type": "application/json"
-        },
-        method="POST"
-    )
+    # Option B: Brevo SMTP Relay (xsmtpsib-...)
     try:
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            print("Confirmation email sent via Brevo API:", resp.status)
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"SoleMetrics Store <{sender_email}>"
+        msg["To"] = to_email
+        msg.attach(MIMEText(html_body, "html"))
+
+        with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=10) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(smtp_login, brevo_key)
+            server.sendmail(sender_email, to_email, msg.as_string())
+            print("Order confirmation email sent via Brevo SMTP Relay")
     except Exception as e:
-        print("Brevo API email skipped:", e)
+        print("Brevo SMTP error:", e)
 
 
 # =========================================================================
@@ -1103,13 +1127,13 @@ def place_order():
     df = pd.concat([pd.DataFrame(new_rows), df], ignore_index=True)
     write_local_excel_files(df)
 
-    # Send automatic order confirmation email to customer
+    # Automatically send confirmation email to customer
     send_order_confirmation_email(new_rows, base_code, grand_total)
 
     session["cart"] = {}
     session.modified = True
 
-    flash("Order confirmed! Confirmation email & invoice are ready.", "success")
+    flash("Your order has been confirmed! A confirmation email has been sent.", "success")
     return redirect(url_for("receipt", order_id=new_rows[0]["orderId"]))
 
 
@@ -1139,19 +1163,6 @@ def receipt(order_id):
     total_pairs = sum(int(i["qty"]) for i in order_items)
     img_map = {p["id"]: p["image"] for p in PRODUCTS}
 
-    item_lines = "\n".join(
-        [f"- {i['brand']} {i['productName']} ({i['size']} x {i['qty']}) = Rs. {int(i['totalAmount']):,}" for i in order_items]
-    )
-    subject = quote(f"SoleMetrics Invoice #{display_order_id}")
-    body = quote(
-        f"Hi {first['customerName']},\n\nThank you for shopping at SoleMetrics!\n\n"
-        f"Invoice ID: {display_order_id}\nDate: {first['date']}\n"
-        f"Items:\n{item_lines}\n\n"
-        f"Total Paid: Rs. {grand_total:,} ({first['paymentMethod']})\n"
-        f"Delivery City: {first['city']}\n\nRegards,\nSoleMetrics Footwear Store"
-    )
-    mailto_link = f"mailto:{first['customerEmail']}?subject={subject}&body={body}"
-
     return render_template(
         "receipt.html",
         active_page="my-orders",
@@ -1160,8 +1171,7 @@ def receipt(order_id):
         display_order_id=display_order_id,
         grand_total=grand_total,
         total_pairs=total_pairs,
-        img_map=img_map,
-        mailto_link=mailto_link
+        img_map=img_map
     )
 
 

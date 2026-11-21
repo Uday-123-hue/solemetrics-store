@@ -4,14 +4,15 @@
   <div class="p-6 space-y-4">
     <div class="flex items-center justify-between border-b border-slate-200 pb-4">
       <div>
-        <span class="text-xs font-bold uppercase text-emerald-600">Order Confirmed</span>
-        <h1 class="text-xl font-extrabold text-slate-900 mt-0.5">SoleMetrics Store</h1>
+        <span class="text-xs font-bold uppercase text-emerald-600">&#10003; Order Confirmed</span>
+        <h1 class="text-xl font-extrabold text-slate-900 mt-0.5">SoleMetrics Footwear Studio</h1>
       </div>
       <span class="px-3 py-1 rounded-lg bg-slate-100 font-mono text-xs font-bold text-slate-700">#{{ display_order_id }}</span>
     </div>
 
     <div class="text-xs text-slate-600 space-y-1">
-      <p><b class="text-slate-800">Billed To:</b> {{ order.customerName }} ({{ order.customerEmail }})</p>
+      <p><b class="text-slate-800">Billed To:</b> {{ order.customerName }}</p>
+      <p><b class="text-slate-800">Confirmation Sent To:</b> {{ order.customerEmail }}</p>
       <p><b class="text-slate-800">Delivery City:</b> {{ order.city }} &bull; <b class="text-slate-800">Date:</b> {{ order.date }}</p>
     </div>
 
@@ -42,16 +43,13 @@
     </div>
   </div>
 
-  <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 no-print">
-    <a href="{{ url_for('download_invoice_pdf', order_id=order.orderId) }}" class="px-3.5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+  <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 no-print">
+    <a href="{{ url_for('download_invoice_pdf', order_id=order.orderId) }}" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
       Download PDF Invoice
     </a>
-    <div class="flex items-center gap-2">
-      <a href="{{ mailto_link }}" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">
-        Email
-      </a>
-      <a href="{{ url_for('shop') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold">Done</a>
-    </div>
+    <a href="{{ url_for('shop') }}" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:opacity-90">
+      Done
+    </a>
   </div>
 </div>
 {% endblock %}
