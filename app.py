@@ -3,8 +3,11 @@ import os
 import re
 import json
 import random
+import smtplib
 import urllib.request
 from datetime import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from urllib.parse import quote
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import pandas as pd
@@ -45,7 +48,131 @@ INITIAL_DEMO_REVIEWS = [
 
 
 # =========================================================================
-# 1. FIREBASE CLOUD SYNC HELPERS
+# 1. FREE AUTOMATIC ORDER CONFIRMATION EMAIL (BREVO SMTP + API)
+# =========================================================================
+def send_order_confirmation_email(order_items: list, display_order_id: str, grand_total: int):
+    if not order_items:
+        return
+
+    sender_email = os.environ.get("SENDER_EMAIL", "").strip()
+    brevo_key = os.environ.get("BREVO_API_KEY", "").strip()
+    smtp_login = os.environ.get("BREVO_SMTP_LOGIN", "").strip() or sender_email
+
+    if not sender_email or not brevo_key:
+        return
+
+    first = order_items[0]
+    to_email = str(first.get("customerEmail", "")).strip()
+    to_name = str(first.get("customerName", "Customer")).strip()
+    if not to_email:
+        return
+
+    rows_html = ""
+    for item in order_items:
+        rows_html += f"""
+        <tr>
+          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;">
+            <b>{item['brand']}</b> — {item['productName']}
+          </td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
+            {item['size']}
+          </td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
+            {item['qty']}
+          </td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;font-weight:700;text-align:right;">
+            &#8377;{int(item['totalAmount']):,}
+          </td>
+        </tr>
+        """
+
+    subject = f"Order Confirmed #{display_order_id} — SoleMetrics Footwear Studio"
+    html_body = f"""
+    <div style="font-family:'Inter',Arial,sans-serif;background:#fafafa;padding:24px;">
+      <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden;">
+        <div style="background:#09090b;color:#ffffff;padding:22px 24px;">
+          <p style="margin:0;font-size:11px;letter-spacing:2px;color:#fbbf24;font-weight:700;text-transform:uppercase;">Order Confirmed</p>
+          <h1 style="margin:6px 0 0;font-size:20px;">SoleMetrics Footwear Studio</h1>
+        </div>
+        <div style="padding:24px;">
+          <p style="margin:0 0 12px;font-size:14px;color:#18181b;">Hi <b>{to_name}</b>,</p>
+          <p style="margin:0 0 18px;font-size:13px;color:#52525b;line-height:1.6;">
+            Thank you for shopping with SoleMetrics! Your order <b>#{display_order_id}</b> has been confirmed and is being prepared for dispatch to <b>{first['city']}</b>.
+          </p>
+
+          <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+            <thead>
+              <tr style="background:#f4f4f5;color:#52525b;font-size:11px;text-transform:uppercase;">
+                <th style="padding:8px;text-align:left;">Footwear</th>
+                <th style="padding:8px;text-align:center;">Size</th>
+                <th style="padding:8px;text-align:center;">Qty</th>
+                <th style="padding:8px;text-align:right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows_html}
+            </tbody>
+          </table>
+
+          <div style="background:#f4f4f5;padding:12px 16px;border-radius:10px;font-size:14px;color:#09090b;">
+            <b>Total Paid ({first['paymentMethod']}): &#8377;{grand_total:,}</b>
+          </div>
+
+          <p style="margin:20px 0 0;font-size:12px;color:#71717a;">
+            Order Date: {first['date']} &bull; Delivery City: {first['city']}
+          </p>
+        </div>
+      </div>
+    </div>
+    """
+
+    # Case 1: Brevo SMTP Key (starts with xsmtpsib-)
+    if brevo_key.startswith("xsmtpsib-"):
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = f"SoleMetrics Store <{sender_email}>"
+            msg["To"] = to_email
+            msg.attach(MIMEText(html_body, "html"))
+
+            with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=10) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(smtp_login, brevo_key)
+                server.sendmail(sender_email, to_email, msg.as_string())
+                print("Confirmation email sent via Brevo SMTP Relay")
+                return
+        except Exception as e:
+            print("Brevo SMTP skipped:", e)
+            return
+
+    # Case 2: Brevo REST API Key (starts with xkeysib-)
+    payload = {
+        "sender": {"name": "SoleMetrics Store", "email": sender_email},
+        "to": [{"email": to_email, "name": to_name}],
+        "subject": subject,
+        "htmlContent": html_body
+    }
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "accept": "application/json",
+            "api-key": brevo_key,
+            "content-type": "application/json"
+        },
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            print("Confirmation email sent via Brevo API:", resp.status)
+    except Exception as e:
+        print("Brevo API email skipped:", e)
+
+
+# =========================================================================
+# 2. FIREBASE CLOUD SYNC HELPERS
 # =========================================================================
 def firebase_enabled() -> bool:
     return bool(FIREBASE_DB_URL) and "YAHAN_APNA_FIREBASE" not in FIREBASE_DB_URL
@@ -76,7 +203,7 @@ def firebase_request(path: str, method: str = "GET", payload=None):
 
 
 # =========================================================================
-# 2. CUSTOMER ACCOUNT STORAGE
+# 3. CUSTOMER ACCOUNT STORAGE
 # =========================================================================
 def load_local_customers() -> list:
     if not os.path.exists(CUSTOMERS_FILE):
@@ -140,7 +267,7 @@ def save_new_customer(customer: dict, all_customers: list):
 
 
 # =========================================================================
-# 3. REVIEWS STORAGE (PANDAS + EXCEL + FIREBASE)
+# 4. REVIEWS STORAGE (PANDAS + EXCEL + FIREBASE)
 # =========================================================================
 def clean_reviews_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
@@ -180,7 +307,7 @@ def load_reviews_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 4. PANDAS EXCEL + PROFIT & RATINGS ANALYTICS ENGINE
+# 5. PANDAS EXCEL + PROFIT & RATINGS ANALYTICS ENGINE
 # =========================================================================
 def clean_orders_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
@@ -311,7 +438,7 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 5. PYTHON PLOTLY ADAPTIVE LIGHT/DARK MULTI-CHART GENERATOR
+# 6. PYTHON PLOTLY ADAPTIVE LIGHT/DARK MULTI-CHART GENERATOR
 # =========================================================================
 def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
     if metric == "revenue":
@@ -498,7 +625,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 
 
 # =========================================================================
-# 6. CART & GLOBAL TEMPLATE HELPERS
+# 7. CART & GLOBAL TEMPLATE HELPERS
 # =========================================================================
 def get_cart_details():
     raw_cart = session.get("cart", {})
@@ -547,7 +674,7 @@ def format_inr(value):
 
 
 # =========================================================================
-# 7. STOREFRONT, PRODUCT DETAIL, CART, AUTH & ORDER ROUTES
+# 8. STOREFRONT, PRODUCT DETAIL, CART, AUTH & ORDER ROUTES
 # =========================================================================
 @app.route("/")
 def home():
@@ -976,10 +1103,13 @@ def place_order():
     df = pd.concat([pd.DataFrame(new_rows), df], ignore_index=True)
     write_local_excel_files(df)
 
+    # Send automatic order confirmation email to customer
+    send_order_confirmation_email(new_rows, base_code, grand_total)
+
     session["cart"] = {}
     session.modified = True
 
-    flash("Order confirmed! Your invoice is ready.", "success")
+    flash("Order confirmed! Confirmation email & invoice are ready.", "success")
     return redirect(url_for("receipt", order_id=new_rows[0]["orderId"]))
 
 
@@ -1145,7 +1275,7 @@ def my_orders():
 
 
 # =========================================================================
-# 8. PRIVATE ADMIN ANALYTICS ROUTES
+# 9. PRIVATE ADMIN ANALYTICS ROUTES
 # =========================================================================
 @app.route("/admin")
 def admin_dashboard():
