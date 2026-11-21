@@ -34,11 +34,11 @@ UK_SIZES = ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
 COST_PRICE_MAP = {p["id"]: int(p.get("cost_price", int(p["price"] * 0.6))) for p in PRODUCTS}
 
 INITIAL_DEMO_REVIEWS = [
-    {"reviewId": "REV-101", "date": "2026-11-15", "customerName": "Aarav Verma", "customerEmail": "aarav.v@example.com", "brand": "Nike", "productId": "NK-01", "productName": "Nike Air Force 1 '07 Low", "rating": 5, "experienceTag": "Build Quality", "comment": "Premium leather finish and super comfortable cushioning for daily college wear.", "verifiedBuyer": "Yes"},
-    {"reviewId": "REV-102", "date": "2026-11-16", "customerName": "Rajendra Prasad", "customerEmail": "rprasad@example.com", "brand": "Skechers", "productId": "SK-01", "productName": "Skechers Go Walk Flex Orthopedic", "rating": 5, "experienceTag": "Comfort & Fit", "comment": "Bought these for my morning walk—zero heel pain and effortless slip-on fit.", "verifiedBuyer": "Yes"},
-    {"reviewId": "REV-103", "date": "2026-11-17", "customerName": "Kabir Mehta", "customerEmail": "kabir.m@example.com", "brand": "Crocs", "productId": "CR-01", "productName": "Crocs Classic Clog Unisex", "rating": 4, "experienceTag": "Lightweight", "comment": "Very light and easy to wash. Great ventilation for all-day indoor and outdoor use.", "verifiedBuyer": "Yes"},
-    {"reviewId": "REV-104", "date": "2026-11-18", "customerName": "Sneha Gupta", "customerEmail": "sneha.g@example.com", "brand": "Skechers", "productId": "SK-02", "productName": "Skechers Ladies Arch Fit Pastel", "rating": 5, "experienceTag": "Comfort & Fit", "comment": "Arch support feels amazing during long standing hours and the pastel shade looks clean.", "verifiedBuyer": "Yes"},
-    {"reviewId": "REV-105", "date": "2026-11-19", "customerName": "Pooja Sharma", "customerEmail": "pooja.s@example.com", "brand": "Sparx", "productId": "SP-01", "productName": "Sparx SFG-549 Anti-Skid Flip-Flops", "rating": 4, "experienceTag": "Value for Money", "comment": "Strong wet-surface grip and soft EVA sole at a very budget-friendly price.", "verifiedBuyer": "Yes"}
+    {"reviewId": "REV-101", "date": "2026-11-15", "customerName": "Aarav Verma", "customerEmail": "aarav.v@gmail.com", "brand": "Nike", "productId": "NK-01", "productName": "Nike Air Force 1 '07 Low", "rating": 5, "experienceTag": "Build Quality", "comment": "Premium leather finish and super comfortable cushioning for daily college wear.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-102", "date": "2026-11-16", "customerName": "Rajendra Prasad", "customerEmail": "rprasad@gmail.com", "brand": "Skechers", "productId": "SK-01", "productName": "Skechers Go Walk Flex Orthopedic", "rating": 5, "experienceTag": "Comfort & Fit", "comment": "Bought these for my morning walk—zero heel pain and effortless slip-on fit.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-103", "date": "2026-11-17", "customerName": "Kabir Mehta", "customerEmail": "kabir.m@gmail.com", "brand": "Crocs", "productId": "CR-01", "productName": "Crocs Classic Clog Unisex", "rating": 4, "experienceTag": "Lightweight", "comment": "Very light and easy to wash. Great ventilation for all-day indoor and outdoor use.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-104", "date": "2026-11-18", "customerName": "Sneha Gupta", "customerEmail": "sneha.g@gmail.com", "brand": "Skechers", "productId": "SK-02", "productName": "Skechers Ladies Arch Fit Pastel", "rating": 5, "experienceTag": "Comfort & Fit", "comment": "Arch support feels amazing during long standing hours and the pastel shade looks clean.", "verifiedBuyer": "Yes"},
+    {"reviewId": "REV-105", "date": "2026-11-19", "customerName": "Pooja Sharma", "customerEmail": "pooja.s@gmail.com", "brand": "Sparx", "productId": "SP-01", "productName": "Sparx SFG-549 Anti-Skid Flip-Flops", "rating": 4, "experienceTag": "Value for Money", "comment": "Strong wet-surface grip and soft EVA sole at a very budget-friendly price.", "verifiedBuyer": "Yes"}
 ]
 
 
@@ -211,7 +211,6 @@ def clean_orders_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def write_local_excel_files(df: pd.DataFrame, customers_list: list = None, reviews_df: pd.DataFrame = None):
-    """7 Sheets ke saath orders.xlsx aur CSV backups save karta hai"""
     df.to_csv(CSV_BACKUP_FILE, index=False)
     rev_df = reviews_df if reviews_df is not None else load_reviews_df()
     rev_df.to_csv(REVIEWS_CSV_FILE, index=False)
@@ -597,6 +596,10 @@ def submit_review():
         flash("Please fill in all review details.", "error")
         return redirect(url_for("reviews_page"))
 
+    if not re.fullmatch(r"[a-zA-Z0-9._%+-]+@gmail\.com", customer_email):
+        flash("Please enter a valid Gmail address ending with @gmail.com.", "error")
+        return redirect(url_for("reviews_page", product_id=product_id))
+
     rating = max(1, min(5, int(request.form.get("rating", 5))))
     experience_tag = request.form.get("experience_tag", "Comfort & Fit").strip()
     comment = request.form.get("comment", "").strip()
@@ -631,7 +634,7 @@ def submit_review():
     write_local_excel_files(orders_df, reviews_df=rev_df)
     firebase_request(f"reviews/{review_id}", "PUT", new_review)
 
-    flash("Thank you! Your review has been published and saved to Excel.", "success")
+    flash("Thank you! Your review has been published.", "success")
     return redirect(url_for("reviews_page"))
 
 
@@ -648,11 +651,15 @@ def customer_login():
     password = request.form.get("password", "").strip()
     next_url = request.form.get("next_url", "").strip()
 
+    if not re.fullmatch(r"[a-zA-Z0-9._%+-]+@gmail\.com", email):
+        flash("Please enter a valid Gmail address ending with @gmail.com.", "error")
+        return redirect(url_for("login_page", tab="customer-login", next=next_url))
+
     customers = load_customers()
     account = next((c for c in customers if c["email"].strip().lower() == email), None)
 
     if not account:
-        flash("No account found with this email. Please create an account first.", "error")
+        flash("No account found with this Gmail. Please create an account first.", "error")
         return redirect(url_for("login_page", tab="customer-signup", next=next_url))
 
     if str(account.get("password", "")).strip() != password:
@@ -683,9 +690,25 @@ def customer_signup():
     password = request.form.get("password", "").strip()
     next_url = request.form.get("next_url", "").strip()
 
+    if len(name) < 2:
+        flash("Please enter your full name.", "error")
+        return redirect(url_for("login_page", tab="customer-signup", next=next_url))
+
+    if not re.fullmatch(r"[a-zA-Z0-9._%+-]+@gmail\.com", email):
+        flash("Please enter a valid Gmail address ending with @gmail.com.", "error")
+        return redirect(url_for("login_page", tab="customer-signup", next=next_url))
+
+    if not re.fullmatch(r"\d{10}", phone):
+        flash("Please enter a valid 10-digit mobile number.", "error")
+        return redirect(url_for("login_page", tab="customer-signup", next=next_url))
+
+    if len(password) < 4:
+        flash("Password must be at least 4 characters long.", "error")
+        return redirect(url_for("login_page", tab="customer-signup", next=next_url))
+
     customers = load_customers()
     if any(c["email"].strip().lower() == email for c in customers):
-        flash("This email is already registered. Please sign in with your password.", "error")
+        flash("This Gmail is already registered. Please sign in with your password.", "error")
         return redirect(url_for("login_page", tab="customer-login", next=next_url))
 
     new_cust = {
@@ -709,7 +732,7 @@ def customer_signup():
         "gender": gender,
         "ageGroup": age_group
     }
-    flash(f"Account created! Welcome, {name}.", "success")
+    flash(f"Account created! Welcome to SoleMetrics, {name}.", "success")
     return redirect(next_url or url_for("shop"))
 
 
@@ -800,7 +823,7 @@ def place_order():
     write_local_excel_files(df)
     firebase_request(f"orders/{order_id}", "PUT", new_order)
 
-    flash("Order confirmed and saved to orders.xlsx!", "success")
+    flash("Order confirmed! Your receipt is ready.", "success")
     return redirect(url_for("receipt", order_id=order_id))
 
 

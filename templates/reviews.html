@@ -39,17 +39,17 @@
   <!-- Left: Custom Review Form | Right: All Reviews Feed -->
   <div class="grid lg:grid-cols-12 gap-8 items-start">
 
-    <!-- CUSTOM REVIEW FORM (NO GOOGLE FORM) -->
+    <!-- CUSTOM REVIEW FORM -->
     <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-4">
       <div>
         <h2 class="text-xl font-extrabold text-slate-900">Write a Product Review</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Your feedback is stored directly in our analytics database.</p>
+        <p class="text-xs text-slate-500 mt-0.5">Help fellow shoppers choose the right pair.</p>
       </div>
 
       <form method="POST" action="{{ url_for('submit_review') }}" class="space-y-4">
         {% if current_user and current_user.role == 'customer' %}
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-800">
-            Submitting as <b>{{ current_user.name }}</b> ({{ current_user.email }})
+            Posting as <b>{{ current_user.name }}</b> ({{ current_user.email }})
           </div>
           <input type="hidden" name="customer_name" value="{{ current_user.name }}" />
           <input type="hidden" name="customer_email" value="{{ current_user.email }}" />
@@ -60,8 +60,12 @@
               <input type="text" name="customer_name" required placeholder="e.g. Rohan Sharma" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-              <input type="email" name="customer_email" required placeholder="you@example.com" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+              <label class="block text-xs font-bold text-slate-700 mb-1">Gmail Address</label>
+              <input type="email" name="customer_email" required
+                     pattern="[a-zA-Z0-9._%+-]+@gmail\.com"
+                     title="Please enter a valid Gmail address ending with @gmail.com"
+                     placeholder="yourname@gmail.com"
+                     class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
             </div>
           </div>
         {% endif %}
