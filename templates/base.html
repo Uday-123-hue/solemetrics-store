@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SoleMetrics — Multi-Brand Footwear Store</title>
 
-  <!-- Instant Anti-Flash Theme Script (Light / Dark / System) -->
+  <!-- Instant Anti-Flash Theme Script (Light / Night / System) -->
   <script>
     (function () {
       var saved = localStorage.getItem('solemetrics-theme') || 'system';
@@ -26,55 +26,55 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Frosted Minimal Header -->
-  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+  <!-- Clean Single-Row Frosted Header -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 no-print">
+    <div class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
 
-      <!-- Brand Logo -->
-      <a href="{{ url_for('home') }}" class="flex items-center gap-2.5 group shrink-0">
-        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-display font-extrabold text-base shadow-sm group-hover:scale-105 transition-transform">
+      <!-- Left: Compact Brand Logo -->
+      <a href="{{ url_for('home') }}" class="flex items-center gap-2 shrink-0 group">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-display font-extrabold text-sm sm:text-base shadow-sm group-hover:scale-105 transition-transform">
           S
         </div>
         <div>
-          <span class="font-display font-extrabold text-base sm:text-lg tracking-tight text-slate-900 block leading-none">SoleMetrics</span>
-          <span class="text-[10px] font-semibold tracking-widest text-slate-400 uppercase">Footwear Studio</span>
+          <span class="font-display font-extrabold text-sm sm:text-lg tracking-tight text-slate-900 block leading-none">SoleMetrics</span>
+          <span class="hidden sm:block text-[10px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">Footwear Studio</span>
         </div>
       </a>
 
-      <!-- Desktop Navigation -->
+      <!-- Center: Desktop Navigation -->
       <nav class="hidden lg:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
-        <a href="{{ url_for('home') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'home' else 'text-slate-600 hover:text-slate-900' }}">
+        <a href="{{ url_for('home') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'home' else 'text-slate-600 hover:text-slate-900' }}">
           Home
         </a>
-        <a href="{{ url_for('shop') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'shop' else 'text-slate-600 hover:text-slate-900' }}">
+        <a href="{{ url_for('shop') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'shop' else 'text-slate-600 hover:text-slate-900' }}">
           Shop
         </a>
-        <a href="{{ url_for('reviews_page') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'reviews' else 'text-slate-600 hover:text-slate-900' }}">
+        <a href="{{ url_for('reviews_page') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'reviews' else 'text-slate-600 hover:text-slate-900' }}">
           Reviews
         </a>
-        <a href="{{ url_for('cart_page') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'cart' else 'text-slate-600 hover:text-slate-900' }}">
+        <a href="{{ url_for('cart_page') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap flex items-center gap-1.5 {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'cart' else 'text-slate-600 hover:text-slate-900' }}">
           <span>Cart</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold {{ 'bg-amber-400 text-slate-950' if cart_count > 0 else 'bg-slate-200 text-slate-700' }}">{{ cart_count }}</span>
+          <span class="px-1.5 rounded-full text-[10px] font-extrabold {{ 'bg-amber-400 text-slate-950' if cart_count > 0 else 'bg-slate-200 text-slate-700' }}">{{ cart_count }}</span>
         </a>
 
         {% if current_user and current_user.role == 'customer' %}
-          <a href="{{ url_for('my_orders') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'my-orders' else 'text-slate-600 hover:text-slate-900' }}">
+          <a href="{{ url_for('my_orders') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'my-orders' else 'text-slate-600 hover:text-slate-900' }}">
             My Orders
           </a>
         {% endif %}
 
         {% if current_user and current_user.role == 'admin' %}
-          <a href="{{ url_for('admin_dashboard') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold {{ 'bg-indigo-600 text-white shadow-sm' if active_page == 'admin' else 'text-indigo-600 hover:bg-indigo-50' }}">
+          <a href="{{ url_for('admin_dashboard') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-indigo-600 text-white shadow-sm' if active_page == 'admin' else 'text-indigo-600 hover:bg-indigo-50' }}">
             Admin BI
           </a>
         {% endif %}
       </nav>
 
-      <!-- Right Controls: 3-Mode Theme Switcher + Cart + Auth -->
-      <div class="flex items-center gap-2">
+      <!-- Right: Compact Theme Switcher + Cart + Sign In (Zero Line Wrapping) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
         <!-- 3-Mode Theme Switcher (Light / Night / System) -->
-        <div role="group" aria-label="Theme Mode" class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+        <div role="group" aria-label="Theme Mode" class="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200/80 shrink-0">
           <button type="button" data-theme-btn="light" onclick="setThemeMode('light')" title="Light Mode"
                   class="theme-pill p-1.5 rounded-lg text-slate-500 hover:text-slate-900">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -97,47 +97,55 @@
           </button>
         </div>
 
-        <!-- Mobile Quick Cart Pill -->
-        <a href="{{ url_for('cart_page') }}" class="lg:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-900 text-xs font-extrabold flex items-center gap-1">
-          <span>Cart</span>
-          <span class="px-1.5 rounded-full text-[10px] {{ 'bg-amber-400 text-slate-950' if cart_count > 0 else 'bg-slate-200 text-slate-700' }}">{{ cart_count }}</span>
+        <!-- Mobile Quick Cart Icon + Badge -->
+        <a href="{{ url_for('cart_page') }}" aria-label="Shopping Cart"
+           class="lg:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-900 text-xs font-extrabold flex items-center gap-1 whitespace-nowrap shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path d="M6 6h15l-1.5 9h-12z"></path>
+            <circle cx="9" cy="20" r="1.5"></circle>
+            <circle cx="18" cy="20" r="1.5"></circle>
+          </svg>
+          <span>{{ cart_count }}</span>
         </a>
 
-        <!-- Auth Buttons -->
+        <!-- Auth Action (Single Line Always) -->
         {% if not current_user %}
-          <a href="{{ url_for('login_page') }}" class="px-3.5 sm:px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:opacity-90 shadow-sm">
+          <a href="{{ url_for('login_page') }}" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:opacity-90 whitespace-nowrap shrink-0">
             Sign In
           </a>
         {% elif current_user.role == 'admin' %}
-          <span class="hidden sm:inline-block text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">Admin</span>
-          <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-rose-50 hover:text-rose-700">Logout</a>
+          <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-rose-50 hover:text-rose-700 whitespace-nowrap shrink-0">
+            Logout
+          </a>
         {% else %}
-          <span class="hidden sm:inline-block text-xs font-semibold text-slate-600">Hi, <b class="text-slate-900">{{ current_user.name.split(' ')[0] }}</b></span>
-          <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100">Logout</a>
+          <span class="hidden sm:inline-block text-xs font-semibold text-slate-600 whitespace-nowrap">Hi, <b class="text-slate-900">{{ current_user.name.split(' ')[0] }}</b></span>
+          <a href="{{ url_for('logout') }}" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 whitespace-nowrap shrink-0">
+            Logout
+          </a>
         {% endif %}
       </div>
     </div>
 
-    <!-- Mobile & Tablet Sub-Navigation Bar -->
-    <div class="lg:hidden flex items-center justify-around border-t border-slate-200/70 py-1.5 px-2 text-xs font-bold overflow-x-auto no-scrollbar">
-      <a href="{{ url_for('home') }}" class="px-3 py-1.5 rounded-lg {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-600' }}">Home</a>
-      <a href="{{ url_for('shop') }}" class="px-3 py-1.5 rounded-lg {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-600' }}">Shop</a>
-      <a href="{{ url_for('reviews_page') }}" class="px-3 py-1.5 rounded-lg {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'text-slate-600' }}">Reviews</a>
+    <!-- Clean Mobile Sub-Nav Bar -->
+    <div class="lg:hidden flex items-center justify-around border-t border-slate-200/70 py-1.5 px-3 text-xs font-bold">
+      <a href="{{ url_for('home') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-600' }}">Home</a>
+      <a href="{{ url_for('shop') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-600' }}">Shop</a>
+      <a href="{{ url_for('reviews_page') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'text-slate-600' }}">Reviews</a>
       {% if current_user and current_user.role == 'customer' %}
-        <a href="{{ url_for('my_orders') }}" class="px-3 py-1.5 rounded-lg {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-600' }}">Orders</a>
+        <a href="{{ url_for('my_orders') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-600' }}">Orders</a>
       {% elif current_user and current_user.role == 'admin' %}
-        <a href="{{ url_for('admin_dashboard') }}" class="px-3 py-1.5 rounded-lg {{ 'bg-indigo-600 text-white' if active_page == 'admin' else 'text-indigo-600 bg-indigo-50' }}">Admin BI</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-indigo-600 text-white' if active_page == 'admin' else 'text-indigo-600 bg-indigo-50' }}">Admin BI</a>
       {% endif %}
     </div>
   </header>
 
-  <!-- Toast / Flash Notifications -->
-  <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 no-print">
+  <!-- Toast Notifications -->
+  <div class="max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-3 no-print">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="space-y-2 page-animate">
           {% for category, msg in messages %}
-            <div class="px-4 py-3 rounded-xl text-xs font-bold shadow-sm border {{ 'bg-rose-600 text-white border-rose-500' if category == 'error' else ('bg-emerald-600 text-white border-emerald-500' if category == 'success' else 'bg-slate-900 text-white border-slate-700') }}">
+            <div class="px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm border {{ 'bg-rose-600 text-white border-rose-500' if category == 'error' else ('bg-emerald-600 text-white border-emerald-500' if category == 'success' else 'bg-slate-900 text-white border-slate-700') }}">
               {{ msg }}
             </div>
           {% endfor %}
@@ -147,23 +155,23 @@
   </div>
 
   <!-- Main Content -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9 page-animate">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-9 page-animate">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Minimal Luxury Footer -->
-  <footer class="border-t border-slate-200/80 mt-12 py-6 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-      <p class="font-semibold">SoleMetrics Footwear Studio &bull; Crafted for Comfort &amp; Analytics</p>
+  <!-- Minimal Footer -->
+  <footer class="border-t border-slate-200/80 mt-10 py-5 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 text-center sm:text-left">
+      <p class="font-semibold">SoleMetrics Footwear Studio</p>
       <div class="flex items-center gap-4 font-semibold">
         <a href="{{ url_for('shop') }}" class="hover:text-slate-900">Catalog</a>
-        <a href="{{ url_for('reviews_page') }}" class="hover:text-slate-900">Verified Reviews</a>
+        <a href="{{ url_for('reviews_page') }}" class="hover:text-slate-900">Reviews</a>
         <a href="{{ url_for('cart_page') }}" class="hover:text-slate-900">Cart ({{ cart_count }})</a>
       </div>
     </div>
   </footer>
 
-  <!-- Live Theme Switcher Controller -->
+  <!-- Live Theme Switcher Script -->
   <script>
     const mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
 
