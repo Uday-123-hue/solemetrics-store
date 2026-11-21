@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import json
@@ -8,6 +9,7 @@ from urllib.parse import quote
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import pandas as pd
 import plotly.graph_objects as go
+from fpdf import FPDF
 
 from data import (
     ADMIN_CREDENTIALS,
@@ -496,13 +498,46 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 
 
 # =========================================================================
-# 6. GLOBAL TEMPLATE HELPERS
+# 6. CART & GLOBAL TEMPLATE HELPERS
 # =========================================================================
+def get_cart_details():
+    raw_cart = session.get("cart", {})
+    prod_map = {p["id"]: p for p in PRODUCTS}
+    items = []
+    total_qty = 0
+    grand_total = 0
+
+    for item_key, entry in raw_cart.items():
+        pid = entry.get("product_id")
+        prod = prod_map.get(pid)
+        if not prod:
+            continue
+        size = entry.get("size", "UK 8")
+        qty = max(1, int(entry.get("qty", 1)))
+        unit_price = int(prod["price"])
+        subtotal = unit_price * qty
+        total_qty += qty
+        grand_total += subtotal
+        items.append({
+            "key": item_key,
+            "product": prod,
+            "size": size,
+            "qty": qty,
+            "unitPrice": unit_price,
+            "subtotal": subtotal
+        })
+
+    return items, total_qty, grand_total
+
+
 @app.context_processor
 def inject_globals():
+    raw_cart = session.get("cart", {})
+    cart_count = sum(int(v.get("qty", 1)) for v in raw_cart.values()) if isinstance(raw_cart, dict) else 0
     return {
         "current_user": session.get("user"),
-        "fallback_img": REAL_SHOE_FALLBACK_URL
+        "fallback_img": REAL_SHOE_FALLBACK_URL,
+        "cart_count": cart_count
     }
 
 
@@ -512,7 +547,7 @@ def format_inr(value):
 
 
 # =========================================================================
-# 7. STOREFRONT, AUTH, REVIEWS & ORDER ROUTES
+# 7. STOREFRONT, PRODUCT DETAIL, CART, AUTH & ORDER ROUTES
 # =========================================================================
 @app.route("/")
 def home():
@@ -558,6 +593,109 @@ def shop():
         selected_category=selected_category,
         query=request.args.get("q", "")
     )
+
+
+@app.route("/product/<product_id>")
+def product_detail(product_id):
+    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    if not product:
+        flash("Footwear model not found.", "error")
+        return redirect(url_for("shop"))
+
+    rev_df = load_reviews_df()
+    prod_rev_df = rev_df[rev_df["productId"] == product_id] if not rev_df.empty else pd.DataFrame()
+    product_reviews = prod_rev_df.to_dict(orient="records") if not prod_rev_df.empty else []
+    avg_rating = round(float(prod_rev_df["rating"].mean()), 1) if not prod_rev_df.empty else 0.0
+
+    similar = [
+        p for p in PRODUCTS
+        if p["id"] != product_id and (p["category"] == product["category"] or p["brand"] == product["brand"])
+    ][:4]
+
+    return render_template(
+        "product.html",
+        active_page="shop",
+        product=product,
+        uk_sizes=UK_SIZES,
+        product_reviews=product_reviews,
+        avg_rating=avg_rating,
+        similar=similar
+    )
+
+
+@app.route("/cart")
+def cart_page():
+    items, total_qty, grand_total = get_cart_details()
+    return render_template(
+        "cart.html",
+        active_page="cart",
+        items=items,
+        total_qty=total_qty,
+        grand_total=grand_total
+    )
+
+
+@app.route("/add-to-cart/<product_id>", methods=["GET", "POST"])
+def add_to_cart(product_id):
+    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    if not product:
+        flash("Footwear model not found.", "error")
+        return redirect(url_for("shop"))
+
+    size = request.values.get("size", "UK 8").strip() or "UK 8"
+    qty = max(1, min(10, int(request.values.get("qty", 1))))
+    action = request.values.get("action", "cart")
+
+    cart = session.get("cart", {})
+    if not isinstance(cart, dict):
+        cart = {}
+
+    item_key = f"{product_id}__{size}"
+    if item_key in cart:
+        cart[item_key]["qty"] = min(10, int(cart[item_key].get("qty", 1)) + qty)
+    else:
+        cart[item_key] = {
+            "product_id": product_id,
+            "size": size,
+            "qty": qty
+        }
+
+    session["cart"] = cart
+    session.modified = True
+
+    if action == "buy_now":
+        return redirect(url_for("checkout"))
+
+    flash(f"Added {product['name']} ({size}) to your cart.", "success")
+    return redirect(request.referrer or url_for("cart_page"))
+
+
+@app.route("/update-cart", methods=["POST"])
+def update_cart():
+    item_key = request.form.get("item_key", "")
+    qty = int(request.form.get("qty", 1))
+    cart = session.get("cart", {})
+
+    if item_key in cart:
+        if qty <= 0:
+            cart.pop(item_key, None)
+        else:
+            cart[item_key]["qty"] = min(10, qty)
+        session["cart"] = cart
+        session.modified = True
+
+    return redirect(url_for("cart_page"))
+
+
+@app.route("/remove-from-cart/<item_key>", methods=["GET", "POST"])
+def remove_from_cart(item_key):
+    cart = session.get("cart", {})
+    if item_key in cart:
+        cart.pop(item_key, None)
+        session["cart"] = cart
+        session.modified = True
+        flash("Item removed from cart.", "info")
+    return redirect(url_for("cart_page"))
 
 
 @app.route("/reviews")
@@ -635,7 +773,7 @@ def submit_review():
     firebase_request(f"reviews/{review_id}", "PUT", new_review)
 
     flash("Thank you! Your review has been published.", "success")
-    return redirect(url_for("reviews_page"))
+    return redirect(url_for("product_detail", product_id=product_id))
 
 
 @app.route("/login")
@@ -757,19 +895,29 @@ def logout():
     return redirect(url_for("home"))
 
 
+@app.route("/checkout")
 @app.route("/checkout/<product_id>")
-def checkout(product_id):
+def checkout(product_id=None):
+    if product_id:
+        return redirect(url_for("add_to_cart", product_id=product_id, action="buy_now"))
+
     user = session.get("user")
     if not user or user.get("role") != "customer":
         flash("Please login or create an account before placing an order.", "error")
-        return redirect(url_for("login_page", tab="customer-login", next=url_for("checkout", product_id=product_id)))
+        return redirect(url_for("login_page", tab="customer-login", next=url_for("checkout")))
 
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
-    if not product:
-        flash("Footwear model not found.", "error")
+    items, total_qty, grand_total = get_cart_details()
+    if not items:
+        flash("Your cart is empty. Add footwear before checkout.", "info")
         return redirect(url_for("shop"))
 
-    return render_template("checkout.html", active_page="shop", product=product)
+    return render_template(
+        "checkout.html",
+        active_page="cart",
+        items=items,
+        total_qty=total_qty,
+        grand_total=grand_total
+    )
 
 
 @app.route("/place-order", methods=["POST"])
@@ -779,83 +927,211 @@ def place_order():
         flash("Please sign in first.", "error")
         return redirect(url_for("login_page"))
 
-    product_id = request.form.get("product_id")
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
-    if not product:
+    items, total_qty, grand_total = get_cart_details()
+    if not items:
+        flash("Your cart is empty.", "error")
         return redirect(url_for("shop"))
 
-    size = request.form.get("size", "UK 8")
-    qty = max(1, int(request.form.get("qty", 1)))
     city = request.form.get("city", "").strip() or user.get("city", "India")
     payment_method = request.form.get("payment_method", "UPI")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    base_code = f"ORD-{random.randint(1000, 9999)}"
 
-    unit_price = int(product["price"])
-    cost_price = int(product.get("cost_price", int(unit_price * 0.6)))
-    total_amount = unit_price * qty
-    profit = total_amount - (cost_price * qty)
-    order_id = f"ORD-{random.randint(1000, 9999)}"
+    new_rows = []
+    for idx, item in enumerate(items, start=1):
+        prod = item["product"]
+        unit_price = int(prod["price"])
+        cost_price = int(prod.get("cost_price", int(unit_price * 0.6)))
+        qty = int(item["qty"])
+        total_amount = unit_price * qty
+        profit = total_amount - (cost_price * qty)
+        order_id = base_code if len(items) == 1 else f"{base_code}-{idx}"
 
-    new_order = {
-        "orderId": order_id,
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "customerName": user["name"],
-        "customerEmail": user["email"],
-        "customerPhone": user.get("phone", ""),
-        "gender": user.get("gender", "Male"),
-        "ageGroup": user.get("ageGroup", "18-25"),
-        "city": city,
-        "brand": product["brand"],
-        "productId": product["id"],
-        "productName": product["name"],
-        "category": product["category"],
-        "size": size,
-        "qty": qty,
-        "unitPrice": unit_price,
-        "costPrice": cost_price,
-        "totalAmount": total_amount,
-        "profit": profit,
-        "paymentMethod": payment_method,
-        "status": "Confirmed"
-    }
+        row = {
+            "orderId": order_id,
+            "date": today_str,
+            "customerName": user["name"],
+            "customerEmail": user["email"],
+            "customerPhone": user.get("phone", ""),
+            "gender": user.get("gender", "Male"),
+            "ageGroup": user.get("ageGroup", "18-25"),
+            "city": city,
+            "brand": prod["brand"],
+            "productId": prod["id"],
+            "productName": prod["name"],
+            "category": prod["category"],
+            "size": item["size"],
+            "qty": qty,
+            "unitPrice": unit_price,
+            "costPrice": cost_price,
+            "totalAmount": total_amount,
+            "profit": profit,
+            "paymentMethod": payment_method,
+            "status": "Confirmed"
+        }
+        new_rows.append(row)
+        firebase_request(f"orders/{order_id}", "PUT", row)
 
     df = load_orders_df()
-    df = pd.concat([pd.DataFrame([new_order]), df], ignore_index=True)
+    df = pd.concat([pd.DataFrame(new_rows), df], ignore_index=True)
     write_local_excel_files(df)
-    firebase_request(f"orders/{order_id}", "PUT", new_order)
 
-    flash("Order confirmed! Your receipt is ready.", "success")
-    return redirect(url_for("receipt", order_id=order_id))
+    session["cart"] = {}
+    session.modified = True
+
+    flash("Order confirmed! Your invoice is ready.", "success")
+    return redirect(url_for("receipt", order_id=new_rows[0]["orderId"]))
+
+
+def get_order_group(order_id: str):
+    df = load_orders_df()
+    if df.empty:
+        return []
+    parts = order_id.split("-")
+    base_prefix = f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else order_id
+    group_df = df[(df["orderId"] == order_id) | (df["orderId"].str.startswith(base_prefix + "-"))]
+    if group_df.empty:
+        return []
+    return group_df.to_dict(orient="records")
 
 
 @app.route("/receipt/<order_id>")
 def receipt(order_id):
-    df = load_orders_df()
-    match = df[df["orderId"] == order_id]
-    if match.empty:
+    order_items = get_order_group(order_id)
+    if not order_items:
         flash("Receipt not found.", "error")
         return redirect(url_for("home"))
 
-    order = match.iloc[0].to_dict()
-    prod = next((p for p in PRODUCTS if p["id"] == order["productId"]), None)
-    product_image = prod["image"] if prod else REAL_SHOE_FALLBACK_URL
+    first = order_items[0]
+    parts = first["orderId"].split("-")
+    display_order_id = f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else first["orderId"]
+    grand_total = sum(int(i["totalAmount"]) for i in order_items)
+    total_pairs = sum(int(i["qty"]) for i in order_items)
+    img_map = {p["id"]: p["image"] for p in PRODUCTS}
 
-    subject = quote(f"SoleMetrics Order Receipt #{order['orderId']} - {order['productName']}")
-    body = quote(
-        f"Hi {order['customerName']},\n\nThank you for shopping at SoleMetrics!\n\n"
-        f"Order ID: {order['orderId']}\nDate: {order['date']}\nBrand: {order['brand']}\n"
-        f"Footwear: {order['productName']} ({order['category']})\n"
-        f"Size: {order['size']} | Qty: {order['qty']}\n"
-        f"Total Paid: ₹{order['totalAmount']:,} ({order['paymentMethod']})\n"
-        f"Delivery City: {order['city']}\n\nRegards,\nSoleMetrics Footwear Store"
+    item_lines = "\n".join(
+        [f"- {i['brand']} {i['productName']} ({i['size']} x {i['qty']}) = Rs. {int(i['totalAmount']):,}" for i in order_items]
     )
-    mailto_link = f"mailto:{order['customerEmail']}?subject={subject}&body={body}"
+    subject = quote(f"SoleMetrics Invoice #{display_order_id}")
+    body = quote(
+        f"Hi {first['customerName']},\n\nThank you for shopping at SoleMetrics!\n\n"
+        f"Invoice ID: {display_order_id}\nDate: {first['date']}\n"
+        f"Items:\n{item_lines}\n\n"
+        f"Total Paid: Rs. {grand_total:,} ({first['paymentMethod']})\n"
+        f"Delivery City: {first['city']}\n\nRegards,\nSoleMetrics Footwear Store"
+    )
+    mailto_link = f"mailto:{first['customerEmail']}?subject={subject}&body={body}"
 
     return render_template(
         "receipt.html",
         active_page="my-orders",
-        order=order,
-        product_image=product_image,
+        order=first,
+        order_items=order_items,
+        display_order_id=display_order_id,
+        grand_total=grand_total,
+        total_pairs=total_pairs,
+        img_map=img_map,
         mailto_link=mailto_link
+    )
+
+
+@app.route("/invoice-pdf/<order_id>")
+def download_invoice_pdf(order_id):
+    order_items = get_order_group(order_id)
+    if not order_items:
+        flash("Invoice not found.", "error")
+        return redirect(url_for("home"))
+
+    first = order_items[0]
+    parts = first["orderId"].split("-")
+    display_order_id = f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else first["orderId"]
+    grand_total = sum(int(i["totalAmount"]) for i in order_items)
+
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Header Banner
+    pdf.set_fill_color(15, 23, 42)
+    pdf.rect(0, 0, 210, 36, "F")
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_xy(14, 10)
+    pdf.cell(120, 10, "SOLEMETRICS", ln=False)
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(62, 10, "TAX INVOICE", align="R", ln=True)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_x(14)
+    pdf.cell(120, 6, "Multi-Brand Footwear Store | India", ln=False)
+    pdf.cell(62, 6, f"Invoice #{display_order_id}", align="R", ln=True)
+
+    # Customer & Order Metadata
+    pdf.set_text_color(30, 41, 59)
+    pdf.set_xy(14, 44)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(95, 6, "BILLED TO:", ln=False)
+    pdf.cell(87, 6, "ORDER DETAILS:", align="R", ln=True)
+
+    pdf.set_font("Helvetica", "", 10)
+    pdf.set_x(14)
+    pdf.cell(95, 6, f"{first['customerName']}", ln=False)
+    pdf.cell(87, 6, f"Order Date: {first['date']}", align="R", ln=True)
+
+    pdf.set_x(14)
+    pdf.cell(95, 6, f"Email: {first['customerEmail']}", ln=False)
+    pdf.cell(87, 6, f"Payment Mode: {first['paymentMethod']}", align="R", ln=True)
+
+    pdf.set_x(14)
+    pdf.cell(95, 6, f"Delivery City: {first['city']}", ln=False)
+    pdf.cell(87, 6, f"Status: {first['status']}", align="R", ln=True)
+
+    # Items Table Header
+    pdf.ln(10)
+    pdf.set_fill_color(241, 245, 249)
+    pdf.set_draw_color(203, 213, 225)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_x(14)
+    pdf.cell(12, 9, "#", border=1, fill=True, align="C")
+    pdf.cell(86, 9, "Footwear Model & Brand", border=1, fill=True)
+    pdf.cell(22, 9, "Size", border=1, fill=True, align="C")
+    pdf.cell(16, 9, "Qty", border=1, fill=True, align="C")
+    pdf.cell(22, 9, "Price", border=1, fill=True, align="R")
+    pdf.cell(24, 9, "Amount", border=1, fill=True, align="R", ln=True)
+
+    # Table Rows
+    pdf.set_font("Helvetica", "", 9)
+    for idx, item in enumerate(order_items, start=1):
+        label = f"{item['brand']} - {item['productName']}"
+        if len(label) > 44:
+            label = label[:42] + ".."
+        pdf.set_x(14)
+        pdf.cell(12, 9, str(idx), border=1, align="C")
+        pdf.cell(86, 9, label, border=1)
+        pdf.cell(22, 9, str(item["size"]), border=1, align="C")
+        pdf.cell(16, 9, str(item["qty"]), border=1, align="C")
+        pdf.cell(22, 9, f"Rs. {int(item['unitPrice']):,}", border=1, align="R")
+        pdf.cell(24, 9, f"Rs. {int(item['totalAmount']):,}", border=1, align="R", ln=True)
+
+    # Grand Total Box
+    pdf.ln(4)
+    pdf.set_x(126)
+    pdf.set_fill_color(15, 23, 42)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.cell(70, 11, f"Grand Total: Rs. {grand_total:,}", border=0, fill=True, align="R", ln=True)
+
+    # Footer Note
+    pdf.set_text_color(100, 116, 139)
+    pdf.set_font("Helvetica", "I", 9)
+    pdf.ln(14)
+    pdf.set_x(14)
+    pdf.cell(182, 6, "Thank you for shopping with SoleMetrics! This is a computer-generated invoice.", align="C", ln=True)
+
+    pdf_bytes = bytes(pdf.output())
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"SoleMetrics_Invoice_{display_order_id}.pdf"
     )
 
 

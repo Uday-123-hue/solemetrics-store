@@ -2,85 +2,83 @@
 {% block content %}
 <div class="space-y-6">
 
-  <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <!-- Filter Bar -->
+  <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
       <div>
         <h1 class="text-2xl font-extrabold text-slate-900">Footwear Catalog</h1>
-        <p class="text-sm text-slate-500">Filter by brand, category, or search any shoe model</p>
+        <p class="text-xs text-slate-500">Showing {{ products | length }} models across 10 brands</p>
       </div>
-      <form method="GET" action="{{ url_for('shop') }}" class="flex flex-wrap items-center gap-2.5">
-        <input type="hidden" name="brand" value="{{ selected_brand }}" />
-        <input type="hidden" name="category" value="{{ selected_category }}" />
-        <input type="text" name="q" value="{{ query }}" placeholder="Search model, brand, style..." class="w-full sm:w-64 px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
-        <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Search</button>
-        <a href="{{ url_for('shop') }}" class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Reset</a>
-      </form>
+      <a href="{{ url_for('cart_page') }}" class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-extrabold hover:bg-indigo-100 self-start">
+        View Cart ({{ cart_count }}) &rarr;
+      </a>
     </div>
 
-    <!-- Brand Pills -->
-    <div class="space-y-1.5">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Brands</span>
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        <a href="{{ url_for('shop', brand='All', category=selected_category, q=query) }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap {{ 'bg-indigo-600 text-white' if selected_brand == 'All' else 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">All Brands</a>
+    <form method="GET" action="{{ url_for('shop') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search model, brand, comfort..." class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm" />
+
+      <select name="brand" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-white">
+        <option value="All">All Brands</option>
         {% for b in brands %}
-          <a href="{{ url_for('shop', brand=b, category=selected_category, q=query) }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap {{ 'bg-indigo-600 text-white' if selected_brand == b else 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">{{ b }}</a>
+          <option value="{{ b }}" {{ 'selected' if selected_brand == b else '' }}>{{ b }}</option>
         {% endfor %}
-      </div>
-    </div>
+      </select>
 
-    <!-- Category Pills -->
-    <div class="space-y-1.5">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Categories</span>
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        <a href="{{ url_for('shop', brand=selected_brand, category='All', q=query) }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap {{ 'bg-slate-900 text-white' if selected_category == 'All' else 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">All Categories</a>
+      <select name="category" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-white">
+        <option value="All">All Categories</option>
         {% for c in categories %}
-          <a href="{{ url_for('shop', brand=selected_brand, category=c.name, q=query) }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap {{ 'bg-slate-900 text-white' if selected_category == c.name else 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">{{ c.name }}</a>
+          <option value="{{ c.name }}" {{ 'selected' if selected_category == c.name else '' }}>{{ c.name }}</option>
         {% endfor %}
+      </select>
+
+      <div class="flex items-center gap-2">
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-indigo-600">
+          Apply
+        </button>
+        <a href="{{ url_for('shop') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold">
+          Reset
+        </a>
       </div>
-    </div>
+    </form>
   </div>
 
-  <p class="text-sm font-medium text-slate-600">
-    Showing {{ products | length }} footwear model(s)
-    {% if selected_brand != 'All' %} &bull; Brand: <b>{{ selected_brand }}</b>{% endif %}
-    {% if selected_category != 'All' %} &bull; Category: <b>{{ selected_category }}</b>{% endif %}
-  </p>
-
+  <!-- Product Grid -->
   {% if products %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {% for product in products %}
-        <div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
-          <div class="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-            <img src="{{ product.image }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-900/85 text-white text-[11px] font-bold">{{ product.brand }}</span>
-            <span class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-white/95 text-slate-800 text-[11px] font-bold shadow-sm">{{ product.badge }}</span>
-          </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {% for p in products %}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <a href="{{ url_for('product_detail', product_id=p.id) }}" class="aspect-square bg-slate-100 overflow-hidden block">
+            <img src="{{ p.image }}" alt="{{ p.name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
+          </a>
+
           <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
             <div>
-              <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500">
-                <span>{{ product.category }}</span>
-                <span>&#9733; {{ product.rating }}</span>
-              </div>
-              <h3 class="font-extrabold text-slate-900 text-base mt-1">{{ product.name }}</h3>
-              <p class="text-xs text-slate-500 mt-1">{{ product.desc }}</p>
-            </div>
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-              <div>
-                <span class="text-[11px] text-slate-400 block">Price</span>
-                <span class="text-base font-extrabold text-slate-900">{{ product.price | inr }}</span>
-              </div>
-              <a href="{{ url_for('checkout', product_id=product.id) }}" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600">
-                Buy Now
+              <span class="text-[10px] font-bold uppercase text-indigo-600">{{ p.brand }} &bull; {{ p.category }}</span>
+              <a href="{{ url_for('product_detail', product_id=p.id) }}" class="font-extrabold text-slate-900 text-sm block mt-0.5 hover:text-indigo-600">
+                {{ p.name }}
               </a>
+              <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ p.desc }}</p>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+              <span class="font-extrabold text-slate-900 text-base">{{ p.price | inr }}</span>
+              <div class="flex items-center gap-1.5">
+                <a href="{{ url_for('add_to_cart', product_id=p.id) }}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200">
+                  + Cart
+                </a>
+                <a href="{{ url_for('product_detail', product_id=p.id) }}" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600">
+                  View
+                </a>
+              </div>
             </div>
           </div>
         </div>
       {% endfor %}
     </div>
   {% else %}
-    <div class="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-3">
-      <p class="font-extrabold text-slate-900 text-base">No matching shoes found</p>
-      <a href="{{ url_for('shop') }}" class="inline-block px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold">Show All Footwear</a>
+    <div class="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-2">
+      <p class="font-extrabold text-slate-900">No matching footwear found</p>
+      <a href="{{ url_for('shop') }}" class="inline-block text-xs font-bold text-indigo-600 hover:underline">Clear all filters</a>
     </div>
   {% endif %}
 

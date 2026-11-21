@@ -25,6 +25,10 @@
         <a href="{{ url_for('home') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-700 hover:bg-slate-100' }}">Home</a>
         <a href="{{ url_for('shop') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-700 hover:bg-slate-100' }}">Shop Footwear</a>
         <a href="{{ url_for('reviews_page') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'text-slate-700 hover:bg-slate-100' }}">Reviews</a>
+        <a href="{{ url_for('cart_page') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 {{ 'bg-slate-900 text-white' if active_page == 'cart' else 'text-slate-700 hover:bg-slate-100' }}">
+          <span>Cart</span>
+          <span class="px-1.5 py-0.5 rounded-full text-[11px] font-extrabold {{ 'bg-amber-400 text-slate-950' if cart_count > 0 else 'bg-slate-200 text-slate-700' }}">{{ cart_count }}</span>
+        </a>
 
         {% if current_user and current_user.role == 'customer' %}
           <a href="{{ url_for('my_orders') }}" class="px-3.5 py-2 rounded-lg text-sm font-semibold {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-700 hover:bg-slate-100' }}">My Orders</a>
@@ -35,8 +39,12 @@
         {% endif %}
       </nav>
 
-      <!-- Auth Buttons -->
-      <div class="flex items-center gap-2.5">
+      <!-- Auth & Cart Actions -->
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('cart_page') }}" class="md:hidden px-3 py-2 rounded-xl bg-slate-100 text-slate-900 text-xs font-extrabold">
+          Cart ({{ cart_count }})
+        </a>
+
         {% if not current_user %}
           <a href="{{ url_for('login_page') }}" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-slate-800">
             Login / Sign Up
@@ -46,7 +54,7 @@
           <a href="{{ url_for('logout') }}" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-rose-50 hover:text-rose-700">Logout</a>
         {% else %}
           <span class="hidden sm:inline-block text-xs font-semibold text-slate-700">Hi, <b>{{ current_user.name.split(' ')[0] }}</b></span>
-          <a href="{{ url_for('my_orders') }}" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200">My Orders</a>
+          <a href="{{ url_for('my_orders') }}" class="hidden sm:inline-block px-3 py-2 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200">My Orders</a>
           <a href="{{ url_for('logout') }}" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100">Logout</a>
         {% endif %}
       </div>
