@@ -311,7 +311,7 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 5. PYTHON PLOTLY MOBILE-RESPONSIVE ANIMATED MULTI-CHART GENERATOR
+# 5. PYTHON PLOTLY ADAPTIVE LIGHT/DARK MULTI-CHART GENERATOR
 # =========================================================================
 def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
     if metric == "revenue":
@@ -388,8 +388,8 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         title = f"Cumulative {y_label}"
 
     palette = [
-        "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6",
-        "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#0f172a"
+        "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6",
+        "#ec4899", "#14b8a6", "#f97316", "#3b82f6", "#64748b"
     ]
     if mode == "ratings":
         text_labels = [f"{v}★" if v > 0 else "" for v in values]
@@ -414,17 +414,17 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             y=values,
             mode="lines+markers",
             fill="tozeroy",
-            fillcolor="rgba(79, 70, 229, 0.16)",
-            line=dict(color="#4f46e5", width=3, shape="spline"),
-            marker=dict(size=8, color="#0f172a", line=dict(width=2, color="#ffffff")),
+            fillcolor="rgba(99, 102, 241, 0.16)",
+            line=dict(color="#6366f1", width=3, shape="spline"),
+            marker=dict(size=8, color="#6366f1", line=dict(width=2, color="#ffffff")),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
     elif chart_type == "pie":
         trace = go.Pie(
             labels=labels,
             values=values,
-            hole=0.48,
-            marker=dict(colors=palette, line=dict(color="#ffffff", width=2)),
+            hole=0.50,
+            marker=dict(colors=palette, line=dict(color="rgba(148,163,184,0.25)", width=1.5)),
             textinfo="percent",
             textposition="inside",
             hovertemplate="<b>%{label}</b><br>" + y_label + ": %{value} (%{percent})<extra></extra>"
@@ -434,8 +434,8 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             x=labels,
             y=values,
             mode="lines+markers",
-            line=dict(color="#4f46e5", width=3, shape="spline"),
-            marker=dict(size=9, color="#0f172a", line=dict(width=2, color="#ffffff")),
+            line=dict(color="#6366f1", width=3, shape="spline"),
+            marker=dict(size=9, color="#6366f1", line=dict(width=2, color="#ffffff")),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
 
@@ -446,17 +446,17 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         title=dict(
             text=f"<b>{title}</b>",
             x=0.02,
-            font=dict(size=14, color="#0f172a", family="Inter, sans-serif")
+            font=dict(size=14, color="#18181b", family="Plus Jakarta Sans, Inter, sans-serif")
         ),
         autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(248,250,252,0.7)",
-        font=dict(family="Inter, sans-serif", size=11, color="#334155"),
+        plot_bgcolor="rgba(148,163,184,0.05)",
+        font=dict(family="Inter, sans-serif", size=11, color="#52525b"),
         height=360,
         margin=dict(l=12, r=12, t=48, b=35),
         uniformtext_minsize=9,
         uniformtext_mode="hide",
-        hoverlabel=dict(bgcolor="#0f172a", font_size=12, font_color="#ffffff"),
+        hoverlabel=dict(bgcolor="#18181b", font_size=12, font_color="#ffffff"),
         transition=dict(duration=550, easing="cubic-in-out")
     )
 
@@ -482,9 +482,9 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         y_max = 5.6 if mode == "ratings" else (max_val * 1.18 if max_val > 0 else 10)
         fig.update_yaxes(
             title_text="",
-            gridcolor="#e2e8f0",
+            gridcolor="#e4e4e7",
             zeroline=True,
-            zerolinecolor="#cbd5e1",
+            zerolinecolor="#d4d4d8",
             automargin=True,
             tickfont=dict(size=10),
             range=[0, y_max]
@@ -1050,7 +1050,6 @@ def download_invoice_pdf(order_id):
     pdf = FPDF()
     pdf.add_page()
 
-    # Header Banner
     pdf.set_fill_color(15, 23, 42)
     pdf.rect(0, 0, 210, 36, "F")
     pdf.set_text_color(255, 255, 255)
@@ -1064,7 +1063,6 @@ def download_invoice_pdf(order_id):
     pdf.cell(120, 6, "Multi-Brand Footwear Store | India", ln=False)
     pdf.cell(62, 6, f"Invoice #{display_order_id}", align="R", ln=True)
 
-    # Customer & Order Metadata
     pdf.set_text_color(30, 41, 59)
     pdf.set_xy(14, 44)
     pdf.set_font("Helvetica", "B", 10)
@@ -1084,7 +1082,6 @@ def download_invoice_pdf(order_id):
     pdf.cell(95, 6, f"Delivery City: {first['city']}", ln=False)
     pdf.cell(87, 6, f"Status: {first['status']}", align="R", ln=True)
 
-    # Items Table Header
     pdf.ln(10)
     pdf.set_fill_color(241, 245, 249)
     pdf.set_draw_color(203, 213, 225)
@@ -1097,7 +1094,6 @@ def download_invoice_pdf(order_id):
     pdf.cell(22, 9, "Price", border=1, fill=True, align="R")
     pdf.cell(24, 9, "Amount", border=1, fill=True, align="R", ln=True)
 
-    # Table Rows
     pdf.set_font("Helvetica", "", 9)
     for idx, item in enumerate(order_items, start=1):
         label = f"{item['brand']} - {item['productName']}"
@@ -1111,7 +1107,6 @@ def download_invoice_pdf(order_id):
         pdf.cell(22, 9, f"Rs. {int(item['unitPrice']):,}", border=1, align="R")
         pdf.cell(24, 9, f"Rs. {int(item['totalAmount']):,}", border=1, align="R", ln=True)
 
-    # Grand Total Box
     pdf.ln(4)
     pdf.set_x(126)
     pdf.set_fill_color(15, 23, 42)
@@ -1119,7 +1114,6 @@ def download_invoice_pdf(order_id):
     pdf.set_font("Helvetica", "B", 11)
     pdf.cell(70, 11, f"Grand Total: Rs. {grand_total:,}", border=0, fill=True, align="R", ln=True)
 
-    # Footer Note
     pdf.set_text_color(100, 116, 139)
     pdf.set_font("Helvetica", "I", 9)
     pdf.ln(14)

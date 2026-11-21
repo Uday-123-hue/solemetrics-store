@@ -1,23 +1,271 @@
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
-  color: #0f172a;
+/* =========================================================================
+   SOLEMETRICS — MINIMAL LUXURY UI, SMOOTH ANIMATIONS & ADAPTIVE THEME SYSTEM
+   ========================================================================= */
+
+:root {
+  --bg-canvas: #fafafa;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f4f4f5;
+  --border-hairline: #e4e4e7;
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --shadow-card: 0 1px 3px rgba(9, 9, 11, 0.04), 0 8px 24px -12px rgba(9, 9, 11, 0.08);
+  --shadow-hover: 0 12px 30px -10px rgba(9, 9, 11, 0.14);
 }
 
+html.dark {
+  --bg-canvas: #09090b;
+  --bg-surface: #121318;
+  --bg-subtle: #1b1d24;
+  --border-hairline: #27272a;
+  --text-primary: #f4f4f5;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45), 0 10px 28px -12px rgba(0, 0, 0, 0.65);
+  --shadow-hover: 0 16px 36px -10px rgba(0, 0, 0, 0.8);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  transition: background-color 0.28s ease, color 0.28s ease;
+  overflow-x: hidden;
+}
+
+/* Hide scrollbars cleanly on horizontal mobile pills */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
+/* =========================================================================
+   SMOOTH ENTRANCE & MICRO-INTERACTION ANIMATIONS
+   ========================================================================= */
+@keyframes pageReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-animate {
+  animation: pageReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Subtle luxury elevation on cards */
+main .rounded-2xl.border,
+main .rounded-3xl.border {
+  box-shadow: var(--shadow-card);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.25s ease,
+              background-color 0.28s ease;
+}
+
+main a.rounded-2xl.border:hover,
+main div.flex.flex-col.rounded-2xl.border:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Tactile button & link transitions */
+a, button, input, select, textarea {
+  transition: background-color 0.2s ease,
+              color 0.2s ease,
+              border-color 0.2s ease,
+              transform 0.16s ease,
+              box-shadow 0.2s ease;
+}
+
+button:active,
+a.rounded-xl:active,
+a.rounded-lg:active {
+  transform: scale(0.98);
+}
+
+/* Crisp Focus Ring */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
+}
+
+/* =========================================================================
+   NIGHT (DARK) MODE — EYE-COMFORT OBSIDIAN PALETTE OVERRIDES
+   ========================================================================= */
+html.dark header {
+  background-color: rgba(9, 9, 11, 0.84) !important;
+  border-color: #27272a !important;
+}
+
+html.dark .bg-white {
+  background-color: #121318 !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/80 {
+  background-color: #181a20 !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e2028 !important;
+}
+
+html.dark .bg-slate-200 {
+  background-color: #27272a !important;
+}
+
+/* Keep large hero/summary banners deep obsidian instead of turning white */
+html.dark div.bg-slate-900 {
+  background: linear-gradient(135deg, #12141c 0%, #0d0e12 100%) !important;
+  border: 1px solid #27272a !important;
+  color: #f4f4f5 !important;
+}
+
+/* Monochrome luxury primary buttons in Night Mode */
+html.dark a.bg-slate-900,
+html.dark button.bg-slate-900,
+html.dark span.bg-slate-900 {
+  background-color: #f4f4f5 !important;
+  color: #09090b !important;
+}
+
+html.dark a.bg-slate-900:hover,
+html.dark button.bg-slate-900:hover {
+  background-color: #e4e4e7 !important;
+  color: #09090b !important;
+}
+
+/* Borders */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300 {
+  border-color: #27272a !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #22242c !important;
+}
+
+/* Typography Hierarchy in Night Mode */
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f4f4f5 !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #d4d4d8 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #a1a1aa !important;
+}
+
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-slate-200:hover,
+html.dark .hover\:bg-slate-50\/80:hover {
+  background-color: #242731 !important;
+}
+
+/* Form Controls in Night Mode */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #16181f !important;
+  color: #f4f4f5 !important;
+  border-color: #2e313d !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #71717a !important;
+}
+
+/* Soft Translucent Tints for Badges in Night Mode */
+html.dark .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.14) !important;
+  border-color: rgba(99, 102, 241, 0.28) !important;
+}
+html.dark .text-indigo-700,
+html.dark .text-indigo-600 {
+  color: #a5b4fc !important;
+}
+
+html.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+html.dark .text-emerald-800,
+html.dark .text-emerald-700,
+html.dark .text-emerald-600 {
+  color: #6ee7b7 !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+html.dark .text-amber-700,
+html.dark .text-amber-600 {
+  color: #fcd34d !important;
+}
+
+html.dark .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+}
+html.dark .text-rose-700,
+html.dark .text-rose-600 {
+  color: #fda4af !important;
+}
+
+/* Live Adaptive Plotly Charts in Night Mode */
+html.dark .js-plotly-plot .gtitle {
+  fill: #f4f4f5 !important;
+}
+html.dark .js-plotly-plot .xtick text,
+html.dark .js-plotly-plot .ytick text,
+html.dark .js-plotly-plot .legendtext {
+  fill: #a1a1aa !important;
+}
+html.dark .js-plotly-plot .gridlayer path {
+  stroke: #27272a !important;
+}
+html.dark .js-plotly-plot .zerolinelayer path {
+  stroke: #3f3f46 !important;
+}
+
+/* Print Rules */
 @media print {
-  header, .no-print {
+  .no-print {
     display: none !important;
   }
   body {
-    background: #ffffff;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 }
