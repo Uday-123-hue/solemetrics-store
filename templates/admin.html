@@ -42,7 +42,7 @@
     {% endfor %}
   </div>
 
-  <!-- Animated Multi-Type Chart Section (Mobile-Responsive) -->
+  <!-- Animated Multi-Type Chart Section -->
   <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
     <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4">
       <div>
@@ -51,7 +51,6 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Chart Type Switcher -->
         <div class="flex flex-wrap items-center gap-1 bg-indigo-50 p-1 rounded-xl border border-indigo-100">
           <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='bar', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'bar' else 'text-indigo-700 hover:bg-indigo-100' }}">Bar Graph</a>
           <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='line', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'line' else 'text-indigo-700 hover:bg-indigo-100' }}">Line Chart</a>
@@ -59,7 +58,6 @@
           <a href="{{ url_for('admin_dashboard', chart=chart_mode, type='pie', metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition {{ 'bg-indigo-600 text-white shadow-sm' if chart_type == 'pie' else 'text-indigo-700 hover:bg-indigo-100' }}">Doughnut</a>
         </div>
 
-        <!-- Metric Toggle -->
         <div class="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl">
           <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='units', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'units' else 'text-slate-600' }}">Units Sold</a>
           <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric='revenue', brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold {{ 'bg-white text-slate-900 shadow-sm' if metric == 'revenue' else 'text-slate-600' }}">Revenue (₹)</a>
@@ -68,7 +66,6 @@
       </div>
     </div>
 
-    <!-- Data Dimension Pills (Horizontal Swipe on Mobile) -->
     <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap sm:flex-wrap bg-slate-100 p-1.5 rounded-xl">
       <a href="{{ url_for('admin_dashboard', chart='category', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'category' else 'text-slate-600 hover:text-slate-900' }}">By Category</a>
       <a href="{{ url_for('admin_dashboard', chart='brand', type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, q=search_q) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 {{ 'bg-white text-slate-900 shadow-sm' if chart_mode == 'brand' else 'text-slate-600 hover:text-slate-900' }}">By Brand</a>
@@ -126,7 +123,7 @@
             <th class="py-3.5 px-4">Category</th>
             <th class="py-3.5 px-4">Size / Qty</th>
             <th class="py-3.5 px-4">Revenue &amp; Profit</th>
-            <th class="py-3.5 px-4">Status</th>
+            <th class="py-3.5 px-4">Tracking Stage</th>
             <th class="py-3.5 px-4 text-right">Actions</th>
           </tr>
         </thead>
@@ -156,11 +153,11 @@
               <td class="py-3.5 px-4">
                 <form method="POST" action="{{ url_for('admin_update_status', order_id=o.orderId) }}" class="flex items-center gap-1">
                   <select name="status" class="px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold bg-white">
-                    <option value="Confirmed" {{ 'selected' if o.status == 'Confirmed' else '' }}>Confirmed</option>
-                    <option value="Shipped" {{ 'selected' if o.status == 'Shipped' else '' }}>Shipped</option>
-                    <option value="Delivered" {{ 'selected' if o.status == 'Delivered' else '' }}>Delivered</option>
+                    {% for st in (order_stages or ['Confirmed', 'Packed', 'Shipped', 'Delivered']) %}
+                      <option value="{{ st }}" {{ 'selected' if o.status == st else '' }}>{{ st }}</option>
+                    {% endfor %}
                   </select>
-                  <button type="submit" class="px-2 py-1 rounded-md bg-slate-900 text-white text-[10px] font-bold">Save</button>
+                  <button type="submit" class="px-2 py-1 rounded-md bg-slate-900 text-white text-[10px] font-bold hover:bg-indigo-600">Save</button>
                 </form>
               </td>
               <td class="py-3.5 px-4 text-right space-x-2">

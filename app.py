@@ -32,10 +32,12 @@ EXCEL_FILE = os.path.join(BASE_DIR, "orders.xlsx")
 CSV_BACKUP_FILE = os.path.join(BASE_DIR, "orders_backup.csv")
 REVIEWS_CSV_FILE = os.path.join(BASE_DIR, "reviews_backup.csv")
 CUSTOMERS_FILE = os.path.join(BASE_DIR, "customers.json")
+WISHLIST_FILE = os.path.join(BASE_DIR, "wishlist.json")
 
 AGE_GROUPS = ["Under 18", "18-25", "26-40", "41-55", "55+"]
 GENDERS = ["Male", "Female", "Other"]
 UK_SIZES = ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
+ORDER_STAGES = ["Confirmed", "Packed", "Shipped", "Delivered"]
 COST_PRICE_MAP = {p["id"]: int(p.get("cost_price", int(p["price"] * 0.6))) for p in PRODUCTS}
 
 INITIAL_DEMO_REVIEWS = [
@@ -145,7 +147,6 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
     </div>
     """
 
-    # Primary: Brevo HTTPS API (xkeysib-...)
     if brevo_key.startswith("xkeysib-"):
         payload = {
             "sender": {"name": "SoleMetrics Store", "email": sender_email},
@@ -176,7 +177,6 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
             print(f"BREVO API CONNECTION ERROR: {e}")
             return
 
-    # Fallback: Brevo SMTP Relay (xsmtpsib-...)
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -192,7 +192,7 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
             server.sendmail(sender_email, to_email, msg.as_string())
             print(f"SUCCESS: Email sent via SMTP to {to_email}")
     except Exception as e:
-        print(f"BREVO SMTP ERROR (Port 587 blocked on Render Free Tier): {e}")
+        print(f"BREVO SMTP ERROR: {e}")
 
 
 # =========================================================================
@@ -227,7 +227,7 @@ def firebase_request(path: str, method: str = "GET", payload=None):
 
 
 # =========================================================================
-# 3. CUSTOMER ACCOUNT STORAGE
+# 3. CUSTOMER ACCOUNT & WISHLIST STORAGE
 # =========================================================================
 def load_local_customers() -> list:
     if not os.path.exists(CUSTOMERS_FILE):
@@ -288,6 +288,42 @@ def save_new_customer(customer: dict, all_customers: list):
         key = firebase_safe_key(customer["email"])
         firebase_request(f"customers/{key}", "PUT", customer)
     write_local_excel_files(load_orders_df(), all_customers)
+
+
+def load_wishlist_store() -> dict:
+    if not os.path.exists(WISHLIST_FILE):
+        return {}
+    try:
+        with open(WISHLIST_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_wishlist_store(store: dict):
+    with open(WISHLIST_FILE, "w", encoding="utf-8") as f:
+        json.dump(store, f, indent=2)
+
+
+def get_user_wishlist() -> list:
+    user = session.get("user")
+    sess_list = session.get("wishlist", [])
+    if not isinstance(sess_list, list):
+        sess_list = []
+
+    if user and user.get("role") == "customer" and user.get("email"):
+        email = user["email"].strip().lower()
+        store = load_wishlist_store()
+        saved = store.get(email, [])
+        merged = list(dict.fromkeys(saved + sess_list))
+        if merged != saved:
+            store[email] = merged
+            save_wishlist_store(store)
+        session["wishlist"] = merged
+        return merged
+
+    return sess_list
 
 
 # =========================================================================
@@ -685,10 +721,13 @@ def get_cart_details():
 def inject_globals():
     raw_cart = session.get("cart", {})
     cart_count = sum(int(v.get("qty", 1)) for v in raw_cart.values()) if isinstance(raw_cart, dict) else 0
+    w_ids = get_user_wishlist()
     return {
         "current_user": session.get("user"),
         "fallback_img": REAL_SHOE_FALLBACK_URL,
-        "cart_count": cart_count
+        "cart_count": cart_count,
+        "wishlist_ids": w_ids,
+        "wishlist_count": len(w_ids)
     }
 
 
@@ -698,7 +737,7 @@ def format_inr(value):
 
 
 # =========================================================================
-# 8. STOREFRONT, PRODUCT DETAIL, CART, AUTH & ORDER ROUTES
+# 8. STOREFRONT, WISHLIST, PRODUCT DETAIL, CART, AUTH & ORDER ROUTES
 # =========================================================================
 @app.route("/")
 def home():
@@ -744,6 +783,45 @@ def shop():
         selected_category=selected_category,
         query=request.args.get("q", "")
     )
+
+
+@app.route("/wishlist")
+def wishlist_page():
+    w_ids = get_user_wishlist()
+    prod_map = {p["id"]: p for p in PRODUCTS}
+    saved_products = [prod_map[pid] for pid in w_ids if pid in prod_map]
+    return render_template(
+        "wishlist.html",
+        active_page="wishlist",
+        products=saved_products
+    )
+
+
+@app.route("/toggle-wishlist/<product_id>", methods=["GET", "POST"])
+def toggle_wishlist(product_id):
+    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    if not product:
+        flash("Footwear model not found.", "error")
+        return redirect(url_for("shop"))
+
+    w_ids = list(get_user_wishlist())
+    if product_id in w_ids:
+        w_ids.remove(product_id)
+        flash(f"Removed {product['name']} from your wishlist.", "info")
+    else:
+        w_ids.append(product_id)
+        flash(f"Saved {product['name']} to your wishlist!", "success")
+
+    session["wishlist"] = w_ids
+    session.modified = True
+
+    user = session.get("user")
+    if user and user.get("role") == "customer" and user.get("email"):
+        store = load_wishlist_store()
+        store[user["email"].strip().lower()] = w_ids
+        save_wishlist_store(store)
+
+    return redirect(request.referrer or url_for("wishlist_page"))
 
 
 @app.route("/product/<product_id>")
@@ -930,16 +1008,28 @@ def submit_review():
 @app.route("/login")
 def login_page():
     tab = request.args.get("tab", "customer-login")
+    if tab not in ("customer-login", "customer-signup"):
+        tab = "customer-login"
     next_url = request.args.get("next", "")
     return render_template("login.html", active_page="login", tab=tab, next_url=next_url)
 
 
 @app.route("/customer-login", methods=["POST"])
 def customer_login():
-    email = request.form.get("email", "").strip().lower()
+    login_id = request.form.get("email", "").strip()
     password = request.form.get("password", "").strip()
     next_url = request.form.get("next_url", "").strip()
 
+    # Unified Admin Login Check (admin / admin123 opens Admin Dashboard directly)
+    if (
+        login_id.lower() == str(ADMIN_CREDENTIALS["username"]).strip().lower()
+        and password == str(ADMIN_CREDENTIALS["password"]).strip()
+    ):
+        session["user"] = {"role": "admin", "name": "Administrator"}
+        flash("Welcome back, Administrator!", "success")
+        return redirect(url_for("admin_dashboard"))
+
+    email = login_id.lower()
     if not re.fullmatch(r"[a-zA-Z0-9._%+-]+@gmail\.com", email):
         flash("Please enter a valid Gmail address ending with @gmail.com.", "error")
         return redirect(url_for("login_page", tab="customer-login", next=next_url))
@@ -964,6 +1054,7 @@ def customer_login():
         "gender": account.get("gender", "Male"),
         "ageGroup": account.get("ageGroup", "18-25")
     }
+    get_user_wishlist()
     flash(f"Welcome back, {account['name']}!", "success")
     return redirect(next_url or url_for("shop"))
 
@@ -1021,27 +1112,15 @@ def customer_signup():
         "gender": gender,
         "ageGroup": age_group
     }
+    get_user_wishlist()
     flash(f"Account created! Welcome to SoleMetrics, {name}.", "success")
     return redirect(next_url or url_for("shop"))
-
-
-@app.route("/admin-login", methods=["POST"])
-def admin_login():
-    username = request.form.get("username", "").strip()
-    password = request.form.get("password", "").strip()
-
-    if username == ADMIN_CREDENTIALS["username"] and password == ADMIN_CREDENTIALS["password"]:
-        session["user"] = {"role": "admin", "name": "Administrator"}
-        flash("Admin signed in successfully.", "success")
-        return redirect(url_for("admin_dashboard"))
-
-    flash("Invalid admin username or password.", "error")
-    return redirect(url_for("login_page", tab="admin-login"))
 
 
 @app.route("/logout")
 def logout():
     session.pop("user", None)
+    session.pop("wishlist", None)
     flash("Logged out successfully.", "info")
     return redirect(url_for("home"))
 
@@ -1127,7 +1206,6 @@ def place_order():
     df = pd.concat([pd.DataFrame(new_rows), df], ignore_index=True)
     write_local_excel_files(df)
 
-    # Automatically send confirmation email to customer
     send_order_confirmation_email(new_rows, base_code, grand_total)
 
     session["cart"] = {}
@@ -1171,7 +1249,8 @@ def receipt(order_id):
         display_order_id=display_order_id,
         grand_total=grand_total,
         total_pairs=total_pairs,
-        img_map=img_map
+        img_map=img_map,
+        order_stages=ORDER_STAGES
     )
 
 
@@ -1281,7 +1360,13 @@ def my_orders():
     orders = my_df.to_dict(orient="records")
     img_map = {p["id"]: p["image"] for p in PRODUCTS}
 
-    return render_template("my_orders.html", active_page="my-orders", orders=orders, img_map=img_map)
+    return render_template(
+        "my_orders.html",
+        active_page="my-orders",
+        orders=orders,
+        img_map=img_map,
+        order_stages=ORDER_STAGES
+    )
 
 
 # =========================================================================
@@ -1291,8 +1376,8 @@ def my_orders():
 def admin_dashboard():
     user = session.get("user")
     if not user or user.get("role") != "admin":
-        flash("Authorized Admin login required.", "error")
-        return redirect(url_for("login_page", tab="admin-login"))
+        flash("Please sign in to continue.", "error")
+        return redirect(url_for("login_page", tab="customer-login"))
 
     df = load_orders_df()
     rev_df = load_reviews_df()
@@ -1355,7 +1440,8 @@ def admin_dashboard():
         categories=CATEGORIES,
         filter_brand=filter_brand,
         filter_cat=filter_cat,
-        search_q=request.args.get("q", "")
+        search_q=request.args.get("q", ""),
+        order_stages=ORDER_STAGES
     )
 
 
@@ -1363,7 +1449,7 @@ def admin_dashboard():
 def admin_update_status(order_id):
     user = session.get("user")
     if not user or user.get("role") != "admin":
-        return redirect(url_for("login_page", tab="admin-login"))
+        return redirect(url_for("login_page", tab="customer-login"))
 
     new_status = request.form.get("status", "Confirmed")
     df = load_orders_df()
@@ -1378,7 +1464,7 @@ def admin_update_status(order_id):
 def admin_delete_order(order_id):
     user = session.get("user")
     if not user or user.get("role") != "admin":
-        return redirect(url_for("login_page", tab="admin-login"))
+        return redirect(url_for("login_page", tab="customer-login"))
 
     df = load_orders_df()
     df = df[df["orderId"] != order_id]
@@ -1392,7 +1478,7 @@ def admin_delete_order(order_id):
 def admin_delete_review(review_id):
     user = session.get("user")
     if not user or user.get("role") != "admin":
-        return redirect(url_for("login_page", tab="admin-login"))
+        return redirect(url_for("login_page", tab="customer-login"))
 
     rev_df = load_reviews_df()
     rev_df = rev_df[rev_df["reviewId"] != review_id]
@@ -1406,7 +1492,7 @@ def admin_delete_review(review_id):
 def admin_reset_demo():
     user = session.get("user")
     if not user or user.get("role") != "admin":
-        return redirect(url_for("login_page", tab="admin-login"))
+        return redirect(url_for("login_page", tab="customer-login"))
 
     df = clean_orders_df(pd.DataFrame(INITIAL_DEMO_ORDERS))
     rev_df = clean_reviews_df(pd.DataFrame(INITIAL_DEMO_REVIEWS))
@@ -1422,7 +1508,7 @@ def admin_reset_demo():
 def admin_download_excel():
     user = session.get("user")
     if not user or user.get("role") != "admin":
-        return redirect(url_for("login_page", tab="admin-login"))
+        return redirect(url_for("login_page", tab="customer-login"))
 
     load_orders_df()
     return send_file(EXCEL_FILE, as_attachment=True, download_name="SoleMetrics_Orders_Master.xlsx")

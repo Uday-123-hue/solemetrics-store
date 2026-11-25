@@ -3,30 +3,91 @@
 <div class="space-y-6">
   <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-extrabold text-slate-900">My Orders &amp; Receipts</h1>
+      <h1 class="text-2xl font-extrabold text-slate-900">My Orders &amp; Live Tracking</h1>
       <p class="text-sm text-slate-500">Signed in as {{ current_user.name }} ({{ current_user.email }})</p>
     </div>
-    <a href="{{ url_for('shop') }}" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold">+ Shop More Footwear</a>
+    <a href="{{ url_for('shop') }}" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600 transition self-start sm:self-auto">+ Shop More Footwear</a>
   </div>
 
   {% if orders %}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       {% for o in orders %}
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-          <img src="{{ img_map.get(o.productId, fallback_img) }}" alt="{{ o.productName }}" class="w-20 h-20 rounded-xl object-cover border border-slate-200" />
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between gap-2">
-              <span class="font-mono text-[11px] font-bold text-slate-500">#{{ o.orderId }} &bull; {{ o.date }}</span>
-              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-bold">{{ o.status }}</span>
-            </div>
-            <h3 class="font-extrabold text-slate-900 text-sm truncate mt-0.5">{{ o.productName }}</h3>
-            <p class="text-xs text-slate-500">{{ o.brand }} &bull; {{ o.size }} &bull; Qty {{ o.qty }}</p>
-            <div class="mt-2 flex items-center justify-between gap-2">
-              <span class="font-extrabold text-slate-900 text-sm">{{ o.totalAmount | inr }}</span>
-              <div class="flex items-center gap-3">
-                <a href="{{ url_for('reviews_page', product_id=o.productId) }}" class="text-xs font-bold text-amber-600 hover:underline">&#9733; Write Review</a>
-                <a href="{{ url_for('receipt', order_id=o.orderId) }}" class="text-xs font-bold text-indigo-600 hover:underline">Receipt</a>
+        {% if o.status == 'Delivered' %}
+          {% set active_step = 3 %}
+        {% elif o.status == 'Shipped' %}
+          {% set active_step = 2 %}
+        {% elif o.status == 'Packed' %}
+          {% set active_step = 1 %}
+        {% else %}
+          {% set active_step = 0 %}
+        {% endif %}
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+          <!-- Top Product & Price Info -->
+          <div class="flex items-center gap-4">
+            <img src="{{ img_map.get(o.productId, fallback_img) }}" onerror="this.src='{{ fallback_img }}'" alt="{{ o.productName }}" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-[11px] font-bold text-slate-500">#{{ o.orderId }} &bull; {{ o.date }}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold
+                  {{ 'bg-emerald-50 text-emerald-700' if o.status == 'Delivered'
+                     else ('bg-indigo-50 text-indigo-700' if o.status == 'Shipped'
+                     else ('bg-amber-50 text-amber-700' if o.status == 'Packed'
+                     else 'bg-slate-100 text-slate-700')) }}">
+                  {{ o.status }}
+                </span>
               </div>
+              <h3 class="font-extrabold text-slate-900 text-sm truncate mt-1">{{ o.productName }}</h3>
+              <p class="text-xs text-slate-500">{{ o.brand }} &bull; {{ o.size }} &bull; Qty {{ o.qty }}</p>
+              <div class="mt-2 flex items-center justify-between gap-2">
+                <span class="font-extrabold text-slate-900 text-sm">{{ o.totalAmount | inr }}</span>
+                <div class="flex items-center gap-3">
+                  <a href="{{ url_for('reviews_page', product_id=o.productId) }}" class="text-xs font-bold text-amber-600 hover:underline">&#9733; Review</a>
+                  <a href="{{ url_for('receipt', order_id=o.orderId) }}" class="text-xs font-bold text-indigo-600 hover:underline">Receipt</a>
+                  <a href="{{ url_for('download_invoice_pdf', order_id=o.orderId) }}" class="text-xs font-bold text-slate-700 hover:underline">PDF</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4-Step Visual Delivery Tracking Timeline -->
+          <div class="pt-3.5 border-t border-slate-100">
+            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
+              <span>Shipment Progress</span>
+              <span class="text-slate-600">{{ o.city }} &bull; {{ o.paymentMethod }}</span>
+            </div>
+
+            {% set stages = order_stages or ['Confirmed', 'Packed', 'Shipped', 'Delivered'] %}
+            <div class="grid grid-cols-4 gap-1 relative">
+              {% for stage in stages %}
+                {% set idx = loop.index0 %}
+                {% set done = idx <= active_step %}
+                {% set is_current = idx == active_step %}
+                <div class="flex flex-col items-center text-center relative">
+                  <!-- Connecting Line to Next Step -->
+                  {% if not loop.last %}
+                    <div class="absolute top-3 left-1/2 w-full h-0.5 {{ 'bg-emerald-500' if (idx < active_step and o.status == 'Delivered') else ('bg-indigo-600' if idx < active_step else 'bg-slate-200') }}"></div>
+                  {% endif %}
+
+                  <!-- Step Circle -->
+                  <div class="relative z-10 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold transition
+                    {{ 'bg-emerald-600 text-white' if (done and o.status == 'Delivered')
+                       else ('bg-indigo-600 text-white ring-4 ring-indigo-100' if is_current
+                       else ('bg-indigo-600 text-white' if done
+                       else 'bg-slate-100 text-slate-400 border border-slate-200')) }}">
+                    {% if idx < active_step or o.status == 'Delivered' %}
+                      &#10003;
+                    {% else %}
+                      {{ idx + 1 }}
+                    {% endif %}
+                  </div>
+
+                  <!-- Stage Label -->
+                  <span class="mt-1.5 text-[10px] sm:text-[11px] leading-tight {{ 'font-extrabold text-slate-900' if done else 'font-semibold text-slate-400' }}">
+                    {{ stage }}
+                  </span>
+                </div>
+              {% endfor %}
             </div>
           </div>
         </div>
