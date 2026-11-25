@@ -23,7 +23,6 @@
         {% endif %}
 
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
-          <!-- Top Product & Price Info -->
           <div class="flex items-center gap-4">
             <img src="{{ img_map.get(o.productId, fallback_img) }}" onerror="this.src='{{ fallback_img }}'" alt="{{ o.productName }}" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0" />
             <div class="flex-1 min-w-0">
@@ -50,7 +49,6 @@
             </div>
           </div>
 
-          <!-- 4-Step Visual Delivery Tracking Timeline -->
           <div class="pt-3.5 border-t border-slate-100">
             <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
               <span>Shipment Progress</span>
@@ -64,12 +62,10 @@
                 {% set done = idx <= active_step %}
                 {% set is_current = idx == active_step %}
                 <div class="flex flex-col items-center text-center relative">
-                  <!-- Connecting Line to Next Step -->
                   {% if not loop.last %}
                     <div class="absolute top-3 left-1/2 w-full h-0.5 {{ 'bg-emerald-500' if (idx < active_step and o.status == 'Delivered') else ('bg-indigo-600' if idx < active_step else 'bg-slate-200') }}"></div>
                   {% endif %}
 
-                  <!-- Step Circle -->
                   <div class="relative z-10 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold transition
                     {{ 'bg-emerald-600 text-white' if (done and o.status == 'Delivered')
                        else ('bg-indigo-600 text-white ring-4 ring-indigo-100' if is_current
@@ -82,7 +78,6 @@
                     {% endif %}
                   </div>
 
-                  <!-- Stage Label -->
                   <span class="mt-1.5 text-[10px] sm:text-[11px] leading-tight {{ 'font-extrabold text-slate-900' if done else 'font-semibold text-slate-400' }}">
                     {{ stage }}
                   </span>

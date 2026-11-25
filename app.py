@@ -22,7 +22,7 @@ from data import (
 )
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "solemetrics_pure_python_key")
+app.secret_key = "solemetrics_pure_python_key"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EXCEL_FILE = os.path.join(BASE_DIR, "orders.xlsx")
@@ -61,14 +61,10 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
         print("EMAIL SKIPPED:", msg)
         return False, msg
 
-    if not webhook_url.startswith("https://script.google.com/"):
-        msg = "GMAIL_WEBHOOK_URL me Web App URL (https://script.google.com/.../exec) daalo, Deployment ID nahi."
-        print("EMAIL SKIPPED:", msg)
-        return False, msg
-
     first = order_items[0]
     to_email = str(first.get("customerEmail", "")).strip()
     to_name = str(first.get("customerName", "Customer")).strip()
+    txn_id = str(first.get("transactionId", "")).strip()
     if not to_email:
         return False, "Customer email missing"
 
@@ -93,6 +89,7 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
         </tr>
         """
 
+    txn_line = f'<div><b style="color:#18181b;">Transaction Ref:</b> {txn_id}</div>' if txn_id else ""
     subject = f"Your Order Has Been Confirmed (#{display_order_id}) — SoleMetrics"
     html_body = f"""
     <div style="font-family:'Inter',Arial,sans-serif;background:#f4f4f5;padding:28px 16px;">
@@ -116,6 +113,7 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
             <div><b style="color:#18181b;">Order Date:</b> {first['date']}</div>
             <div><b style="color:#18181b;">Delivery City:</b> {first['city']}</div>
             <div><b style="color:#18181b;">Payment Mode:</b> {first['paymentMethod']}</div>
+            {txn_line}
           </div>
 
           <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
@@ -135,14 +133,14 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
           <div style="background:#09090b;color:#ffffff;padding:14px 18px;border-radius:12px;font-size:14px;">
             <table style="width:100%;border-collapse:collapse;">
               <tr>
-                <td style="color:#d4d4d8;font-size:12px;">Total Paid ({total_pairs} Pair{'s' if total_pairs > 1 else ''})</td>
+                <td style="color:#d4d4d8;font-size:12px;">Total Payable ({total_pairs} Pair{'s' if total_pairs > 1 else ''})</td>
                 <td style="text-align:right;font-size:17px;font-weight:800;color:#ffffff;">&#8377;{grand_total:,}</td>
               </tr>
             </table>
           </div>
 
           <p style="margin:22px 0 0;font-size:12px;color:#71717a;line-height:1.5;">
-            You can track your shipment and download your PDF tax invoice anytime from the <b>My Orders</b> section on SoleMetrics.
+            You can track live delivery status and download your PDF tax invoice anytime from the <b>My Orders</b> section on SoleMetrics.
           </p>
         </div>
       </div>
@@ -164,13 +162,13 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             body_text = resp.read().decode("utf-8", errors="ignore")
-            print(f"GMAIL WEBHOOK RESPONSE ({resp.status}): {body_text[:200]}")
-            if "Unauthorized" in body_text:
-                return False, "Secret password match nahi hua (Apps Script aur Render me SoleMetrics_Lock_2026 check karo)"
-            if body_text.strip().startswith("<!DOCTYPE html") or "<html" in body_text[:200].lower():
-                return False, "Apps Script me 'Who has access' ko 'Anyone' set karke New version deploy karo"
-            if '"error"' in body_text.lower():
-                return False, body_text
+            print(f"GMAIL WEBHOOK RESPONSE ({resp.status}): {body_text}")
+            try:
+                parsed = json.loads(body_text)
+                if isinstance(parsed, dict) and parsed.get("status") == "error":
+                    return False, parsed.get("message", "Webhook error")
+            except Exception:
+                pass
             return True, "Sent"
     except Exception as e:
         print(f"GMAIL WEBHOOK ERROR: {e}")
@@ -353,7 +351,10 @@ def load_reviews_df() -> pd.DataFrame:
 # =========================================================================
 def clean_orders_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
-        return pd.DataFrame(columns=list(INITIAL_DEMO_ORDERS[0].keys()))
+        cols = list(INITIAL_DEMO_ORDERS[0].keys())
+        if "transactionId" not in cols:
+            cols.append("transactionId")
+        return pd.DataFrame(columns=cols)
 
     df = df.fillna("")
     df["customerPhone"] = df["customerPhone"].astype(str)
@@ -365,6 +366,9 @@ def clean_orders_df(df: pd.DataFrame) -> pd.DataFrame:
     if "ageGroup" not in df.columns:
         df["ageGroup"] = "18-25"
     df["ageGroup"] = df["ageGroup"].replace("", "18-25")
+
+    if "transactionId" not in df.columns:
+        df["transactionId"] = ""
 
     df["qty"] = pd.to_numeric(df["qty"], errors="coerce").fillna(1).astype(int)
     df["unitPrice"] = pd.to_numeric(df["unitPrice"], errors="coerce").fillna(0).astype(int)
@@ -1145,7 +1149,8 @@ def place_order():
         return redirect(url_for("shop"))
 
     city = request.form.get("city", "").strip() or user.get("city", "India")
-    payment_method = request.form.get("payment_method", "UPI")
+    payment_method = request.form.get("payment_method", "UPI").strip() or "UPI"
+    transaction_id = request.form.get("transaction_id", "").strip() or f"pay_SM{random.randint(100000, 999999)}"
     today_str = datetime.now().strftime("%Y-%m-%d")
     base_code = f"ORD-{random.randint(1000, 9999)}"
 
@@ -1179,6 +1184,7 @@ def place_order():
             "totalAmount": total_amount,
             "profit": profit,
             "paymentMethod": payment_method,
+            "transactionId": transaction_id,
             "status": "Confirmed"
         }
         new_rows.append(row)
@@ -1280,11 +1286,12 @@ def download_invoice_pdf(order_id):
 
     pdf.set_x(14)
     pdf.cell(95, 6, f"Email: {first['customerEmail']}", ln=False)
-    pdf.cell(87, 6, f"Payment Mode: {first['paymentMethod']}", align="R", ln=True)
+    pdf.cell(87, 6, f"Payment: {first['paymentMethod']}", align="R", ln=True)
 
     pdf.set_x(14)
     pdf.cell(95, 6, f"Delivery City: {first['city']}", ln=False)
-    pdf.cell(87, 6, f"Status: {first['status']}", align="R", ln=True)
+    txn_label = f"Txn: {first['transactionId']}" if first.get("transactionId") else f"Status: {first['status']}"
+    pdf.cell(87, 6, txn_label, align="R", ln=True)
 
     pdf.ln(10)
     pdf.set_fill_color(241, 245, 249)
