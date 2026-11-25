@@ -3,12 +3,9 @@ import os
 import re
 import json
 import random
-import smtplib
 import urllib.error
 import urllib.request
 from datetime import datetime
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import pandas as pd
 import plotly.graph_objects as go
@@ -25,7 +22,7 @@ from data import (
 )
 
 app = Flask(__name__)
-app.secret_key = "solemetrics_pure_python_key"
+app.secret_key = os.environ.get("SECRET_KEY", "solemetrics_pure_python_key")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EXCEL_FILE = os.path.join(BASE_DIR, "orders.xlsx")
@@ -50,25 +47,30 @@ INITIAL_DEMO_REVIEWS = [
 
 
 # =========================================================================
-# 1. AUTOMATIC ORDER CONFIRMATION EMAIL ENGINE (BREVO API + SMTP)
+# 1. AUTOMATIC ORDER CONFIRMATION EMAIL ENGINE (SECURED GMAIL WEBHOOK)
 # =========================================================================
 def send_order_confirmation_email(order_items: list, display_order_id: str, grand_total: int):
     if not order_items:
-        return
+        return False, "No order items"
 
-    sender_email = os.environ.get("SENDER_EMAIL", "").strip()
-    brevo_key = os.environ.get("BREVO_API_KEY", "").strip()
-    smtp_login = os.environ.get("BREVO_SMTP_LOGIN", "").strip() or sender_email
+    webhook_url = os.environ.get("GMAIL_WEBHOOK_URL", "").strip()
+    webhook_secret = os.environ.get("GMAIL_WEBHOOK_SECRET", "").strip()
 
-    if not sender_email or not brevo_key:
-        print("EMAIL SKIPPED: SENDER_EMAIL or BREVO_API_KEY is missing in Render Environment.")
-        return
+    if not webhook_url:
+        msg = "GMAIL_WEBHOOK_URL Render Environment me missing hai."
+        print("EMAIL SKIPPED:", msg)
+        return False, msg
+
+    if not webhook_url.startswith("https://script.google.com/"):
+        msg = "GMAIL_WEBHOOK_URL me Web App URL (https://script.google.com/.../exec) daalo, Deployment ID nahi."
+        print("EMAIL SKIPPED:", msg)
+        return False, msg
 
     first = order_items[0]
     to_email = str(first.get("customerEmail", "")).strip()
     to_name = str(first.get("customerName", "Customer")).strip()
     if not to_email:
-        return
+        return False, "Customer email missing"
 
     total_pairs = sum(int(i.get("qty", 1)) for i in order_items)
     rows_html = ""
@@ -140,59 +142,39 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
           </div>
 
           <p style="margin:22px 0 0;font-size:12px;color:#71717a;line-height:1.5;">
-            You can download your PDF tax invoice anytime from the <b>My Orders</b> section on SoleMetrics.
+            You can track your shipment and download your PDF tax invoice anytime from the <b>My Orders</b> section on SoleMetrics.
           </p>
         </div>
       </div>
     </div>
     """
 
-    if brevo_key.startswith("xkeysib-"):
-        payload = {
-            "sender": {"name": "SoleMetrics Store", "email": sender_email},
-            "to": [{"email": to_email, "name": to_name}],
-            "subject": subject,
-            "htmlContent": html_body
-        }
-        req = urllib.request.Request(
-            "https://api.brevo.com/v3/smtp/email",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "accept": "application/json",
-                "api-key": brevo_key,
-                "content-type": "application/json",
-                "User-Agent": "SoleMetrics-Store/1.0"
-            },
-            method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                print(f"SUCCESS: Email sent to {to_email} (Status {resp.status})")
-                return
-        except urllib.error.HTTPError as e:
-            err_detail = e.read().decode("utf-8", errors="ignore")
-            print(f"BREVO API HTTP ERROR {e.code}: {err_detail}")
-            return
-        except Exception as e:
-            print(f"BREVO API CONNECTION ERROR: {e}")
-            return
-
+    payload = {
+        "secret": webhook_secret,
+        "to": to_email,
+        "subject": subject,
+        "html": html_body
+    }
+    req = urllib.request.Request(
+        webhook_url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"SoleMetrics Store <{sender_email}>"
-        msg["To"] = to_email
-        msg.attach(MIMEText(html_body, "html"))
-
-        with smtplib.SMTP("smtp-relay.brevo.com", 587, timeout=10) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(smtp_login, brevo_key)
-            server.sendmail(sender_email, to_email, msg.as_string())
-            print(f"SUCCESS: Email sent via SMTP to {to_email}")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body_text = resp.read().decode("utf-8", errors="ignore")
+            print(f"GMAIL WEBHOOK RESPONSE ({resp.status}): {body_text[:200]}")
+            if "Unauthorized" in body_text:
+                return False, "Secret password match nahi hua (Apps Script aur Render me SoleMetrics_Lock_2026 check karo)"
+            if body_text.strip().startswith("<!DOCTYPE html") or "<html" in body_text[:200].lower():
+                return False, "Apps Script me 'Who has access' ko 'Anyone' set karke New version deploy karo"
+            if '"error"' in body_text.lower():
+                return False, body_text
+            return True, "Sent"
     except Exception as e:
-        print(f"BREVO SMTP ERROR: {e}")
+        print(f"GMAIL WEBHOOK ERROR: {e}")
+        return False, str(e)
 
 
 # =========================================================================
@@ -1020,7 +1002,7 @@ def customer_login():
     password = request.form.get("password", "").strip()
     next_url = request.form.get("next_url", "").strip()
 
-    # Unified Admin Login Check (admin / admin123 opens Admin Dashboard directly)
+    # Unified Admin Login Check
     if (
         login_id.lower() == str(ADMIN_CREDENTIALS["username"]).strip().lower()
         and password == str(ADMIN_CREDENTIALS["password"]).strip()
@@ -1206,12 +1188,15 @@ def place_order():
     df = pd.concat([pd.DataFrame(new_rows), df], ignore_index=True)
     write_local_excel_files(df)
 
-    send_order_confirmation_email(new_rows, base_code, grand_total)
+    email_ok, email_status = send_order_confirmation_email(new_rows, base_code, grand_total)
 
     session["cart"] = {}
     session.modified = True
 
-    flash("Your order has been confirmed! A confirmation email has been sent.", "success")
+    if email_ok:
+        flash("Your order has been confirmed! A confirmation email has been sent.", "success")
+    else:
+        flash(f"Order confirmed, but email failed ({email_status})", "info")
     return redirect(url_for("receipt", order_id=new_rows[0]["orderId"]))
 
 
