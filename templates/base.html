@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SoleMetrics — Multi-Brand Footwear Store</title>
 
-  <!-- Instant Anti-Flash Theme Script (Light / Night / System) -->
   <script>
     (function () {
       var saved = localStorage.getItem('solemetrics-theme') || 'system';
@@ -26,11 +25,12 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Clean Single-Row Frosted Header -->
+  <!-- 1. Top 2px Slim Progress Bar -->
+  <div id="route-progress" class="no-print"></div>
+
   <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 no-print">
     <div class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
 
-      <!-- Left: Compact Brand Logo -->
       <a href="{{ url_for('home') }}" class="flex items-center gap-2 shrink-0 group">
         <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-display font-extrabold text-sm sm:text-base shadow-sm group-hover:scale-105 transition-transform">
           S
@@ -41,13 +41,17 @@
         </div>
       </a>
 
-      <!-- Center: Desktop Navigation -->
+      <!-- Desktop Navigation -->
       <nav class="hidden lg:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
         <a href="{{ url_for('home') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'home' else 'text-slate-600 hover:text-slate-900' }}">
           Home
         </a>
         <a href="{{ url_for('shop') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'shop' else 'text-slate-600 hover:text-slate-900' }}">
           Shop
+        </a>
+        <a href="{{ url_for('wishlist_page') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap flex items-center gap-1.5 {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'wishlist' else 'text-slate-600 hover:text-slate-900' }}">
+          <span>Wishlist</span>
+          <span class="px-1.5 rounded-full text-[10px] font-extrabold {{ 'bg-rose-500 text-white' if wishlist_count > 0 else 'bg-slate-200 text-slate-700' }}">{{ wishlist_count }}</span>
         </a>
         <a href="{{ url_for('reviews_page') }}" class="px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'reviews' else 'text-slate-600 hover:text-slate-900' }}">
           Reviews
@@ -70,10 +74,8 @@
         {% endif %}
       </nav>
 
-      <!-- Right: Compact Theme Switcher + Cart + Sign In (Zero Line Wrapping) -->
+      <!-- Right Actions -->
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-
-        <!-- 3-Mode Theme Switcher (Light / Night / System) -->
         <div role="group" aria-label="Theme Mode" class="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200/80 shrink-0">
           <button type="button" data-theme-btn="light" onclick="setThemeMode('light')" title="Light Mode"
                   class="theme-pill p-1.5 rounded-lg text-slate-500 hover:text-slate-900">
@@ -97,7 +99,14 @@
           </button>
         </div>
 
-        <!-- Mobile Quick Cart Icon + Badge -->
+        <!-- Mobile Quick Wishlist -->
+        <a href="{{ url_for('wishlist_page') }}" aria-label="Wishlist"
+           class="lg:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-900 text-xs font-extrabold flex items-center gap-1 whitespace-nowrap shrink-0">
+          <span class="{{ 'text-rose-500' if wishlist_count > 0 else 'text-slate-500' }}">&#9829;</span>
+          <span>{{ wishlist_count }}</span>
+        </a>
+
+        <!-- Mobile Quick Cart -->
         <a href="{{ url_for('cart_page') }}" aria-label="Shopping Cart"
            class="lg:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-slate-900 text-xs font-extrabold flex items-center gap-1 whitespace-nowrap shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -108,7 +117,6 @@
           <span>{{ cart_count }}</span>
         </a>
 
-        <!-- Auth Action (Single Line Always) -->
         {% if not current_user %}
           <a href="{{ url_for('login_page') }}" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:opacity-90 whitespace-nowrap shrink-0">
             Sign In
@@ -126,20 +134,20 @@
       </div>
     </div>
 
-    <!-- Clean Mobile Sub-Nav Bar -->
+    <!-- Mobile Sub-Nav -->
     <div class="lg:hidden flex items-center justify-around border-t border-slate-200/70 py-1.5 px-3 text-xs font-bold">
-      <a href="{{ url_for('home') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-600' }}">Home</a>
-      <a href="{{ url_for('shop') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-600' }}">Shop</a>
-      <a href="{{ url_for('reviews_page') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'text-slate-600' }}">Reviews</a>
+      <a href="{{ url_for('home') }}" class="px-2.5 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'home' else 'text-slate-600' }}">Home</a>
+      <a href="{{ url_for('shop') }}" class="px-2.5 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'shop' else 'text-slate-600' }}">Shop</a>
+      <a href="{{ url_for('wishlist_page') }}" class="px-2.5 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'wishlist' else 'text-slate-600' }}">Wishlist</a>
+      <a href="{{ url_for('reviews_page') }}" class="px-2.5 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'text-slate-600' }}">Reviews</a>
       {% if current_user and current_user.role == 'customer' %}
-        <a href="{{ url_for('my_orders') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-600' }}">Orders</a>
+        <a href="{{ url_for('my_orders') }}" class="px-2.5 py-1 rounded-lg whitespace-nowrap {{ 'bg-slate-900 text-white' if active_page == 'my-orders' else 'text-slate-600' }}">Orders</a>
       {% elif current_user and current_user.role == 'admin' %}
-        <a href="{{ url_for('admin_dashboard') }}" class="px-3 py-1 rounded-lg whitespace-nowrap {{ 'bg-indigo-600 text-white' if active_page == 'admin' else 'text-indigo-600 bg-indigo-50' }}">Admin BI</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="px-2.5 py-1 rounded-lg whitespace-nowrap {{ 'bg-indigo-600 text-white' if active_page == 'admin' else 'text-indigo-600 bg-indigo-50' }}">Admin BI</a>
       {% endif %}
     </div>
   </header>
 
-  <!-- Toast Notifications -->
   <div class="max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-3 no-print">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -154,25 +162,25 @@
     {% endwith %}
   </div>
 
-  <!-- Main Content -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-9 page-animate">
+  <!-- 2. Main Content with Smooth Enter & Exit -->
+  <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-9 page-animate">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Minimal Footer -->
   <footer class="border-t border-slate-200/80 mt-10 py-5 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 text-center sm:text-left">
       <p class="font-semibold">SoleMetrics Footwear Studio</p>
       <div class="flex items-center gap-4 font-semibold">
         <a href="{{ url_for('shop') }}" class="hover:text-slate-900">Catalog</a>
+        <a href="{{ url_for('wishlist_page') }}" class="hover:text-slate-900">Wishlist ({{ wishlist_count }})</a>
         <a href="{{ url_for('reviews_page') }}" class="hover:text-slate-900">Reviews</a>
         <a href="{{ url_for('cart_page') }}" class="hover:text-slate-900">Cart ({{ cart_count }})</a>
       </div>
     </div>
   </footer>
 
-  <!-- Live Theme Switcher Script -->
   <script>
+    // Theme Switcher
     const mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
 
     function applyTheme(mode) {
@@ -202,6 +210,57 @@
     });
 
     applyTheme(localStorage.getItem('solemetrics-theme') || 'system');
+
+    // Minimal Page Transition + Top 2px Progress Bar
+    (function () {
+      const bar = document.getElementById('route-progress');
+      const mainEl = document.getElementById('main-content');
+
+      function resetTransitionState() {
+        if (mainEl) mainEl.classList.remove('page-leaving');
+        if (bar) {
+          bar.classList.remove('active');
+          bar.style.width = '0%';
+        }
+      }
+
+      window.addEventListener('pageshow', resetTransitionState);
+
+      document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (
+          !href ||
+          href.startsWith('#') ||
+          href.startsWith('javascript:') ||
+          link.target === '_blank' ||
+          link.hasAttribute('download') ||
+          href.includes('download-excel') ||
+          href.includes('invoice-pdf') ||
+          e.ctrlKey || e.metaKey || e.shiftKey
+        ) {
+          return;
+        }
+
+        if (link.origin === window.location.origin) {
+          e.preventDefault();
+          if (bar) bar.classList.add('active');
+          if (mainEl) mainEl.classList.add('page-leaving');
+
+          setTimeout(() => {
+            window.location.href = link.href;
+          }, 150);
+
+          setTimeout(resetTransitionState, 2500);
+        }
+      });
+
+      document.addEventListener('submit', () => {
+        if (bar) bar.classList.add('active');
+      });
+    })();
   </script>
 
 </body>
