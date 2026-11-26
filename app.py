@@ -1,4 +1,5 @@
 import io
+import math
 import os
 import re
 import json
@@ -1508,19 +1509,105 @@ def admin_download_excel():
 
 
 # =========================================================================
-# 10. PROGRESSIVE WEB APP (PWA) — INSTALLABLE MOBILE & DESKTOP APP
+# 10. PROGRESSIVE WEB APP (PWA) — CUSTOM SNEAKER + SWOOSH APP ICON & WORKER
 # =========================================================================
 _ICON_CACHE = {}
-_S_GLYPH = [
-    "0111110",
-    "1100011",
-    "1100000",
-    "0111100",
-    "0001110",
-    "0000011",
-    "1100011",
-    "0111110",
+
+_MIDSOLE_POLY = [
+    (0.165, 0.580), (0.845, 0.580), (0.855, 0.615),
+    (0.830, 0.655), (0.720, 0.675), (0.460, 0.675),
+    (0.175, 0.675), (0.160, 0.630)
 ]
+
+_UPPER_POLY = [
+    (0.175, 0.582), (0.172, 0.455), (0.195, 0.355),
+    (0.235, 0.355), (0.275, 0.415), (0.355, 0.422),
+    (0.415, 0.390), (0.455, 0.315), (0.505, 0.325),
+    (0.575, 0.415), (0.675, 0.475), (0.790, 0.505),
+    (0.838, 0.542), (0.845, 0.582)
+]
+
+_SWOOSH_POLY = [
+    (0.235, 0.485), (0.435, 0.558), (0.745, 0.442), (0.455, 0.512)
+]
+
+_LACE_SEGS = [
+    ((0.495, 0.375), (0.542, 0.352)),
+    ((0.550, 0.415), (0.597, 0.392)),
+    ((0.605, 0.455), (0.652, 0.432)),
+]
+
+
+def _point_in_poly(x: float, y: float, poly: list) -> bool:
+    inside = False
+    j = len(poly) - 1
+    for i in range(len(poly)):
+        xi, yi = poly[i]
+        xj, yj = poly[j]
+        if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / ((yj - yi) or 1e-12) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def _dist_to_seg(px: float, py: float, x1: float, y1: float, x2: float, y2: float) -> float:
+    dx, dy = x2 - x1, y2 - y1
+    l2 = dx * dx + dy * dy
+    if l2 == 0.0:
+        return math.hypot(px - x1, py - y1)
+    t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / l2))
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
+
+
+def _sample_sneaker_icon(nx: float, ny: float):
+    radius = 0.22
+    dx = max(0.0, radius - nx, nx - (1.0 - radius))
+    dy = max(0.0, radius - ny, ny - (1.0 - radius))
+    corner_dist = math.hypot(dx, dy)
+    if corner_dist > radius:
+        return (0, 0, 0, 0)
+
+    # Obsidian-to-Midnight-Indigo gradient + radial studio spotlight
+    grad = 0.55 * nx + 0.45 * ny
+    glow = max(0.0, 1.0 - math.hypot(nx - 0.50, ny - 0.50) * 1.65)
+    bg_r = min(255, int(11 + grad * 20 + glow * 34))
+    bg_g = min(255, int(12 + grad * 18 + glow * 30))
+    bg_b = min(255, int(18 + grad * 52 + glow * 78))
+
+    # Sleek subtle indigo inner rim
+    if corner_dist > radius - 0.024:
+        bg_r = min(255, int(bg_r * 0.45 + 99 * 0.55))
+        bg_g = min(255, int(bg_g * 0.45 + 102 * 0.55))
+        bg_b = min(255, int(bg_b * 0.45 + 241 * 0.55))
+
+    # Tilt sneaker dynamically (-9 deg upward toe lift)
+    ang = math.radians(9.0)
+    ca, sa = math.cos(ang), math.sin(ang)
+    rx, ry = nx - 0.50, ny - 0.52
+    u = 0.50 + rx * ca - ry * sa
+    v = 0.52 + rx * sa + ry * ca
+
+    # 1. Midsole & Outsole with Visible Indigo Air Cushion Pod
+    if _point_in_poly(u, v, _MIDSOLE_POLY):
+        if v > 0.648:
+            return (203, 213, 225, 255)
+        if 0.215 <= u <= 0.365 and 0.602 <= v <= 0.640:
+            return (99, 102, 241, 255)
+        return (255, 255, 255, 255)
+
+    # 2. Upper Sneaker Body + Gold Speed Swoosh + Indigo Laces
+    if _point_in_poly(u, v, _UPPER_POLY):
+        if _point_in_poly(u, v, _SWOOSH_POLY):
+            st = max(0.0, min(1.0, (u - 0.23) / 0.52))
+            return (251, int(191 - st * 76), int(36 - st * 14), 255)
+        for (x1, y1), (x2, y2) in _LACE_SEGS:
+            if _dist_to_seg(u, v, x1, y1, x2, y2) < 0.0115:
+                return (79, 70, 229, 255)
+        if u < 0.27 or v > 0.555:
+            return (236, 241, 248, 255)
+        return (250, 251, 253, 255)
+
+    return (bg_r, bg_g, bg_b, 255)
 
 
 def _make_png_chunk(chunk_type: bytes, data: bytes) -> bytes:
@@ -1528,60 +1615,87 @@ def _make_png_chunk(chunk_type: bytes, data: bytes) -> bytes:
     return struct.pack(">I", len(data)) + chunk + struct.pack(">I", zlib.crc32(chunk) & 0xFFFFFFFF)
 
 
-def generate_app_icon_png(size: int) -> bytes:
-    if size in _ICON_CACHE:
-        return _ICON_CACHE[size]
-
-    radius = int(size * 0.22)
-    glyph_w = max(7, int(size * 0.42))
-    glyph_h = max(8, int(size * 0.50))
-    gx0 = (size - glyph_w) // 2
-    gy0 = (size - glyph_h) // 2
-
-    bg_px = bytes([9, 9, 11, 255])
-    accent_px = bytes([79, 70, 229, 255])
-    white_px = bytes([255, 255, 255, 255])
-    clear_px = bytes([0, 0, 0, 0])
-
-    border_pad = max(2, int(size * 0.04))
-    raw_rows = bytearray()
-
-    for y in range(size):
-        raw_rows.append(0)
-        for x in range(size):
-            dx = max(0, radius - x, x - (size - 1 - radius))
-            dy = max(0, radius - y, y - (size - 1 - radius))
-            if dx * dx + dy * dy > radius * radius:
-                raw_rows.extend(clear_px)
-                continue
-
-            if gx0 <= x < gx0 + glyph_w and gy0 <= y < gy0 + glyph_h:
-                col = min(6, int((x - gx0) * 7 / glyph_w))
-                row = min(7, int((y - gy0) * 8 / glyph_h))
-                if _S_GLYPH[row][col] == "1":
-                    raw_rows.extend(white_px)
-                    continue
-
-            if x < border_pad or x >= size - border_pad or y < border_pad or y >= size - border_pad:
-                raw_rows.extend(accent_px)
-            else:
-                raw_rows.extend(bg_px)
-
+def _encode_rgba_png(size: int, rgba_rows: bytearray) -> bytes:
     ihdr = struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)
-    png_bytes = (
+    return (
         b"\x89PNG\r\n\x1a\n"
         + _make_png_chunk(b"IHDR", ihdr)
-        + _make_png_chunk(b"IDAT", zlib.compress(bytes(raw_rows), 6))
+        + _make_png_chunk(b"IDAT", zlib.compress(bytes(rgba_rows), 6))
         + _make_png_chunk(b"IEND", b"")
     )
-    _ICON_CACHE[size] = png_bytes
-    return png_bytes
+
+
+def generate_app_icon_png(size: int) -> bytes:
+    target = 512 if size >= 384 else 192
+    if target in _ICON_CACHE:
+        return _ICON_CACHE[target]
+
+    # Render 192x192 with 2x2 anti-aliasing; upscale cleanly for 512x512
+    base = 192
+    grid = [[(0, 0, 0, 0)] * base for _ in range(base)]
+    offsets = ((0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75))
+
+    for y in range(base):
+        row = grid[y]
+        for x in range(base):
+            r_sum = g_sum = b_sum = a_sum = 0
+            for ox, oy in offsets:
+                pr, pg, pb, pa = _sample_sneaker_icon((x + ox) / base, (y + oy) / base)
+                r_sum += pr
+                g_sum += pg
+                b_sum += pb
+                a_sum += pa
+            row[x] = (r_sum >> 2, g_sum >> 2, b_sum >> 2, a_sum >> 2)
+
+    raw_192 = bytearray()
+    for y in range(base):
+        raw_192.append(0)
+        for pr, pg, pb, pa in grid[y]:
+            raw_192.extend((pr, pg, pb, pa))
+    _ICON_CACHE[192] = _encode_rgba_png(192, raw_192)
+
+    if target == 512:
+        raw_512 = bytearray()
+        scale = (base - 1) / 511.0
+        for y in range(512):
+            raw_512.append(0)
+            fy = y * scale
+            y0 = int(fy)
+            y1 = min(base - 1, y0 + 1)
+            wy = fy - y0
+            row0, row1 = grid[y0], grid[y1]
+            for x in range(512):
+                fx = x * scale
+                x0 = int(fx)
+                x1 = min(base - 1, x0 + 1)
+                wx = fx - x0
+                c00, c10 = row0[x0], row0[x1]
+                c01, c11 = row1[x0], row1[x1]
+                w00 = (1.0 - wx) * (1.0 - wy)
+                w10 = wx * (1.0 - wy)
+                w01 = (1.0 - wx) * wy
+                w11 = wx * wy
+                raw_512.extend((
+                    int(c00[0] * w00 + c10[0] * w10 + c01[0] * w01 + c11[0] * w11),
+                    int(c00[1] * w00 + c10[1] * w10 + c01[1] * w01 + c11[1] * w11),
+                    int(c00[2] * w00 + c10[2] * w10 + c01[2] * w01 + c11[2] * w11),
+                    int(c00[3] * w00 + c10[3] * w10 + c01[3] * w01 + c11[3] * w11),
+                ))
+        _ICON_CACHE[512] = _encode_rgba_png(512, raw_512)
+
+    return _ICON_CACHE[target]
 
 
 @app.route("/icon-<int:size>.png")
 def pwa_icon(size):
     safe_size = 512 if size >= 384 else 192
     return send_file(io.BytesIO(generate_app_icon_png(safe_size)), mimetype="image/png")
+
+
+@app.route("/apple-touch-icon.png")
+@app.route("/favicon.ico")
+def apple_touch_icon():
+    return send_file(io.BytesIO(generate_app_icon_png(192)), mimetype="image/png")
 
 
 @app.route("/manifest.json")
@@ -1597,8 +1711,8 @@ def pwa_manifest():
         "background_color": "#09090b",
         "theme_color": "#09090b",
         "icons": [
-            {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-            {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+            {"src": "/icon-192.png?v=2", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+            {"src": "/icon-512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
         ]
     }
     resp = app.response_class(
@@ -1612,8 +1726,8 @@ def pwa_manifest():
 @app.route("/sw.js")
 def pwa_service_worker():
     sw_code = """
-const CACHE_NAME = 'solemetrics-app-v1';
-const STATIC_ASSETS = ['/static/style.css', '/icon-192.png', '/icon-512.png'];
+const CACHE_NAME = 'solemetrics-app-v2';
+const STATIC_ASSETS = ['/static/style.css', '/icon-192.png?v=2', '/icon-512.png?v=2'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
