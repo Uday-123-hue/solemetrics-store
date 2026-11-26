@@ -38,7 +38,33 @@ AGE_GROUPS = ["Under 18", "18-25", "26-40", "41-55", "55+"]
 GENDERS = ["Male", "Female", "Other"]
 UK_SIZES = ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
 ORDER_STAGES = ["Confirmed", "Packed", "Shipped", "Delivered"]
-COST_PRICE_MAP = {p["id"]: int(p.get("cost_price", int(p["price"] * 0.6))) for p in PRODUCTS}
+
+COMBO_ADDONS = [
+    {
+        "id": "ACC-01",
+        "brand": "SoleMetrics Care",
+        "name": "Pro Foam Sneaker Cleaner & Brush Kit",
+        "category": "Accessories",
+        "price": 499,
+        "cost_price": 210,
+        "image": REAL_SHOE_FALLBACK_URL,
+        "desc": "Safe foaming cleaner, soft bristle brush, and microfiber towel for leather, mesh, and suede."
+    },
+    {
+        "id": "ACC-02",
+        "brand": "SoleMetrics Essentials",
+        "name": "Cushioned Athletic Crew Socks (Pack of 3)",
+        "category": "Accessories",
+        "price": 399,
+        "cost_price": 160,
+        "image": REAL_SHOE_FALLBACK_URL,
+        "desc": "Breathable combed cotton socks with arch compression and heel cushioning."
+    }
+]
+
+ALL_CATALOG_ITEMS = PRODUCTS + COMBO_ADDONS
+ALL_CATALOG_MAP = {p["id"]: p for p in ALL_CATALOG_ITEMS}
+COST_PRICE_MAP = {p["id"]: int(p.get("cost_price", int(p["price"] * 0.6))) for p in ALL_CATALOG_ITEMS}
 
 INITIAL_DEMO_REVIEWS = [
     {"reviewId": "REV-101", "date": "2026-11-15", "customerName": "Aarav Verma", "customerEmail": "aarav.v@gmail.com", "brand": "Nike", "productId": "NK-01", "productName": "Nike Air Force 1 '07 Low", "rating": 5, "experienceTag": "Build Quality", "comment": "Premium leather finish and super comfortable cushioning for daily college wear.", "verifiedBuyer": "Yes"},
@@ -122,7 +148,7 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
           <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
             <thead>
               <tr style="background:#f4f4f5;color:#52525b;font-size:11px;text-transform:uppercase;">
-                <th style="padding:10px;text-align:left;">Footwear</th>
+                <th style="padding:10px;text-align:left;">Item</th>
                 <th style="padding:10px;text-align:center;">Size</th>
                 <th style="padding:10px;text-align:center;">Qty</th>
                 <th style="padding:10px;text-align:right;">Price</th>
@@ -136,7 +162,7 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
           <div style="background:#09090b;color:#ffffff;padding:14px 18px;border-radius:12px;font-size:14px;">
             <table style="width:100%;border-collapse:collapse;">
               <tr>
-                <td style="color:#d4d4d8;font-size:12px;">Total Payable ({total_pairs} Pair{'s' if total_pairs > 1 else ''})</td>
+                <td style="color:#d4d4d8;font-size:12px;">Total Payable ({total_pairs} Item{'s' if total_pairs > 1 else ''})</td>
                 <td style="text-align:right;font-size:17px;font-weight:800;color:#ffffff;">&#8377;{grand_total:,}</td>
               </tr>
             </table>
@@ -678,14 +704,13 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 # =========================================================================
 def get_cart_details():
     raw_cart = session.get("cart", {})
-    prod_map = {p["id"]: p for p in PRODUCTS}
     items = []
     total_qty = 0
     grand_total = 0
 
     for item_key, entry in raw_cart.items():
         pid = entry.get("product_id")
-        prod = prod_map.get(pid)
+        prod = ALL_CATALOG_MAP.get(pid)
         if not prod:
             continue
         size = entry.get("size", "UK 8")
@@ -711,12 +736,29 @@ def inject_globals():
     raw_cart = session.get("cart", {})
     cart_count = sum(int(v.get("qty", 1)) for v in raw_cart.values()) if isinstance(raw_cart, dict) else 0
     w_ids = get_user_wishlist()
+    rv_ids = session.get("recently_viewed", [])
+    if not isinstance(rv_ids, list):
+        rv_ids = []
+    recently_viewed_products = [ALL_CATALOG_MAP[pid] for pid in rv_ids if pid in ALL_CATALOG_MAP][:6]
+    catalog_search_data = [
+        {
+            "id": p["id"],
+            "name": p["name"],
+            "brand": p["brand"],
+            "category": p["category"],
+            "price": int(p["price"]),
+            "image": p["image"]
+        }
+        for p in PRODUCTS
+    ]
     return {
         "current_user": session.get("user"),
         "fallback_img": REAL_SHOE_FALLBACK_URL,
         "cart_count": cart_count,
         "wishlist_ids": w_ids,
-        "wishlist_count": len(w_ids)
+        "wishlist_count": len(w_ids),
+        "recently_viewed_products": recently_viewed_products,
+        "catalog_search_data": catalog_search_data
     }
 
 
@@ -777,8 +819,7 @@ def shop():
 @app.route("/wishlist")
 def wishlist_page():
     w_ids = get_user_wishlist()
-    prod_map = {p["id"]: p for p in PRODUCTS}
-    saved_products = [prod_map[pid] for pid in w_ids if pid in prod_map]
+    saved_products = [ALL_CATALOG_MAP[pid] for pid in w_ids if pid in ALL_CATALOG_MAP]
     return render_template(
         "wishlist.html",
         active_page="wishlist",
@@ -788,7 +829,7 @@ def wishlist_page():
 
 @app.route("/toggle-wishlist/<product_id>", methods=["GET", "POST"])
 def toggle_wishlist(product_id):
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    product = ALL_CATALOG_MAP.get(product_id)
     if not product:
         flash("Footwear model not found.", "error")
         return redirect(url_for("shop"))
@@ -815,10 +856,18 @@ def toggle_wishlist(product_id):
 
 @app.route("/product/<product_id>")
 def product_detail(product_id):
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    product = ALL_CATALOG_MAP.get(product_id)
     if not product:
         flash("Footwear model not found.", "error")
         return redirect(url_for("shop"))
+
+    # Track Recently Viewed (latest first, max 6)
+    rv = session.get("recently_viewed", [])
+    if not isinstance(rv, list):
+        rv = []
+    rv = [product_id] + [pid for pid in rv if pid != product_id]
+    session["recently_viewed"] = rv[:6]
+    session.modified = True
 
     rev_df = load_reviews_df()
     prod_rev_df = rev_df[rev_df["productId"] == product_id] if not rev_df.empty else pd.DataFrame()
@@ -830,6 +879,9 @@ def product_detail(product_id):
         if p["id"] != product_id and (p["category"] == product["category"] or p["brand"] == product["brand"])
     ][:4]
 
+    open_cats = ("Sandals", "Clogs", "Flip-Flops", "Slippers")
+    combo_addon = COMBO_ADDONS[1] if product.get("category") in open_cats else COMBO_ADDONS[0]
+
     return render_template(
         "product.html",
         active_page="shop",
@@ -837,7 +889,8 @@ def product_detail(product_id):
         uk_sizes=UK_SIZES,
         product_reviews=product_reviews,
         avg_rating=avg_rating,
-        similar=similar
+        similar=similar,
+        combo_addon=combo_addon
     )
 
 
@@ -855,12 +908,13 @@ def cart_page():
 
 @app.route("/add-to-cart/<product_id>", methods=["GET", "POST"])
 def add_to_cart(product_id):
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    product = ALL_CATALOG_MAP.get(product_id)
     if not product:
-        flash("Footwear model not found.", "error")
+        flash("Item not found.", "error")
         return redirect(url_for("shop"))
 
-    size = request.values.get("size", "UK 8").strip() or "UK 8"
+    default_size = "One Size" if product.get("category") == "Accessories" else "UK 8"
+    size = request.values.get("size", default_size).strip() or default_size
     qty = max(1, min(10, int(request.values.get("qty", 1))))
     action = request.values.get("action", "cart")
 
@@ -884,8 +938,50 @@ def add_to_cart(product_id):
     if action == "buy_now":
         return redirect(url_for("checkout"))
 
-    flash(f"Added {product['name']} ({size}) to your cart.", "success")
+    flash(f"Added {product['name']} ({size}) to your bag.", "success")
     return redirect(request.referrer or url_for("cart_page"))
+
+
+@app.route("/add-bundle", methods=["POST"])
+def add_bundle():
+    product_id = request.form.get("product_id", "").strip()
+    addon_id = request.form.get("addon_id", "").strip()
+    size = request.form.get("size", "UK 8").strip() or "UK 8"
+    include_main = request.form.get("include_main") == "1"
+    include_addon = request.form.get("include_addon") == "1"
+
+    cart = session.get("cart", {})
+    if not isinstance(cart, dict):
+        cart = {}
+
+    added_names = []
+    if include_main and product_id in ALL_CATALOG_MAP:
+        p = ALL_CATALOG_MAP[product_id]
+        key = f"{product_id}__{size}"
+        if key in cart:
+            cart[key]["qty"] = min(10, int(cart[key].get("qty", 1)) + 1)
+        else:
+            cart[key] = {"product_id": product_id, "size": size, "qty": 1}
+        added_names.append(p["name"])
+
+    if include_addon and addon_id in ALL_CATALOG_MAP:
+        a = ALL_CATALOG_MAP[addon_id]
+        a_size = "One Size"
+        key = f"{addon_id}__{a_size}"
+        if key in cart:
+            cart[key]["qty"] = min(10, int(cart[key].get("qty", 1)) + 1)
+        else:
+            cart[key] = {"product_id": addon_id, "size": a_size, "qty": 1}
+        added_names.append(a["name"])
+
+    if not added_names:
+        flash("Please select at least one item from the combo.", "error")
+        return redirect(request.referrer or url_for("shop"))
+
+    session["cart"] = cart
+    session.modified = True
+    flash(f"Combo added to bag: {' + '.join(added_names)}!", "success")
+    return redirect(url_for("cart_page"))
 
 
 @app.route("/update-cart", methods=["POST"])
@@ -912,7 +1008,7 @@ def remove_from_cart(item_key):
         cart.pop(item_key, None)
         session["cart"] = cart
         session.modified = True
-        flash("Item removed from cart.", "info")
+        flash("Item removed from bag.", "info")
     return redirect(url_for("cart_page"))
 
 
@@ -1232,7 +1328,7 @@ def receipt(order_id):
     display_order_id = f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else first["orderId"]
     grand_total = sum(int(i["totalAmount"]) for i in order_items)
     total_pairs = sum(int(i["qty"]) for i in order_items)
-    img_map = {p["id"]: p["image"] for p in PRODUCTS}
+    img_map = {p["id"]: p["image"] for p in ALL_CATALOG_ITEMS}
 
     return render_template(
         "receipt.html",
@@ -1352,7 +1448,7 @@ def my_orders():
     df = load_orders_df()
     my_df = df[df["customerEmail"].str.lower() == user["email"].lower()]
     orders = my_df.to_dict(orient="records")
-    img_map = {p["id"]: p["image"] for p in PRODUCTS}
+    img_map = {p["id"]: p["image"] for p in ALL_CATALOG_ITEMS}
 
     return render_template(
         "my_orders.html",
@@ -1567,27 +1663,23 @@ def _sample_sneaker_icon(nx: float, ny: float):
     if corner_dist > radius:
         return (0, 0, 0, 0)
 
-    # Obsidian-to-Midnight-Indigo gradient + radial studio spotlight
     grad = 0.55 * nx + 0.45 * ny
     glow = max(0.0, 1.0 - math.hypot(nx - 0.50, ny - 0.50) * 1.65)
     bg_r = min(255, int(11 + grad * 20 + glow * 34))
     bg_g = min(255, int(12 + grad * 18 + glow * 30))
     bg_b = min(255, int(18 + grad * 52 + glow * 78))
 
-    # Sleek subtle indigo inner rim
     if corner_dist > radius - 0.024:
         bg_r = min(255, int(bg_r * 0.45 + 99 * 0.55))
         bg_g = min(255, int(bg_g * 0.45 + 102 * 0.55))
         bg_b = min(255, int(bg_b * 0.45 + 241 * 0.55))
 
-    # Tilt sneaker dynamically (-9 deg upward toe lift)
     ang = math.radians(9.0)
     ca, sa = math.cos(ang), math.sin(ang)
     rx, ry = nx - 0.50, ny - 0.52
     u = 0.50 + rx * ca - ry * sa
     v = 0.52 + rx * sa + ry * ca
 
-    # 1. Midsole & Outsole with Visible Indigo Air Cushion Pod
     if _point_in_poly(u, v, _MIDSOLE_POLY):
         if v > 0.648:
             return (203, 213, 225, 255)
@@ -1595,7 +1687,6 @@ def _sample_sneaker_icon(nx: float, ny: float):
             return (99, 102, 241, 255)
         return (255, 255, 255, 255)
 
-    # 2. Upper Sneaker Body + Gold Speed Swoosh + Indigo Laces
     if _point_in_poly(u, v, _UPPER_POLY):
         if _point_in_poly(u, v, _SWOOSH_POLY):
             st = max(0.0, min(1.0, (u - 0.23) / 0.52))
@@ -1630,7 +1721,6 @@ def generate_app_icon_png(size: int) -> bytes:
     if target in _ICON_CACHE:
         return _ICON_CACHE[target]
 
-    # Render 192x192 with 2x2 anti-aliasing; upscale cleanly for 512x512
     base = 192
     grid = [[(0, 0, 0, 0)] * base for _ in range(base)]
     offsets = ((0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75))

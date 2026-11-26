@@ -14,23 +14,31 @@
       {% endif %}
     </div>
 
-    <!-- iOS Spotlight-Style Search Bar -->
-    <form method="GET" action="{{ url_for('shop') }}" class="relative">
-      <input type="hidden" name="brand" value="{{ selected_brand }}" />
-      <input type="hidden" name="category" value="{{ selected_category }}" />
-      <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="7"></circle>
-        <path stroke-linecap="round" d="M20 20l-3.5-3.5"></path>
-      </svg>
-      <input type="text" name="q" value="{{ query }}" placeholder="Search Nike, Crocs, Sneakers..."
-             class="w-full pl-10 pr-20 py-2.5 sm:py-3 rounded-2xl bg-white border border-slate-200/90 text-sm shadow-sm" />
-      <button type="submit"
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold">
-        Search
-      </button>
-    </form>
+    <!-- iOS Spotlight Smart Live Search Bar -->
+    <div class="relative z-30">
+      <form method="GET" action="{{ url_for('shop') }}" class="relative">
+        <input type="hidden" name="brand" value="{{ selected_brand }}" />
+        <input type="hidden" name="category" value="{{ selected_category }}" />
+        <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path stroke-linecap="round" d="M20 20l-3.5-3.5"></path>
+        </svg>
+        <input type="text" id="shop-live-search" name="q" value="{{ query }}" autocomplete="off"
+               oninput="renderShopSmartSearch(this.value)"
+               onfocus="renderShopSmartSearch(this.value)"
+               placeholder="Search Nike, Crocs, Sneakers..."
+               class="w-full pl-10 pr-20 py-2.5 sm:py-3 rounded-2xl bg-white border border-slate-200/90 text-sm shadow-sm" />
+        <button type="submit"
+                class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold">
+          Search
+        </button>
+      </form>
+      <div id="shop-search-results"
+           class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden divide-y divide-slate-100 max-h-80 overflow-y-auto">
+      </div>
+    </div>
 
-    <!-- Horizontal Swipeable Brand Pills (Thumb-Friendly) -->
+    <!-- Horizontal Swipeable Brand Pills -->
     <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
       <a href="{{ url_for('shop', brand='All', category=selected_category, q=query) }}"
          class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 border {{ 'bg-slate-900 text-white border-slate-900' if selected_brand == 'All' else 'bg-white text-slate-600 border-slate-200' }}">
@@ -106,5 +114,79 @@
     </div>
   {% endif %}
 
+  <!-- Recently Viewed Row -->
+  {% if recently_viewed_products %}
+    <div class="space-y-2.5 pt-2">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Recently Viewed</h2>
+        <span class="text-[11px] font-semibold text-slate-400">Your browsing history</span>
+      </div>
+      <div class="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-0.5">
+        {% for rv in recently_viewed_products %}
+          <a href="{{ url_for('product_detail', product_id=rv.id) }}"
+             class="w-36 sm:w-44 shrink-0 bg-white rounded-2xl border border-slate-200/90 p-2.5 hover:border-indigo-500 transition block">
+            <div class="aspect-square rounded-xl overflow-hidden bg-slate-100 mb-2">
+              <img src="{{ rv.image }}" onerror="this.src='{{ fallback_img }}'" alt="{{ rv.name }}"
+                   class="w-full h-full object-cover" />
+            </div>
+            <span class="text-[9px] font-bold uppercase text-indigo-600 block truncate">{{ rv.brand }}</span>
+            <p class="font-bold text-xs text-slate-900 truncate">{{ rv.name }}</p>
+            <p class="font-extrabold text-xs text-slate-900 mt-0.5">{{ rv.price | inr }}</p>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
 </div>
+
+<script id="shop-catalog-data" type="application/json">{{ catalog_search_data | tojson }}</script>
+<script>
+  const shopCatalog = JSON.parse(document.getElementById('shop-catalog-data').textContent || '[]');
+  const shopFallbackImg = '{{ fallback_img }}';
+
+  function renderShopSmartSearch(rawQuery) {
+    const box = document.getElementById('shop-search-results');
+    const q = (rawQuery || '').trim().toLowerCase();
+    if (!q) {
+      box.classList.add('hidden');
+      box.innerHTML = '';
+      return;
+    }
+
+    const matches = shopCatalog.filter((item) =>
+      item.name.toLowerCase().includes(q) ||
+      item.brand.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q)
+    ).slice(0, 6);
+
+    if (!matches.length) {
+      box.innerHTML = '<div class="p-3.5 text-xs text-slate-500">No matching footwear found</div>';
+      box.classList.remove('hidden');
+      return;
+    }
+
+    box.innerHTML = matches.map((m) => `
+      <a href="/product/${m.id}" class="flex items-center justify-between gap-3 p-2.5 hover:bg-slate-50 transition">
+        <div class="flex items-center gap-3 min-w-0">
+          <img src="${m.image}" onerror="this.src='${shopFallbackImg}'" alt="" class="w-10 h-10 rounded-xl object-cover bg-slate-100 shrink-0" />
+          <div class="min-w-0">
+            <span class="text-[10px] font-bold uppercase text-indigo-600 block">${m.brand} &bull; ${m.category}</span>
+            <span class="text-xs font-bold text-slate-900 truncate block">${m.name}</span>
+          </div>
+        </div>
+        <span class="text-xs font-extrabold text-slate-900 shrink-0">₹${Number(m.price).toLocaleString('en-IN')}</span>
+      </a>
+    `).join('');
+    box.classList.remove('hidden');
+  }
+
+  document.addEventListener('click', (e) => {
+    const box = document.getElementById('shop-search-results');
+    const inp = document.getElementById('shop-live-search');
+    if (box && inp && !box.contains(e.target) && e.target !== inp) {
+      box.classList.add('hidden');
+    }
+  });
+</script>
 {% endblock %}
