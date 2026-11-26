@@ -3,6 +3,8 @@ import os
 import re
 import json
 import random
+import struct
+import zlib
 import urllib.error
 import urllib.request
 from datetime import datetime
@@ -1006,7 +1008,6 @@ def customer_login():
     password = request.form.get("password", "").strip()
     next_url = request.form.get("next_url", "").strip()
 
-    # Unified Admin Login Check
     if (
         login_id.lower() == str(ADMIN_CREDENTIALS["username"]).strip().lower()
         and password == str(ADMIN_CREDENTIALS["password"]).strip()
@@ -1504,6 +1505,142 @@ def admin_download_excel():
 
     load_orders_df()
     return send_file(EXCEL_FILE, as_attachment=True, download_name="SoleMetrics_Orders_Master.xlsx")
+
+
+# =========================================================================
+# 10. PROGRESSIVE WEB APP (PWA) — INSTALLABLE MOBILE & DESKTOP APP
+# =========================================================================
+_ICON_CACHE = {}
+_S_GLYPH = [
+    "0111110",
+    "1100011",
+    "1100000",
+    "0111100",
+    "0001110",
+    "0000011",
+    "1100011",
+    "0111110",
+]
+
+
+def _make_png_chunk(chunk_type: bytes, data: bytes) -> bytes:
+    chunk = chunk_type + data
+    return struct.pack(">I", len(data)) + chunk + struct.pack(">I", zlib.crc32(chunk) & 0xFFFFFFFF)
+
+
+def generate_app_icon_png(size: int) -> bytes:
+    if size in _ICON_CACHE:
+        return _ICON_CACHE[size]
+
+    radius = int(size * 0.22)
+    glyph_w = max(7, int(size * 0.42))
+    glyph_h = max(8, int(size * 0.50))
+    gx0 = (size - glyph_w) // 2
+    gy0 = (size - glyph_h) // 2
+
+    bg_px = bytes([9, 9, 11, 255])
+    accent_px = bytes([79, 70, 229, 255])
+    white_px = bytes([255, 255, 255, 255])
+    clear_px = bytes([0, 0, 0, 0])
+
+    border_pad = max(2, int(size * 0.04))
+    raw_rows = bytearray()
+
+    for y in range(size):
+        raw_rows.append(0)
+        for x in range(size):
+            dx = max(0, radius - x, x - (size - 1 - radius))
+            dy = max(0, radius - y, y - (size - 1 - radius))
+            if dx * dx + dy * dy > radius * radius:
+                raw_rows.extend(clear_px)
+                continue
+
+            if gx0 <= x < gx0 + glyph_w and gy0 <= y < gy0 + glyph_h:
+                col = min(6, int((x - gx0) * 7 / glyph_w))
+                row = min(7, int((y - gy0) * 8 / glyph_h))
+                if _S_GLYPH[row][col] == "1":
+                    raw_rows.extend(white_px)
+                    continue
+
+            if x < border_pad or x >= size - border_pad or y < border_pad or y >= size - border_pad:
+                raw_rows.extend(accent_px)
+            else:
+                raw_rows.extend(bg_px)
+
+    ihdr = struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)
+    png_bytes = (
+        b"\x89PNG\r\n\x1a\n"
+        + _make_png_chunk(b"IHDR", ihdr)
+        + _make_png_chunk(b"IDAT", zlib.compress(bytes(raw_rows), 6))
+        + _make_png_chunk(b"IEND", b"")
+    )
+    _ICON_CACHE[size] = png_bytes
+    return png_bytes
+
+
+@app.route("/icon-<int:size>.png")
+def pwa_icon(size):
+    safe_size = 512 if size >= 384 else 192
+    return send_file(io.BytesIO(generate_app_icon_png(safe_size)), mimetype="image/png")
+
+
+@app.route("/manifest.json")
+def pwa_manifest():
+    manifest = {
+        "name": "SoleMetrics — Footwear Studio",
+        "short_name": "SoleMetrics",
+        "description": "Multi-Brand Footwear Store & Live Order Tracking",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "orientation": "portrait",
+        "background_color": "#09090b",
+        "theme_color": "#09090b",
+        "icons": [
+            {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+            {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+        ]
+    }
+    resp = app.response_class(
+        response=json.dumps(manifest),
+        status=200,
+        mimetype="application/manifest+json"
+    )
+    return resp
+
+
+@app.route("/sw.js")
+def pwa_service_worker():
+    sw_code = """
+const CACHE_NAME = 'solemetrics-app-v1';
+const STATIC_ASSETS = ['/static/style.css', '/icon-192.png', '/icon-512.png'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => {})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
+});
+"""
+    resp = app.response_class(response=sw_code.strip(), status=200, mimetype="application/javascript")
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
 
 
 if __name__ == "__main__":
