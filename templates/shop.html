@@ -1,94 +1,106 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-5">
 
-  <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+  <!-- iOS-Style Clean Search & Filter Header -->
+  <div class="space-y-3.5">
+    <div class="flex items-end justify-between gap-2">
       <div>
-        <h1 class="text-2xl font-extrabold text-slate-900">Footwear Catalog</h1>
-        <p class="text-xs text-slate-500">Showing {{ products | length }} models across 10 brands</p>
+        <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900">Explore</h1>
+        <p class="text-xs text-slate-500 mt-0.5">{{ products | length }} styles across 10 brands</p>
       </div>
-      <div class="flex items-center gap-2 self-start">
-        <a href="{{ url_for('wishlist_page') }}" class="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-extrabold hover:bg-rose-100">
-          &#9829; Wishlist ({{ wishlist_count }})
-        </a>
-        <a href="{{ url_for('cart_page') }}" class="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-extrabold hover:bg-indigo-100">
-          View Cart ({{ cart_count }}) &rarr;
-        </a>
-      </div>
+      {% if selected_brand != 'All' or selected_category != 'All' or query %}
+        <a href="{{ url_for('shop') }}" class="text-xs font-bold text-indigo-600 hover:underline">Reset</a>
+      {% endif %}
     </div>
 
-    <form method="GET" action="{{ url_for('shop') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-      <input type="text" name="q" value="{{ query }}" placeholder="Search model, brand, comfort..." class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm" />
-
-      <select name="brand" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-white">
-        <option value="All">All Brands</option>
-        {% for b in brands %}
-          <option value="{{ b }}" {{ 'selected' if selected_brand == b else '' }}>{{ b }}</option>
-        {% endfor %}
-      </select>
-
-      <select name="category" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-white">
-        <option value="All">All Categories</option>
-        {% for c in categories %}
-          <option value="{{ c.name }}" {{ 'selected' if selected_category == c.name else '' }}>{{ c.name }}</option>
-        {% endfor %}
-      </select>
-
-      <div class="flex items-center gap-2">
-        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-indigo-600">
-          Apply
-        </button>
-        <a href="{{ url_for('shop') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold">
-          Reset
-        </a>
-      </div>
+    <!-- iOS Spotlight-Style Search Bar -->
+    <form method="GET" action="{{ url_for('shop') }}" class="relative">
+      <input type="hidden" name="brand" value="{{ selected_brand }}" />
+      <input type="hidden" name="category" value="{{ selected_category }}" />
+      <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path stroke-linecap="round" d="M20 20l-3.5-3.5"></path>
+      </svg>
+      <input type="text" name="q" value="{{ query }}" placeholder="Search Nike, Crocs, Sneakers..."
+             class="w-full pl-10 pr-20 py-2.5 sm:py-3 rounded-2xl bg-white border border-slate-200/90 text-sm shadow-sm" />
+      <button type="submit"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold">
+        Search
+      </button>
     </form>
+
+    <!-- Horizontal Swipeable Brand Pills (Thumb-Friendly) -->
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+      <a href="{{ url_for('shop', brand='All', category=selected_category, q=query) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 border {{ 'bg-slate-900 text-white border-slate-900' if selected_brand == 'All' else 'bg-white text-slate-600 border-slate-200' }}">
+        All Brands
+      </a>
+      {% for b in brands %}
+        <a href="{{ url_for('shop', brand=b, category=selected_category, q=query) }}"
+           class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 border {{ 'bg-slate-900 text-white border-slate-900' if selected_brand == b else 'bg-white text-slate-600 border-slate-200' }}">
+          {{ b }}
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- Horizontal Swipeable Category Pills -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <a href="{{ url_for('shop', brand=selected_brand, category='All', q=query) }}"
+         class="px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 {{ 'bg-indigo-600 text-white' if selected_category == 'All' else 'bg-slate-200/70 text-slate-600' }}">
+        All Types
+      </a>
+      {% for c in categories %}
+        <a href="{{ url_for('shop', brand=selected_brand, category=c.name, q=query) }}"
+           class="px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 {{ 'bg-indigo-600 text-white' if selected_category == c.name else 'bg-slate-200/70 text-slate-600' }}">
+          {{ c.name }}
+        </a>
+      {% endfor %}
+    </div>
   </div>
 
+  <!-- 2-Column iPhone App Product Grid -->
   {% if products %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
       {% for p in products %}
         {% set is_wished = p.id in wishlist_ids %}
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div class="relative aspect-square bg-slate-100 overflow-hidden group">
-            <a href="{{ url_for('product_detail', product_id=p.id) }}" class="block w-full h-full">
-              <img src="{{ p.image }}" onerror="this.src='{{ fallback_img }}'" alt="{{ p.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-            </a>
-            <a href="{{ url_for('toggle_wishlist', product_id=p.id) }}"
-               title="{{ 'Remove from Wishlist' if is_wished else 'Save to Wishlist' }}"
-               aria-label="{{ 'Remove from Wishlist' if is_wished else 'Save to Wishlist' }}"
-               class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm border border-slate-200/80 shadow-sm flex items-center justify-center text-sm font-bold transition-transform hover:scale-110 {{ 'text-rose-500' if is_wished else 'text-slate-400 hover:text-rose-500' }}">
-              {% if is_wished %}&#9829;{% else %}&#9825;{% endif %}
-            </a>
-          </div>
+        <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 overflow-hidden flex flex-col justify-between">
+          <div>
+            <div class="relative aspect-square bg-slate-100 overflow-hidden group">
+              <a href="{{ url_for('product_detail', product_id=p.id) }}" class="block w-full h-full">
+                <img src="{{ p.image }}" onerror="this.src='{{ fallback_img }}'" alt="{{ p.name }}"
+                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+              </a>
+              <a href="{{ url_for('toggle_wishlist', product_id=p.id) }}"
+                 title="{{ 'Remove from Wishlist' if is_wished else 'Save to Wishlist' }}"
+                 aria-label="{{ 'Remove from Wishlist' if is_wished else 'Save to Wishlist' }}"
+                 class="absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center text-xs sm:text-sm font-bold {{ 'text-rose-500' if is_wished else 'text-slate-400 hover:text-rose-500' }}">
+                {% if is_wished %}&#9829;{% else %}&#9825;{% endif %}
+              </a>
+            </div>
 
-          <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
-            <div>
-              <span class="text-[10px] font-bold uppercase text-indigo-600">{{ p.brand }} &bull; {{ p.category }}</span>
-              <a href="{{ url_for('product_detail', product_id=p.id) }}" class="font-extrabold text-slate-900 text-sm block mt-0.5 hover:text-indigo-600">
+            <div class="p-3 sm:p-4 space-y-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 block truncate">{{ p.brand }}</span>
+              <a href="{{ url_for('product_detail', product_id=p.id) }}"
+                 class="font-bold text-slate-900 text-xs sm:text-sm block line-clamp-1 hover:text-indigo-600">
                 {{ p.name }}
               </a>
-              <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ p.desc }}</p>
+              <p class="hidden sm:block text-xs text-slate-500 line-clamp-2 pt-0.5">{{ p.desc }}</p>
             </div>
+          </div>
 
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-              <span class="font-extrabold text-slate-900 text-base">{{ p.price | inr }}</span>
-              <div class="flex items-center gap-1.5">
-                <a href="{{ url_for('add_to_cart', product_id=p.id) }}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200">
-                  + Cart
-                </a>
-                <a href="{{ url_for('product_detail', product_id=p.id) }}" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600">
-                  View
-                </a>
-              </div>
-            </div>
+          <div class="px-3 pb-3 sm:px-4 sm:pb-4 pt-1 flex items-center justify-between gap-1.5">
+            <span class="font-display font-extrabold text-slate-900 text-sm sm:text-base">{{ p.price | inr }}</span>
+            <a href="{{ url_for('add_to_cart', product_id=p.id) }}"
+               class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 text-white text-[11px] sm:text-xs font-bold hover:bg-indigo-600 shrink-0">
+              + Bag
+            </a>
           </div>
         </div>
       {% endfor %}
     </div>
   {% else %}
-    <div class="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-2">
+    <div class="bg-white p-10 rounded-3xl border border-slate-200 text-center space-y-2">
       <p class="font-extrabold text-slate-900">No matching footwear found</p>
       <a href="{{ url_for('shop') }}" class="inline-block text-xs font-bold text-indigo-600 hover:underline">Clear all filters</a>
     </div>
