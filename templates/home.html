@@ -2,7 +2,7 @@
 {% block content %}
 <div class="space-y-6 sm:space-y-8">
 
-  <!-- Smart Live Search Bar (Amazon-Style Instant Dropdown) -->
+  <!-- Smart Live Search Bar -->
   <div class="relative z-30">
     <form method="GET" action="{{ url_for('shop') }}" class="relative">
       <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@
         &#9733; Reviews
       </a>
       <button type="button" data-install-trigger onclick="triggerPwaInstall()"
-              class="px-4 py-2.5 sm:py-3 rounded-2xl bg-indigo-600 text-white text-xs sm:text-sm font-extrabold hover:bg-indigo-500 transition inline-flex items-center gap-1.5">
+              class="hidden px-4 py-2.5 sm:py-3 rounded-2xl bg-indigo-600 text-white text-xs sm:text-sm font-extrabold hover:bg-indigo-500 transition items-center gap-1.5">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
         </svg>
@@ -73,7 +73,7 @@
     </div>
   </div>
 
-  <!-- FEATURE 3: RECENTLY VIEWED ROW (APPEARS AUTOMATICALLY ONCE USER VIEWS SHOES) -->
+  <!-- Recently Viewed Row -->
   {% if recently_viewed_products %}
     <div class="space-y-2.5">
       <div class="flex items-center justify-between">
@@ -127,7 +127,7 @@
     </div>
   </div>
 
-  <!-- Featured Collection (2-Column iPhone App Grid) -->
+  <!-- Featured Collection -->
   <div class="space-y-3">
     <div class="flex items-center justify-between">
       <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Featured Footwear</h2>
