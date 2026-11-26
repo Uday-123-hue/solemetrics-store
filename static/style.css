@@ -53,7 +53,6 @@ body {
   overflow-x: hidden;
 }
 
-/* iPhone Frosted Glass Header & Bottom Tab Bar */
 .ios-glass-bar {
   background-color: rgba(255, 255, 255, 0.82);
   backdrop-filter: saturate(180%) blur(20px);
@@ -65,14 +64,12 @@ html.dark .ios-glass-bar {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Prevent iPhone Safari auto-zoom on form input focus */
 @media (max-width: 640px) {
   input, select, textarea {
     font-size: 16px !important;
   }
 }
 
-/* Hide scrollbars cleanly on horizontal mobile pills */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -81,9 +78,6 @@ html.dark .ios-glass-bar {
   scrollbar-width: none;
 }
 
-/* =========================================================================
-   1. TOP 2PX SLIM PROGRESS BAR (INDIGO -> SKY)
-   ========================================================================= */
 #route-progress {
   position: fixed;
   top: 0;
@@ -102,9 +96,6 @@ html.dark .ios-glass-bar {
   width: 82%;
 }
 
-/* =========================================================================
-   2. SMOOTH IPHONE-STYLE PAGE TRANSITIONS (ENTER & EXIT)
-   ========================================================================= */
 @keyframes pageGlideIn {
   0% {
     opacity: 0;
@@ -126,9 +117,6 @@ html.dark .ios-glass-bar {
   transform: translateY(-5px) !important;
 }
 
-/* =========================================================================
-   3. STAGGERED CARD CASCADE & APPLE SQUIRCLE ELEVATION
-   ========================================================================= */
 @keyframes cardFadeUp {
   from {
     opacity: 0;
@@ -168,7 +156,6 @@ main div.flex.flex-col.rounded-2xl.border:hover {
   box-shadow: var(--shadow-hover);
 }
 
-/* Tactile iOS Spring Press */
 a, button, input, select, textarea {
   transition: background-color 0.2s ease,
               color 0.2s ease,
@@ -185,16 +172,12 @@ a.rounded-lg:active {
   transform: scale(0.96);
 }
 
-/* Crisp Focus Ring */
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
 }
 
-/* =========================================================================
-   NIGHT (OLED DARK) MODE — IPHONE TRUE BLACK PALETTE
-   ========================================================================= */
 html.dark .bg-white {
   background-color: #121316 !important;
 }
@@ -311,7 +294,6 @@ html.dark .text-rose-600 {
   color: #fda4af !important;
 }
 
-/* Live Adaptive Plotly Charts in Night Mode */
 html.dark .js-plotly-plot .gtitle {
   fill: #f4f4f5 !important;
 }

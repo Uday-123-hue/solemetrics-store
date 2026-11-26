@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>SoleMetrics — Multi-Brand Footwear Store</title>
 
+  <!-- PWA App Manifest & iPhone / Android Native Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SoleMetrics" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+
   <script>
     (function () {
       var saved = localStorage.getItem('solemetrics-theme') || 'system';
@@ -30,10 +39,10 @@
 
   <!-- Airy iOS-Style Frosted Header -->
   <header class="sticky top-0 z-40 ios-glass-bar border-b border-slate-200/70 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+    <div class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
 
       <!-- Brand Squircle + Title -->
-      <a href="{{ url_for('home') }}" class="flex items-center gap-2.5 shrink-0 group">
+      <a href="{{ url_for('home') }}" class="flex items-center gap-2 shrink-0 group">
         <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-[11px] bg-slate-900 text-white flex items-center justify-center font-display font-extrabold text-sm sm:text-base shadow-sm group-hover:scale-105 transition-transform">
           S
         </div>
@@ -76,17 +85,21 @@
         {% endif %}
       </nav>
 
-      <!-- Right Actions (Clean & Spacious on Mobile) -->
-      <div class="flex items-center gap-2 shrink-0">
-        <!-- Mobile Reviews Pill -->
-        <a href="{{ url_for('reviews_page') }}"
-           class="lg:hidden px-2.5 py-1.5 rounded-full text-[11px] font-bold {{ 'bg-slate-900 text-white' if active_page == 'reviews' else 'bg-slate-100 text-slate-700' }}">
-          Reviews
-        </a>
+      <!-- Right Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+
+        <!-- Direct Get App Button -->
+        <button type="button" data-install-trigger onclick="triggerPwaInstall()"
+                class="px-2.5 sm:px-3.5 py-1.5 rounded-full sm:rounded-xl bg-indigo-600 text-white text-[11px] sm:text-xs font-extrabold inline-flex items-center gap-1 shadow-sm hover:bg-indigo-700 whitespace-nowrap shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+          </svg>
+          <span>Get App</span>
+        </button>
 
         <!-- Mobile Single-Tap iOS Theme Toggle Button -->
         <button type="button" onclick="cycleMobileTheme()" aria-label="Switch Theme"
-                class="sm:hidden w-8 h-8 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 flex items-center justify-center">
+                class="sm:hidden w-8 h-8 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 flex items-center justify-center shrink-0">
           <svg id="mobile-theme-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="4"></circle>
             <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path>
@@ -121,7 +134,7 @@
         </div>
 
         {% if not current_user %}
-          <a href="{{ url_for('login_page') }}" class="px-3.5 py-1.5 sm:py-2 rounded-full sm:rounded-xl bg-slate-900 text-white text-xs font-bold hover:opacity-90 whitespace-nowrap shrink-0">
+          <a href="{{ url_for('login_page') }}" class="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full sm:rounded-xl bg-slate-900 text-white text-xs font-bold hover:opacity-90 whitespace-nowrap shrink-0">
             Sign In
           </a>
         {% elif current_user.role == 'admin' %}
@@ -130,7 +143,7 @@
           </a>
         {% else %}
           <span class="hidden md:inline-block text-xs font-semibold text-slate-600 whitespace-nowrap">Hi, <b class="text-slate-900">{{ current_user.name.split(' ')[0] }}</b></span>
-          <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-full sm:rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 whitespace-nowrap shrink-0">
+          <a href="{{ url_for('logout') }}" class="px-2.5 sm:px-3 py-1.5 rounded-full sm:rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 whitespace-nowrap shrink-0">
             Logout
           </a>
         {% endif %}
@@ -153,7 +166,7 @@
     {% endwith %}
   </div>
 
-  <!-- Main Content (Extra Bottom Padding for iOS Dock on Mobile) -->
+  <!-- Main Content -->
   <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-24 lg:py-9 page-animate">
     {% block content %}{% endblock %}
   </main>
@@ -178,7 +191,6 @@
        class="lg:hidden fixed bottom-0 inset-x-0 z-40 ios-glass-bar border-t border-slate-200/80 pb-[env(safe-area-inset-bottom)] no-print">
     <div class="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
 
-      <!-- 1. Home -->
       <a href="{{ url_for('home') }}"
          class="flex flex-col items-center justify-center gap-0.5 {{ 'text-indigo-600' if active_page == 'home' else 'text-slate-400 hover:text-slate-700' }}">
         <svg class="w-[22px] h-[22px]" fill="{{ 'currentColor' if active_page == 'home' else 'none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -187,7 +199,6 @@
         <span class="text-[10px] font-bold tracking-tight">Home</span>
       </a>
 
-      <!-- 2. Shop -->
       <a href="{{ url_for('shop') }}"
          class="flex flex-col items-center justify-center gap-0.5 {{ 'text-indigo-600' if active_page == 'shop' else 'text-slate-400 hover:text-slate-700' }}">
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
@@ -199,7 +210,6 @@
         <span class="text-[10px] font-bold tracking-tight">Shop</span>
       </a>
 
-      <!-- 3. Wishlist -->
       <a href="{{ url_for('wishlist_page') }}"
          class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-rose-500' if active_page == 'wishlist' else 'text-slate-400 hover:text-slate-700' }}">
         <div class="relative">
@@ -215,7 +225,6 @@
         <span class="text-[10px] font-bold tracking-tight">Saved</span>
       </a>
 
-      <!-- 4. Cart -->
       <a href="{{ url_for('cart_page') }}"
          class="relative flex flex-col items-center justify-center gap-0.5 {{ 'text-indigo-600' if active_page == 'cart' else 'text-slate-400 hover:text-slate-700' }}">
         <div class="relative">
@@ -233,7 +242,6 @@
         <span class="text-[10px] font-bold tracking-tight">Bag</span>
       </a>
 
-      <!-- 5. Orders / Admin / Account -->
       {% if current_user and current_user.role == 'admin' %}
         <a href="{{ url_for('admin_dashboard') }}"
            class="flex flex-col items-center justify-center gap-0.5 {{ 'text-indigo-600' if active_page == 'admin' else 'text-slate-400 hover:text-slate-700' }}">
@@ -263,6 +271,42 @@
 
     </div>
   </nav>
+
+  <!-- App Install Guide Modal -->
+  <div id="ios-install-modal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-sm sm:p-4 no-print">
+    <div class="w-full sm:max-w-sm bg-white rounded-t-[28px] sm:rounded-3xl border border-slate-200 p-6 space-y-4 shadow-2xl pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/icon-192.png" alt="SoleMetrics" class="w-11 h-11 rounded-2xl shadow" />
+          <div>
+            <h3 class="font-display font-extrabold text-base text-slate-900">Install SoleMetrics App</h3>
+            <p class="text-[11px] text-slate-500">100% Free &bull; Live Synced App</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeIosInstallModal()"
+                class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
+          &#10005;
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs text-slate-700 leading-relaxed">
+        <p><b>Android (Chrome):</b> Upar right corner me <b>3 dots (&#8942;)</b> par tap karein &rarr; <b>"Install app"</b> ya <b>"Add to Home screen"</b> dabayein.</p>
+        <p><b>iPhone (Safari):</b> Niche <b>Share (&#9633;&uarr;)</b> par tap karein &rarr; <b>"Add to Home Screen"</b> chunein.</p>
+        <p class="text-[11px] text-slate-500">*(Agar link WhatsApp ke andar khula hai toh pehle Chrome/Safari me open karein).*</p>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="copyAppLink(this)"
+                class="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-800 text-xs font-extrabold">
+          Copy Link
+        </button>
+        <button type="button" onclick="closeIosInstallModal()"
+                class="flex-1 py-3 rounded-2xl bg-slate-900 text-white text-xs font-extrabold">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Theme Switcher
@@ -307,6 +351,68 @@
     });
 
     applyTheme(localStorage.getItem('solemetrics-theme') || 'system');
+
+    // PWA Service Worker + Install App Prompt
+    let deferredInstallPrompt = null;
+
+    function hideInstallButtons() {
+      document.querySelectorAll('[data-install-trigger]').forEach((el) => {
+        el.classList.add('hidden');
+      });
+    }
+
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      hideInstallButtons();
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      hideInstallButtons();
+    });
+
+    async function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          hideInstallButtons();
+        }
+        deferredInstallPrompt = null;
+      } else {
+        const modal = document.getElementById('ios-install-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+        }
+      }
+    }
+
+    function closeIosInstallModal() {
+      const modal = document.getElementById('ios-install-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function copyAppLink(btn) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(window.location.origin);
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy Link'; }, 1800);
+      }
+    }
 
     // Minimal Page Transition + Top 2px Progress Bar
     (function () {

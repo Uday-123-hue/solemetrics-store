@@ -1,106 +1,125 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="space-y-8 sm:space-y-12">
+<div class="space-y-6 sm:space-y-8">
 
-  <!-- Editorial Minimal Hero Banner -->
-  <div class="bg-slate-900 text-white rounded-3xl p-5 sm:p-10 lg:p-12 grid lg:grid-cols-12 gap-6 sm:gap-8 items-center">
-    <div class="lg:col-span-7 space-y-3.5 sm:space-y-4">
-      <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
+  <!-- iPhone-Styled Compact Hero Card -->
+  <div class="bg-slate-900 text-white rounded-[28px] sm:rounded-3xl p-5 sm:p-10 space-y-5 relative overflow-hidden">
+    <div class="space-y-2.5 max-w-2xl">
+      <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider">
         10 Brands &bull; 10 Categories
       </span>
-      <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-snug sm:leading-tight">
+      <h1 class="font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight">
         Step Into Everyday Comfort &amp; Performance.
       </h1>
-      <p class="text-slate-300 text-xs sm:text-base max-w-xl leading-relaxed">
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
         Authentic sneakers, marathon runners, orthopedic slip-ons, formal leather shoes, and breathable clogs.
       </p>
-
-      <!-- Side-by-Side Clean Buttons on Mobile -->
-      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3 pt-1">
-        <a href="{{ url_for('shop') }}" class="px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl bg-white text-slate-900 font-extrabold text-xs sm:text-sm text-center hover:bg-amber-300 transition whitespace-nowrap">
-          Explore Store &rarr;
-        </a>
-        <a href="{{ url_for('reviews_page') }}" class="px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl bg-white/10 text-white font-bold text-xs sm:text-sm text-center hover:bg-white/20 transition whitespace-nowrap">
-          &#9733; Reviews
-        </a>
-      </div>
     </div>
 
-    <!-- Hero Mini Shoe Showcase -->
-    <div class="lg:col-span-5 grid grid-cols-2 gap-2.5 sm:gap-3">
-      {% for item in featured[:4] %}
-        <a href="{{ url_for('product_detail', product_id=item.id) }}" class="bg-white/10 border border-white/15 rounded-2xl p-2.5 sm:p-3 hover:bg-white/15 transition">
-          <img src="{{ item.image }}" alt="{{ item.name }}" class="w-full h-24 sm:h-28 object-cover rounded-xl mb-2" />
-          <p class="text-[10px] font-bold text-amber-300 uppercase">{{ item.brand }}</p>
-          <p class="text-xs font-extrabold text-white truncate">{{ item.name }}</p>
-          <p class="text-xs font-bold text-slate-300 mt-0.5">{{ item.price | inr }}</p>
+    <div class="flex flex-wrap items-center gap-2.5">
+      <a href="{{ url_for('shop') }}"
+         class="px-5 py-2.5 sm:py-3 rounded-2xl bg-white text-slate-900 text-xs sm:text-sm font-extrabold hover:bg-slate-100 transition">
+        Explore Store &rarr;
+      </a>
+      <a href="{{ url_for('reviews_page') }}"
+         class="px-4 py-2.5 sm:py-3 rounded-2xl bg-white/10 text-white text-xs sm:text-sm font-bold hover:bg-white/20 transition">
+        &#9733; Reviews
+      </a>
+      <button type="button" data-install-trigger onclick="triggerPwaInstall()"
+              class="px-4 py-2.5 sm:py-3 rounded-2xl bg-indigo-600 text-white text-xs sm:text-sm font-extrabold hover:bg-indigo-500 transition inline-flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+        </svg>
+        <span>Install App</span>
+      </button>
+    </div>
+
+    <!-- 2x2 Quick Showcase Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 pt-1">
+      {% for p in featured[:4] %}
+        <a href="{{ url_for('product_detail', product_id=p.id) }}"
+           class="bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl p-2.5 sm:p-3 transition block group">
+          <div class="aspect-square rounded-xl overflow-hidden bg-slate-800 mb-2">
+            <img src="{{ p.image }}" onerror="this.src='{{ fallback_img }}'" alt="{{ p.name }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+          </div>
+          <span class="text-[9px] sm:text-[10px] font-bold uppercase text-amber-300 block truncate">{{ p.brand }}</span>
+          <p class="font-bold text-xs text-white truncate">{{ p.name }}</p>
+          <p class="font-extrabold text-xs text-slate-200 mt-0.5">{{ p.price | inr }}</p>
         </a>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Shop by Brand -->
-  <div class="space-y-3 sm:space-y-4">
+  <!-- Swipeable Brand Chips -->
+  <div class="space-y-2.5">
     <div class="flex items-center justify-between">
-      <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Shop by Brand</h2>
-      <a href="{{ url_for('shop') }}" class="text-xs font-bold text-indigo-600 hover:underline">All Brands &rarr;</a>
+      <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Top Brands</h2>
+      <a href="{{ url_for('shop') }}" class="text-xs font-bold text-indigo-600 hover:underline">See All</a>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
       {% for b in brands %}
-        <a href="{{ url_for('shop', brand=b) }}" class="bg-white px-3.5 py-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-500 transition flex items-center justify-between">
-          <span class="font-extrabold text-slate-900 text-xs sm:text-sm">{{ b }}</span>
-          <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold">{{ brand_counts[b] }}</span>
+        <a href="{{ url_for('shop', brand=b) }}"
+           class="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 text-xs font-bold text-slate-800 hover:border-indigo-500 whitespace-nowrap shrink-0 flex items-center gap-1.5">
+          <span>{{ b }}</span>
+          <span class="text-[10px] font-semibold text-slate-400">({{ brand_counts.get(b, 0) }})</span>
         </a>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Shop by Category -->
-  <div class="space-y-3 sm:space-y-4">
-    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Browse Categories</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
+  <!-- Swipeable Category Pills -->
+  <div class="space-y-2.5">
+    <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Categories</h2>
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
       {% for c in categories %}
-        <a href="{{ url_for('shop', category=c.name) }}" class="bg-white px-3.5 py-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm hover:bg-slate-900 hover:text-white transition">
-          <p class="font-extrabold text-xs sm:text-sm">{{ c.name }}</p>
-          <p class="text-[11px] opacity-70 mt-0.5 truncate">{{ c.desc if c.desc is defined else 'Explore pairs' }}</p>
+        <a href="{{ url_for('shop', category=c.name) }}"
+           class="px-3.5 py-2 rounded-2xl bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 text-xs font-bold whitespace-nowrap shrink-0">
+          {{ c.name }}
         </a>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Featured Footwear (Clean 2-Column Mobile Grid) -->
-  <div class="space-y-3 sm:space-y-4">
+  <!-- Featured Collection (2-Column iPhone App Grid) -->
+  <div class="space-y-3">
     <div class="flex items-center justify-between">
-      <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Featured Picks</h2>
-      <a href="{{ url_for('shop') }}" class="text-xs font-bold text-indigo-600 hover:underline">View Catalog &rarr;</a>
+      <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Featured Footwear</h2>
+      <a href="{{ url_for('shop') }}" class="text-xs font-bold text-indigo-600 hover:underline">Full Catalog &rarr;</a>
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
       {% for p in featured %}
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <a href="{{ url_for('product_detail', product_id=p.id) }}" class="aspect-square bg-slate-100 overflow-hidden block">
-            <img src="{{ p.image }}" alt="{{ p.name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
-          </a>
-          <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
-            <div>
-              <span class="text-[10px] font-bold uppercase text-indigo-600 block truncate">{{ p.brand }} &bull; {{ p.category }}</span>
-              <a href="{{ url_for('product_detail', product_id=p.id) }}" class="font-extrabold text-slate-900 text-xs sm:text-sm block mt-0.5 line-clamp-1 hover:text-indigo-600">
-                {{ p.name }}
+        {% set is_wished = p.id in wishlist_ids %}
+        <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 overflow-hidden flex flex-col justify-between">
+          <div>
+            <div class="relative aspect-square bg-slate-100 overflow-hidden group">
+              <a href="{{ url_for('product_detail', product_id=p.id) }}" class="block w-full h-full">
+                <img src="{{ p.image }}" onerror="this.src='{{ fallback_img }}'" alt="{{ p.name }}"
+                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
               </a>
-              <p class="hidden sm:block text-xs text-slate-500 line-clamp-2 mt-1">{{ p.desc }}</p>
+              <a href="{{ url_for('toggle_wishlist', product_id=p.id) }}"
+                 aria-label="Wishlist"
+                 class="absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center text-xs sm:text-sm font-bold {{ 'text-rose-500' if is_wished else 'text-slate-400 hover:text-rose-500' }}">
+                {% if is_wished %}&#9829;{% else %}&#9825;{% endif %}
+              </a>
             </div>
 
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
-              <span class="font-extrabold text-slate-900 text-xs sm:text-base">{{ p.price | inr }}</span>
-              <div class="flex items-center gap-1">
-                <a href="{{ url_for('add_to_cart', product_id=p.id) }}" class="px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg bg-slate-100 text-slate-800 text-[11px] sm:text-xs font-bold hover:bg-slate-200 whitespace-nowrap">
-                  + Cart
-                </a>
-                <a href="{{ url_for('product_detail', product_id=p.id) }}" class="hidden sm:inline-block px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600">
-                  View
-                </a>
-              </div>
+            <div class="p-3 sm:p-4 space-y-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 block truncate">{{ p.brand }}</span>
+              <a href="{{ url_for('product_detail', product_id=p.id) }}"
+                 class="font-bold text-slate-900 text-xs sm:text-sm block line-clamp-1 hover:text-indigo-600">
+                {{ p.name }}
+              </a>
             </div>
+          </div>
+
+          <div class="px-3 pb-3 sm:px-4 sm:pb-4 pt-1 flex items-center justify-between gap-1.5">
+            <span class="font-display font-extrabold text-slate-900 text-sm sm:text-base">{{ p.price | inr }}</span>
+            <a href="{{ url_for('add_to_cart', product_id=p.id) }}"
+               class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 text-white text-[11px] sm:text-xs font-bold hover:bg-indigo-600 shrink-0">
+              + Bag
+            </a>
           </div>
         </div>
       {% endfor %}
