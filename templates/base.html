@@ -41,10 +41,10 @@
 
   <!-- Top Luxury Hairline Header -->
   <header class="glass-bar sticky top-0 z-40 border-b">
-    <div class="app-shell h-16 lg:h-[72px] flex items-center justify-between gap-4">
+    <div class="app-shell h-16 lg:h-[72px] flex items-center justify-between gap-3">
 
       <!-- Precision Geometric Brand Mark + Wordmark -->
-      <a href="{{ url_for('home') }}" class="flex items-center gap-3 shrink-0 group">
+      <a href="{{ url_for('home') }}" class="flex items-center gap-2.5 shrink-0 group">
         <div class="w-9 h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center border border-zinc-800 shadow-xs group-hover:scale-105 transition">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 15.5h18l-1.2-3.2c-.5-1.2-1.6-2-2.9-2.2l-3.9-.6-2.4-2.5H7.2L6 10.5H4.5A1.5 1.5 0 0 0 3 12v3.5Z" />
@@ -52,7 +52,7 @@
           </svg>
         </div>
         <div>
-          <span class="font-display font-extrabold text-base sm:text-lg tracking-tight text-zinc-900 block leading-none">
+          <span class="font-display font-extrabold text-sm sm:text-lg tracking-tight text-zinc-900 block leading-none">
             SOLEMETRICS
           </span>
           <span class="hidden sm:block text-[9px] font-bold uppercase tracking-[0.22em] text-zinc-400 mt-1">
@@ -88,10 +88,21 @@
         {% endif %}
       </nav>
 
-      <!-- Right Hairline Action Controls (1.5px Vector SVGs) -->
-      <div class="flex items-center gap-2">
+      <!-- Right Hairline Action Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+
+        <!-- Get App Button (Automatically hides when running inside installed standalone app) -->
+        <button type="button" id="get-app-btn" onclick="triggerInstallApp()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-zinc-300 bg-white hover:border-zinc-950 text-[11px] sm:text-xs font-extrabold text-zinc-900 transition shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+          </svg>
+          <span>Get App</span>
+        </button>
+
+        <!-- Mobile Reviews Pill -->
         <a href="{{ url_for('reviews_page') }}"
-           class="lg:hidden px-3 py-1.5 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
+           class="hidden sm:inline-flex lg:hidden px-3 py-1.5 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
           Reviews
         </a>
 
@@ -117,9 +128,9 @@
           <span class="tabular-nums px-1.5 py-0.5 rounded-full bg-zinc-950 text-white text-[10px] font-extrabold">{{ cart_count }}</span>
         </a>
 
-        <!-- Theme Toggle Button (1.5px Moon / Sun SVG) -->
+        <!-- Theme Toggle Button -->
         <button type="button" onclick="toggleThemeMode()" aria-label="Toggle Theme"
-                class="w-9 h-9 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 flex items-center justify-center text-zinc-800 transition">
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 flex items-center justify-center text-zinc-800 transition shrink-0">
           <svg id="icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
@@ -133,17 +144,17 @@
         {% if current_user %}
           {% if current_user.role == 'admin' %}
             <a href="{{ url_for('admin_dashboard') }}"
-               class="lg:hidden px-3 py-1.5 rounded-full bg-zinc-950 text-white text-[11px] font-extrabold">
+               class="lg:hidden px-2.5 py-1.5 rounded-full bg-zinc-950 text-white text-[11px] font-extrabold">
               BI
             </a>
           {% endif %}
           <a href="{{ url_for('logout') }}"
-             class="px-3.5 py-2 rounded-full border border-zinc-200 bg-white hover:border-rose-500 hover:text-rose-600 text-zinc-800 text-xs font-bold transition">
+             class="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-zinc-200 bg-white hover:border-rose-500 hover:text-rose-600 text-zinc-800 text-[11px] sm:text-xs font-bold transition">
             Logout
           </a>
         {% else %}
           <a href="{{ url_for('login_page') }}"
-             class="btn-obsidian px-4 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold transition">
+             class="btn-obsidian px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-[11px] sm:text-xs font-bold transition">
             Sign In
           </a>
         {% endif %}
@@ -190,6 +201,36 @@
       </div>
     </div>
   </footer>
+
+  <!-- Luxury PWA Install Guide Modal (Fallback for iOS Safari / Manual Add to Home Screen) -->
+  <div id="install-guide-modal"
+       class="fixed inset-0 z-[75] hidden bg-zinc-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl border border-zinc-200 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/icon-192.png?v=3" alt="SoleMetrics App" class="w-11 h-11 rounded-2xl border border-zinc-200" />
+          <div>
+            <h3 class="font-display font-extrabold text-base text-zinc-900">Install SoleMetrics</h3>
+            <p class="text-[11px] text-zinc-500">Full-Screen Native App Experience</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeInstallModal()"
+                class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-700 font-bold flex items-center justify-center">
+          &times;
+        </button>
+      </div>
+
+      <div id="install-steps-body" class="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-700 space-y-2 leading-relaxed">
+        <p><b>Android (Chrome / Edge):</b> Tap the browser menu (<b>&#8942;</b>) at the top-right and select <b>"Add to Home screen"</b> or <b>"Install app"</b>.</p>
+        <p><b>iPhone / iPad (Safari):</b> Tap the <b>Share</b> icon at the bottom bar and choose <b>"Add to Home Screen"</b>.</p>
+      </div>
+
+      <button type="button" onclick="closeInstallModal()"
+              class="btn-obsidian w-full py-3 rounded-full bg-zinc-950 text-white text-xs font-extrabold">
+        Got It
+      </button>
+    </div>
+  </div>
 
   <!-- Mobile Bottom App Dock (1.5px Hairline Icons + 4px Obsidian Active Dot) -->
   <nav class="lg:hidden glass-bar fixed bottom-0 inset-x-0 z-40 border-t px-2 pt-2 pb-2">
@@ -267,6 +308,53 @@
       syncThemeIcons();
     }
     syncThemeIcons();
+
+    // PWA Install Prompt & Standalone Detection
+    let deferredInstallPrompt = null;
+    const getAppBtn = document.getElementById('get-app-btn');
+
+    function isStandaloneApp() {
+      return (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true ||
+        document.referrer.includes('android-app://')
+      );
+    }
+
+    if (isStandaloneApp() && getAppBtn) {
+      getAppBtn.style.display = 'none';
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (getAppBtn && !isStandaloneApp()) {
+        getAppBtn.style.display = 'inline-flex';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      if (getAppBtn) getAppBtn.style.display = 'none';
+    });
+
+    async function triggerInstallApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted' && getAppBtn) {
+          getAppBtn.style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+      } else {
+        document.getElementById('install-guide-modal').classList.remove('hidden');
+      }
+    }
+
+    function closeInstallModal() {
+      document.getElementById('install-guide-modal').classList.add('hidden');
+    }
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
