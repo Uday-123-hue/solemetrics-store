@@ -1,41 +1,69 @@
-# SoleMetrics — Multi-Brand Footwear E-Commerce & BI Analytics Platform
+# 👟 SoleMetrics — Multi-Brand Footwear Store & Executive BI Studio
 
-**Live Storefront:** [https://solemetrics-store-1.onrender.com](https://solemetrics-store-1.onrender.com)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0+-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-Analytics-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-Interactive_BI-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-Installable_App-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
 
-SoleMetrics is a full-stack footwear e-commerce web application integrated with a real-time Business Intelligence (BI) analytics dashboard. Built with Python, Flask, Pandas, and Plotly, it bridges customer storefront operations with automated profit margin tracking, multi-sheet Excel reporting, and cloud synchronization.
-
----
-
-## Key Features
-
-### Customer Storefront & Checkout
-* **Multi-Brand Catalog:** Browse footwear across 10 global & Indian brands (Nike, Adidas, Skechers, Crocs, Bata, Woodland, Sparx, Puma, Campus, Red Tape) and 10 specialized categories with live search and filtering.
-* **Product Detail & Multi-Item Cart:** Interactive UK size selection, quantity controls, similar product recommendations, and session-based multi-item cart management.
-* **Automated Order Confirmations & PDF Invoices:** Generates downloadable itemized tax invoices (`fpdf2`) and dispatches instant HTML order confirmation emails via the Brevo API.
-* **Verified Customer Reviews:** Star ratings, experience tags, and automatic `Verified Buyer` badge detection cross-checked against order history.
-* **Adaptive Minimal Luxury UI:** Responsive mobile/desktop interface featuring a 3-mode theme switcher (**Light**, **Obsidian Night**, and **System Default**).
-
-### Admin Business Intelligence Dashboard
-* **Executive KPIs:** Live calculation of Gross Revenue, Gross Profit, Net Margin %, Total Orders, Units Sold, Top Brand, and Average Rating.
-* **Interactive Plotly Visualizations:** Dynamic Bar, Line, Area, and Donut charts across 10 analytical dimensions (Category, Brand, City, UK Size, Age Group, Gender, Top Models, Payment Mode, Cumulative Timeline, and Brand Ratings).
-* **7-Sheet Automated Excel Master Export:** Generates a structured `.xlsx` workbook (`All_Orders`, `Brand_Profit_Summary`, `Category_Profit_Summary`, `City_And_Demographics`, `Customer_Reviews`, `Product_Ratings_Summary`, and `Registered_Customers`).
-* **Dual Persistence:** Syncs live orders, reviews, and customer profiles with **Firebase Realtime Database** alongside local Excel/CSV backups.
+**SoleMetrics** is a full-stack e-commerce Progressive Web App (PWA) and real-time Business Intelligence (BI) platform built with **Python (Flask)**, **Pandas**, **Plotly**, and **Firebase**. It combines an Amazon/iOS-inspired mobile-first storefront with an executive analytics dashboard that automatically syncs orders, customer demographics, profit margins, and verified reviews into multi-sheet Excel workbooks.
 
 ---
 
-## Tech Stack
+## ✨ Key Features
 
-* **Backend:** Python, Flask, Gunicorn
-* **Data Analytics & Visualization:** Pandas, Plotly, OpenPyXL
-* **PDF & Email Automation:** FPDF2, Brevo Transactional Email API
-* **Database & Sync:** Firebase Realtime Database, Excel (`.xlsx`), CSV, JSON
-* **Frontend:** HTML5, Tailwind CSS, Custom CSS3 Variables, Vanilla JavaScript
+### 🛍️ Storefront & Customer Experience
+- **Smart Live Search & Catalog Filtering:** Instant client-side search dropdown with product thumbnails alongside multi-brand (10 brands) and multi-category (10 footwear categories) filtering.
+- **Product Detail & Conversion Tools:**
+  - Interactive UK size selector (`UK 6` – `UK 11`) and sticky mobile quick-buy bar.
+  - **Live Pincode Delivery Estimator:** Calculates city-specific delivery timelines and COD/UPI eligibility with `localStorage` persistence.
+  - **Frequently Bought Together:** Dynamic combo bundle builder (Sneaker + Care Kit / Crew Socks) with real-time price calculation and single-tap bundle checkout.
+  - **Recently Viewed Shelf:** Session-backed browsing history row across Home and Explore screens.
+- **Wishlist, Cart & Order Lifecycle:** Persistent wishlist for registered accounts, multi-item shopping bag, automated Gmail order confirmations, live order stage tracking (`Confirmed` → `Packed` → `Shipped` → `Delivered`), and instant **PDF Tax Invoice** downloads via `FPDF`.
+- **Progressive Web App (PWA) & Adaptive Dark Mode:** Installable on Android and iOS with a custom procedurally generated sneaker app icon (`Pillow`-free pure Python PNG encoder), service worker offline caching, and Light / OLED Dark / System theme switching.
+
+### 📊 Executive Admin BI Dashboard
+- **Global Power BI-Style Slicers:** Filter simultaneously by **Brand**, **Category**, **Order Status**, **Payment Mode**, **Date Range**, and keyword search—dynamically updating KPIs, charts, matrices, and order tables together.
+- **6 Live Executive KPIs:** Tracks Total Revenue, Average Order Value (AOV), Gross Profit, Net Margin %, Order Volume, Pairs Sold, Top Brand, and Average Customer Rating.
+- **Interactive Plotly Visualizations:**
+  - Multi-dimension switcher (`Category`, `Brand`, `City`, `Top Models`, `UK Size`, `Age Group`, `Gender`, `Payment`, `Timeline`, `Star Ratings`) across `Bar`, `Line`, `Area`, and `Donut` geometries.
+  - Side-by-side **Revenue vs. Gross Profit** grouped bar chart and **Order Fulfillment Pipeline** donut chart.
+- **P&L & Customer Intelligence:** Live **Brand Profitability & Margin Matrix**, **VIP Customer Leaderboard** with Repeat Buyer Rate %, and 1-click exports to **Master Multi-Sheet Excel (`.xlsx`)** and **Filtered CSV**.
 
 ---
 
-## Local Setup
+## 🛠️ Tech Stack
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/Uday-123-hue/solemetrics-store.git](https://github.com/Uday-123-hue/solemetrics-store.git)
-   cd solemetrics-store
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | Python, Flask, Jinja2 |
+| **Data & Analytics** | Pandas, OpenPyXL, Plotly |
+| **Cloud & Persistence** | Firebase Realtime Database (REST API), Multi-Sheet Excel (`orders.xlsx`), CSV & JSON Stores |
+| **Document & Email Automation** | FPDF (Tax Invoice PDFs), Google Apps Script Gmail Webhook |
+| **Frontend & Mobile** | HTML5, Custom Responsive CSS Utilities, Tailwind CSS, JavaScript, PWA (`manifest.json` + `sw.js`) |
+
+---
+
+## 📁 Project Structure
+
+```text
+SoleMetrics/
+├── app.py                  # Main Flask server, BI engine, Plotly builders, PDF & PWA routes
+├── data.py                 # Product catalog, brand/category metadata & seed orders
+├── requirements.txt        # Python dependencies
+├── static/
+│   └── style.css           # Self-contained mobile-first utilities, animations & dark mode
+├── templates/
+│   ├── base.html           # Frosted glass header, mobile bottom tab bar & PWA install logic
+│   ├── home.html           # Hero showcase, smart search, recently viewed & brand chips
+│   ├── shop.html           # Filterable catalog grid with instant search
+│   ├── product.html        # Pincode checker, combo bundle box, reviews & sticky buy bar
+│   ├── cart.html           # Shopping bag management
+│   ├── checkout.html       # Order checkout & payment selection
+│   ├── receipt.html        # Order confirmation & PDF invoice download
+│   ├── my_orders.html      # Customer order history & live tracking
+│   ├── wishlist.html       # Saved footwear items
+│   ├── reviews.html        # Verified buyer ratings & review submission
+│   ├── login.html          # Customer Sign In / Sign Up & Admin access
+│   └── admin.html          # Executive BI dashboard, Plotly charts & order fulfillment
+└── README.md
