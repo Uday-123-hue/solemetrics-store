@@ -104,7 +104,7 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
         rows_html += f"""
         <tr>
           <td style="padding:12px 10px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#18181b;">
-            <span style="font-size:10px;font-weight:700;color:#4f46e5;text-transform:uppercase;display:block;">{item['brand']}</span>
+            <span style="font-size:10px;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:1px;display:block;">{item['brand']}</span>
             <b>{item['productName']}</b>
           </td>
           <td style="padding:12px 10px;border-bottom:1px solid #e4e4e7;font-size:13px;color:#52525b;text-align:center;">
@@ -589,8 +589,8 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         title = f"Cumulative {y_label}"
 
     palette = [
-        "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6",
-        "#ec4899", "#14b8a6", "#f97316", "#3b82f6", "#64748b"
+        "#09090b", "#3f3f46", "#71717a", "#10b981", "#27272a",
+        "#52525b", "#059669", "#a1a1aa", "#18181b", "#d4d4d8"
     ]
     if mode == "ratings":
         text_labels = [f"{v}★" if v > 0 else "" for v in values]
@@ -615,16 +615,16 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             y=values,
             mode="lines+markers",
             fill="tozeroy",
-            fillcolor="rgba(99, 102, 241, 0.16)",
-            line=dict(color="#6366f1", width=3, shape="spline"),
-            marker=dict(size=8, color="#6366f1", line=dict(width=2, color="#ffffff")),
+            fillcolor="rgba(9, 9, 11, 0.12)",
+            line=dict(color="#09090b", width=2.8, shape="spline"),
+            marker=dict(size=7, color="#09090b", line=dict(width=2, color="#ffffff")),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
     elif chart_type == "pie":
         trace = go.Pie(
             labels=labels,
             values=values,
-            hole=0.50,
+            hole=0.54,
             marker=dict(colors=palette, line=dict(color="rgba(148,163,184,0.25)", width=1.5)),
             textinfo="percent",
             textposition="inside",
@@ -635,8 +635,8 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             x=labels,
             y=values,
             mode="lines+markers",
-            line=dict(color="#6366f1", width=3, shape="spline"),
-            marker=dict(size=9, color="#6366f1", line=dict(width=2, color="#ffffff")),
+            line=dict(color="#09090b", width=2.8, shape="spline"),
+            marker=dict(size=8, color="#09090b", line=dict(width=2, color="#ffffff")),
             hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
         )
 
@@ -651,13 +651,13 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         ),
         autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(148,163,184,0.05)",
+        plot_bgcolor="rgba(148,163,184,0.04)",
         font=dict(family="Inter, sans-serif", size=11, color="#52525b"),
         height=340,
         margin=dict(l=12, r=12, t=46, b=35),
         uniformtext_minsize=9,
         uniformtext_mode="hide",
-        hoverlabel=dict(bgcolor="#18181b", font_size=12, font_color="#ffffff"),
+        hoverlabel=dict(bgcolor="#09090b", font_size=12, font_color="#ffffff"),
         transition=dict(duration=500, easing="cubic-in-out")
     )
 
@@ -687,7 +687,6 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 
 
 def build_secondary_charts(df: pd.DataFrame):
-    # 1. Revenue vs Gross Profit Grouped Bar by Brand
     if not df.empty:
         grp = df.groupby("brand", as_index=False).agg(rev=("totalAmount", "sum"), prof=("profit", "sum"))
         grp = grp.sort_values(by="rev", ascending=False)
@@ -700,7 +699,7 @@ def build_secondary_charts(df: pd.DataFrame):
         prof_vals = [0] * len(BRANDS)
 
     fig_rev_prof = go.Figure(data=[
-        go.Bar(name="Revenue (₹)", x=b_labels, y=rev_vals, marker_color="#6366f1",
+        go.Bar(name="Revenue (₹)", x=b_labels, y=rev_vals, marker_color="#09090b",
                hovertemplate="<b>%{x}</b><br>Revenue: ₹%{y:,}<extra></extra>"),
         go.Bar(name="Gross Profit (₹)", x=b_labels, y=prof_vals, marker_color="#10b981",
                hovertemplate="<b>%{x}</b><br>Profit: ₹%{y:,}<extra></extra>")
@@ -710,12 +709,12 @@ def build_secondary_charts(df: pd.DataFrame):
         barmode="group",
         autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(148,163,184,0.05)",
+        plot_bgcolor="rgba(148,163,184,0.04)",
         font=dict(family="Inter, sans-serif", size=10, color="#52525b"),
         height=290,
         margin=dict(l=10, r=10, t=44, b=36),
         legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="right", x=1, font=dict(size=10)),
-        hoverlabel=dict(bgcolor="#18181b", font_size=11, font_color="#ffffff")
+        hoverlabel=dict(bgcolor="#09090b", font_size=11, font_color="#ffffff")
     )
     fig_rev_prof.update_xaxes(showgrid=False, tickangle=-30, automargin=True)
     fig_rev_prof.update_yaxes(gridcolor="#e4e4e7", automargin=True)
@@ -723,17 +722,16 @@ def build_secondary_charts(df: pd.DataFrame):
         full_html=False, include_plotlyjs=False, config={"responsive": True, "displayModeBar": False}
     )
 
-    # 2. Order Fulfillment Stage Donut
     stage_counts = df["status"].value_counts().to_dict() if not df.empty else {}
     s_labels = ORDER_STAGES
     s_vals = [int(stage_counts.get(st, 0)) for st in ORDER_STAGES]
-    stage_colors = ["#6366f1", "#f59e0b", "#0ea5e9", "#10b981"]
+    stage_colors = ["#09090b", "#52525b", "#a1a1aa", "#10b981"]
 
     fig_funnel = go.Figure(data=[
         go.Pie(
             labels=s_labels,
             values=s_vals,
-            hole=0.56,
+            hole=0.58,
             marker=dict(colors=stage_colors, line=dict(color="rgba(148,163,184,0.25)", width=1.5)),
             textinfo="value+percent",
             textposition="inside",
@@ -748,7 +746,7 @@ def build_secondary_charts(df: pd.DataFrame):
         height=290,
         margin=dict(l=10, r=10, t=44, b=28),
         legend=dict(orientation="h", yanchor="top", y=-0.04, xanchor="center", x=0.5, font=dict(size=10)),
-        hoverlabel=dict(bgcolor="#18181b", font_size=11, font_color="#ffffff")
+        hoverlabel=dict(bgcolor="#09090b", font_size=11, font_color="#ffffff")
     )
     funnel_html = fig_funnel.to_html(
         full_html=False, include_plotlyjs=False, config={"responsive": True, "displayModeBar": False}
@@ -928,10 +926,10 @@ def toggle_wishlist(product_id):
     w_ids = list(get_user_wishlist())
     if product_id in w_ids:
         w_ids.remove(product_id)
-        flash(f"Removed {product['name']} from your wishlist.", "info")
+        flash(f"Removed {product['name']} from your saved list.", "info")
     else:
         w_ids.append(product_id)
-        flash(f"Saved {product['name']} to your wishlist!", "success")
+        flash(f"Saved {product['name']}.", "success")
 
     session["wishlist"] = w_ids
     session.modified = True
@@ -1431,7 +1429,7 @@ def download_invoice_pdf(order_id):
     pdf = FPDF()
     pdf.add_page()
 
-    pdf.set_fill_color(15, 23, 42)
+    pdf.set_fill_color(9, 9, 11)
     pdf.rect(0, 0, 210, 36, "F")
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 20)
@@ -1441,7 +1439,7 @@ def download_invoice_pdf(order_id):
     pdf.cell(62, 10, "TAX INVOICE", align="R", ln=True)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_x(14)
-    pdf.cell(120, 6, "Multi-Brand Footwear Store | India", ln=False)
+    pdf.cell(120, 6, "Multi-Brand Footwear Studio | India", ln=False)
     pdf.cell(62, 6, f"Invoice #{display_order_id}", align="R", ln=True)
 
     pdf.set_text_color(30, 41, 59)
@@ -1465,8 +1463,8 @@ def download_invoice_pdf(order_id):
     pdf.cell(87, 6, txn_label, align="R", ln=True)
 
     pdf.ln(10)
-    pdf.set_fill_color(241, 245, 249)
-    pdf.set_draw_color(203, 213, 225)
+    pdf.set_fill_color(244, 244, 245)
+    pdf.set_draw_color(212, 212, 216)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_x(14)
     pdf.cell(12, 9, "#", border=1, fill=True, align="C")
@@ -1491,7 +1489,7 @@ def download_invoice_pdf(order_id):
 
     pdf.ln(4)
     pdf.set_x(126)
-    pdf.set_fill_color(15, 23, 42)
+    pdf.set_fill_color(9, 9, 11)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("Helvetica", "B", 11)
     pdf.cell(70, 11, f"Grand Total: Rs. {grand_total:,}", border=0, fill=True, align="R", ln=True)
@@ -1540,10 +1538,6 @@ def admin_dashboard():
     rev_df = load_reviews_df()
     customers = load_customers()
 
-    active_tab = request.args.get("tab", "overview")
-    if active_tab not in ("overview", "orders", "reviews"):
-        active_tab = "overview"
-
     chart_mode = request.args.get("chart", "category")
     chart_type = request.args.get("type", "bar")
     metric = request.args.get("metric", "revenue")
@@ -1556,7 +1550,6 @@ def admin_dashboard():
     date_to = request.args.get("date_to", "").strip()
     search_q = request.args.get("q", "").strip()
 
-    # Global Slicer Filtering (Applies to KPIs, Charts, Matrices & Table)
     filtered_df = filter_admin_orders(df, request.args)
 
     total_revenue = int(filtered_df["totalAmount"].sum()) if not filtered_df.empty else 0
@@ -1580,7 +1573,6 @@ def admin_dashboard():
     chart_html = build_animated_chart_html(filtered_df, chart_mode, chart_type, metric, rev_df)
     rev_prof_html, funnel_html = build_secondary_charts(filtered_df)
 
-    # Brand Profitability Matrix
     brand_matrix = []
     if not filtered_df.empty:
         bm_df = filtered_df.groupby("brand", as_index=False).agg(
@@ -1602,7 +1594,6 @@ def admin_dashboard():
                 "margin": m_pct
             })
 
-    # VIP Customers & Repeat Buyer Rate
     vip_customers = []
     repeat_rate = 0.0
     if not filtered_df.empty:
@@ -1620,7 +1611,6 @@ def admin_dashboard():
     return render_template(
         "admin.html",
         active_page="admin",
-        active_tab=active_tab,
         kpis=kpis,
         chart_mode=chart_mode,
         chart_type=chart_type,
@@ -1661,7 +1651,7 @@ def admin_update_status(order_id):
     write_local_excel_files(df)
     firebase_request(f"orders/{order_id}/status", "PUT", new_status)
     flash(f"Order #{order_id} updated to {new_status}.", "success")
-    return redirect(request.referrer or url_for("admin_dashboard", tab="orders"))
+    return redirect(request.referrer or url_for("admin_dashboard"))
 
 
 @app.route("/admin/delete-order/<order_id>", methods=["POST"])
@@ -1675,7 +1665,7 @@ def admin_delete_order(order_id):
     write_local_excel_files(df)
     firebase_request(f"orders/{order_id}", "DELETE")
     flash(f"Order #{order_id} deleted.", "info")
-    return redirect(request.referrer or url_for("admin_dashboard", tab="orders"))
+    return redirect(request.referrer or url_for("admin_dashboard"))
 
 
 @app.route("/admin/delete-review/<review_id>", methods=["POST"])
@@ -1689,7 +1679,7 @@ def admin_delete_review(review_id):
     write_local_excel_files(load_orders_df(), reviews_df=rev_df)
     firebase_request(f"reviews/{review_id}", "DELETE")
     flash(f"Review #{review_id} deleted.", "info")
-    return redirect(url_for("admin_dashboard", tab="reviews"))
+    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/admin/reset-demo", methods=["POST"])
@@ -1736,7 +1726,7 @@ def admin_download_csv():
 
 
 # =========================================================================
-# 10. PROGRESSIVE WEB APP (PWA) — CUSTOM SNEAKER + SWOOSH APP ICON & WORKER
+# 10. LUXURY MONOCHROME PWA APP ICON ENGINE (PURE PYTHON RGBA PNG)
 # =========================================================================
 _ICON_CACHE = {}
 
@@ -1794,16 +1784,17 @@ def _sample_sneaker_icon(nx: float, ny: float):
     if corner_dist > radius:
         return (0, 0, 0, 0)
 
-    grad = 0.55 * nx + 0.45 * ny
-    glow = max(0.0, 1.0 - math.hypot(nx - 0.50, ny - 0.50) * 1.65)
-    bg_r = min(255, int(11 + grad * 20 + glow * 34))
-    bg_g = min(255, int(12 + grad * 18 + glow * 30))
-    bg_b = min(255, int(18 + grad * 52 + glow * 78))
+    # Matte Obsidian Luxury Studio Surface with Subtle Top Studio Sheen
+    sheen = max(0.0, 1.0 - math.hypot(nx - 0.35, ny - 0.25) * 1.35)
+    bg_r = min(255, int(9 + sheen * 24))
+    bg_g = min(255, int(9 + sheen * 24))
+    bg_b = min(255, int(11 + sheen * 28))
 
-    if corner_dist > radius - 0.024:
-        bg_r = min(255, int(bg_r * 0.45 + 99 * 0.55))
-        bg_g = min(255, int(bg_g * 0.45 + 102 * 0.55))
-        bg_b = min(255, int(bg_b * 0.45 + 241 * 0.55))
+    # Brushed Titanium Hairline Rim
+    if corner_dist > radius - 0.022:
+        bg_r = min(255, int(bg_r * 0.45 + 161 * 0.55))
+        bg_g = min(255, int(bg_g * 0.45 + 161 * 0.55))
+        bg_b = min(255, int(bg_b * 0.45 + 170 * 0.55))
 
     ang = math.radians(9.0)
     ca, sa = math.cos(ang), math.sin(ang)
@@ -1811,23 +1802,24 @@ def _sample_sneaker_icon(nx: float, ny: float):
     u = 0.50 + rx * ca - ry * sa
     v = 0.52 + rx * sa + ry * ca
 
+    # Sculpted Midsole + Titanium Air Unit
     if _point_in_poly(u, v, _MIDSOLE_POLY):
         if v > 0.648:
-            return (203, 213, 225, 255)
+            return (161, 161, 170, 255)
         if 0.215 <= u <= 0.365 and 0.602 <= v <= 0.640:
-            return (99, 102, 241, 255)
-        return (255, 255, 255, 255)
+            return (24, 24, 27, 255)
+        return (244, 244, 245, 255)
 
+    # Pure White Sneaker Upper + Obsidian Precision Swoosh
     if _point_in_poly(u, v, _UPPER_POLY):
         if _point_in_poly(u, v, _SWOOSH_POLY):
-            st = max(0.0, min(1.0, (u - 0.23) / 0.52))
-            return (251, int(191 - st * 76), int(36 - st * 14), 255)
+            return (9, 9, 11, 255)
         for (x1, y1), (x2, y2) in _LACE_SEGS:
             if _dist_to_seg(u, v, x1, y1, x2, y2) < 0.0115:
-                return (79, 70, 229, 255)
+                return (63, 63, 70, 255)
         if u < 0.27 or v > 0.555:
-            return (236, 241, 248, 255)
-        return (250, 251, 253, 255)
+            return (228, 228, 231, 255)
+        return (255, 255, 255, 255)
 
     return (bg_r, bg_g, bg_b, 255)
 
@@ -1924,7 +1916,7 @@ def pwa_manifest():
     manifest = {
         "name": "SoleMetrics — Footwear Studio",
         "short_name": "SoleMetrics",
-        "description": "Multi-Brand Footwear Store & Live Order Tracking",
+        "description": "Multi-Brand Footwear Studio & Live Order Tracking",
         "start_url": "/",
         "scope": "/",
         "display": "standalone",
@@ -1932,8 +1924,8 @@ def pwa_manifest():
         "background_color": "#09090b",
         "theme_color": "#09090b",
         "icons": [
-            {"src": "/icon-192.png?v=2", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-            {"src": "/icon-512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+            {"src": "/icon-192.png?v=3", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+            {"src": "/icon-512.png?v=3", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
         ]
     }
     return app.response_class(response=json.dumps(manifest), status=200, mimetype="application/manifest+json")
@@ -1942,8 +1934,8 @@ def pwa_manifest():
 @app.route("/sw.js")
 def pwa_service_worker():
     sw_code = """
-const CACHE_NAME = 'solemetrics-app-v3';
-const STATIC_ASSETS = ['/static/style.css?v=3', '/icon-192.png?v=2', '/icon-512.png?v=2'];
+const CACHE_NAME = 'solemetrics-app-v4';
+const STATIC_ASSETS = ['/static/style.css?v=5', '/icon-192.png?v=3', '/icon-512.png?v=3'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

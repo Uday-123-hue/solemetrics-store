@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#09090b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>SoleMetrics — Multi-Brand Footwear Studio</title>
+  <title>SoleMetrics — Footwear Studio</title>
 
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/png" href="/icon-192.png?v=2" />
+  <link rel="icon" type="image/png" href="/icon-192.png?v=3" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,7 +26,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=5" />
 
   <script>
     (function () {
@@ -39,95 +39,111 @@
 </head>
 <body class="min-h-screen flex flex-col pb-24 lg:pb-0">
 
-  <!-- Top Frosted Header (Desktop Full Nav + Mobile Compact Bar) -->
+  <!-- Top Luxury Hairline Header -->
   <header class="glass-bar sticky top-0 z-40 border-b">
-    <div class="app-shell h-16 lg:h-[70px] flex items-center justify-between gap-4">
+    <div class="app-shell h-16 lg:h-[72px] flex items-center justify-between gap-4">
 
-      <!-- Brand Logo -->
-      <a href="{{ url_for('home') }}" class="flex items-center gap-2.5 shrink-0">
-        <img src="/icon-192.png?v=2" alt="SoleMetrics" class="w-9 h-9 rounded-xl shadow-sm" />
+      <!-- Precision Geometric Brand Mark + Wordmark -->
+      <a href="{{ url_for('home') }}" class="flex items-center gap-3 shrink-0 group">
+        <div class="w-9 h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center border border-zinc-800 shadow-xs group-hover:scale-105 transition">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 15.5h18l-1.2-3.2c-.5-1.2-1.6-2-2.9-2.2l-3.9-.6-2.4-2.5H7.2L6 10.5H4.5A1.5 1.5 0 0 0 3 12v3.5Z" />
+            <path d="M3 17.5h18" />
+          </svg>
+        </div>
         <div>
-          <span class="font-display font-extrabold text-lg tracking-tight text-slate-900 block leading-none">
-            SoleMetrics
+          <span class="font-display font-extrabold text-base sm:text-lg tracking-tight text-zinc-900 block leading-none">
+            SOLEMETRICS
           </span>
-          <span class="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
-            Footwear Studio
+          <span class="hidden sm:block text-[9px] font-bold uppercase tracking-[0.22em] text-zinc-400 mt-1">
+            FOOTWEAR STUDIO
           </span>
         </div>
       </a>
 
-      <!-- Desktop Center Navigation Pills (Hidden on Phone, Crisp on Laptop) -->
-      <nav class="hidden lg:flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl border border-slate-200/80">
+      <!-- Desktop Floating Frosted Pill Navigation -->
+      <nav class="hidden lg:flex items-center gap-1 bg-zinc-100/90 p-1 rounded-full border border-zinc-200/80">
         <a href="{{ url_for('home') }}"
-           class="px-4 py-2 rounded-xl text-xs font-extrabold transition {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'home' else 'text-slate-600 hover:text-slate-900' }}">
+           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'home' else 'text-zinc-600 hover:text-zinc-950' }}">
           Home
         </a>
         <a href="{{ url_for('shop') }}"
-           class="px-4 py-2 rounded-xl text-xs font-extrabold transition {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'shop' else 'text-slate-600 hover:text-slate-900' }}">
-          Explore Catalog
+           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'shop' else 'text-zinc-600 hover:text-zinc-950' }}">
+          Catalog
         </a>
         <a href="{{ url_for('reviews_page') }}"
-           class="px-4 py-2 rounded-xl text-xs font-extrabold transition {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'reviews' else 'text-slate-600 hover:text-slate-900' }}">
+           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'reviews' else 'text-zinc-600 hover:text-zinc-950' }}">
           Reviews
         </a>
         {% if current_user and current_user.role == 'customer' %}
           <a href="{{ url_for('my_orders') }}"
-             class="px-4 py-2 rounded-xl text-xs font-extrabold transition {{ 'bg-white text-slate-900 shadow-sm' if active_page == 'my-orders' else 'text-slate-600 hover:text-slate-900' }}">
-            My Orders
+             class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'my-orders' else 'text-zinc-600 hover:text-zinc-950' }}">
+            Orders
           </a>
         {% elif current_user and current_user.role == 'admin' %}
           <a href="{{ url_for('admin_dashboard') }}"
-             class="px-4 py-2 rounded-xl text-xs font-extrabold transition {{ 'bg-indigo-600 text-white shadow-sm' if active_page == 'admin' else 'text-indigo-600 hover:bg-indigo-50' }}">
-            Admin BI Studio
+             class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'admin' else 'text-zinc-600 hover:text-zinc-950' }}">
+            BI Studio
           </a>
         {% endif %}
       </nav>
 
-      <!-- Right Action Controls -->
-      <div class="flex items-center gap-2 sm:gap-2.5">
-        <!-- Mobile Reviews Pill -->
+      <!-- Right Hairline Action Controls (1.5px Vector SVGs) -->
+      <div class="flex items-center gap-2">
         <a href="{{ url_for('reviews_page') }}"
-           class="lg:hidden px-3 py-1.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700">
+           class="lg:hidden px-3 py-1.5 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
           Reviews
         </a>
 
-        <!-- Desktop Saved Wishlist Pill -->
-        <a href="{{ url_for('wishlist_page') }}"
-           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-indigo-500 text-xs font-extrabold text-slate-700 transition">
-          <span>&#9825; Saved</span>
+        <!-- Desktop Saved Heart Button -->
+        <a href="{{ url_for('wishlist_page') }}" title="Saved Footwear"
+           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 text-xs font-bold text-zinc-800 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span>Saved</span>
           {% if wishlist_count > 0 %}
-            <span class="px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-extrabold">{{ wishlist_count }}</span>
+            <span class="tabular-nums text-[10px] font-extrabold text-zinc-500">({{ wishlist_count }})</span>
           {% endif %}
         </a>
 
-        <!-- Desktop Shopping Bag Pill -->
-        <a href="{{ url_for('cart_page') }}"
-           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-indigo-500 text-xs font-extrabold text-slate-700 transition">
+        <!-- Desktop Shopping Bag Button -->
+        <a href="{{ url_for('cart_page') }}" title="Shopping Bag"
+           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 text-xs font-bold text-zinc-800 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0" />
+          </svg>
           <span>Bag</span>
-          <span class="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold">{{ cart_count }}</span>
+          <span class="tabular-nums px-1.5 py-0.5 rounded-full bg-zinc-950 text-white text-[10px] font-extrabold">{{ cart_count }}</span>
         </a>
 
-        <!-- Theme Switcher Button -->
-        <button type="button" onclick="toggleThemeMode()" title="Switch Light / Dark Mode"
-                class="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-700 hover:border-indigo-500 transition">
-          <span id="theme-icon" class="text-sm">&#9790;</span>
+        <!-- Theme Toggle Button (1.5px Moon / Sun SVG) -->
+        <button type="button" onclick="toggleThemeMode()" aria-label="Toggle Theme"
+                class="w-9 h-9 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 flex items-center justify-center text-zinc-800 transition">
+          <svg id="icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg id="icon-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4" />
+            <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" />
+          </svg>
         </button>
 
-        <!-- Auth / Account Action -->
+        <!-- Auth Action -->
         {% if current_user %}
           {% if current_user.role == 'admin' %}
             <a href="{{ url_for('admin_dashboard') }}"
-               class="lg:hidden px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-extrabold">
+               class="lg:hidden px-3 py-1.5 rounded-full bg-zinc-950 text-white text-[11px] font-extrabold">
               BI
             </a>
           {% endif %}
           <a href="{{ url_for('logout') }}"
-             class="px-3.5 py-2 rounded-full lg:rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-extrabold transition">
+             class="px-3.5 py-2 rounded-full border border-zinc-200 bg-white hover:border-rose-500 hover:text-rose-600 text-zinc-800 text-xs font-bold transition">
             Logout
           </a>
         {% else %}
           <a href="{{ url_for('login_page') }}"
-             class="px-4 py-2 rounded-full lg:rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-extrabold transition">
+             class="btn-obsidian px-4 py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold transition">
             Sign In
           </a>
         {% endif %}
@@ -136,107 +152,121 @@
     </div>
   </header>
 
-  <!-- Flash Toast Notifications -->
+  <!-- Minimal Toast Notifications -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div class="app-shell pt-4 space-y-2">
         {% for category, message in messages %}
-          <div class="px-4 py-3 rounded-2xl text-xs font-bold border flex items-center justify-between gap-2
-                      {{ 'bg-emerald-50 border-emerald-200 text-emerald-800' if category == 'success'
-                         else 'bg-rose-50 border-rose-200 text-rose-800' if category == 'error'
-                         else 'bg-indigo-50 border-indigo-200 text-indigo-800' }}">
+          <div class="px-4 py-3 rounded-2xl text-xs font-semibold border flex items-center justify-between gap-2 bg-white shadow-xs
+                      {{ 'border-emerald-300 text-emerald-800' if category == 'success'
+                         else 'border-rose-300 text-rose-800' if category == 'error'
+                         else 'border-zinc-200 text-zinc-800' }}">
             <span>{{ message }}</span>
-            <button type="button" onclick="this.parentElement.remove()" class="font-extrabold opacity-60 hover:opacity-100">&times;</button>
+            <button type="button" onclick="this.parentElement.remove()" class="font-bold opacity-50 hover:opacity-100">&times;</button>
           </div>
         {% endfor %}
       </div>
     {% endif %}
   {% endwith %}
 
-  <!-- Main Workspace Content -->
-  <main class="app-shell flex-1 py-5 sm:py-7 lg:py-8">
+  <!-- Main Workspace -->
+  <main class="app-shell flex-1 py-6 sm:py-8 lg:py-10">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Desktop Executive Footer (Hidden on Mobile to Keep App View Clean) -->
-  <footer class="hidden lg:block border-t border-slate-200 bg-white mt-12">
-    <div class="app-shell py-8 flex items-center justify-between gap-4 text-xs text-slate-500">
-      <div class="flex items-center gap-2.5">
-        <img src="/icon-192.png?v=2" alt="SoleMetrics" class="w-7 h-7 rounded-lg" />
-        <span class="font-display font-extrabold text-slate-900">SoleMetrics Footwear Studio</span>
-        <span>&bull; Multi-Brand E-Commerce &amp; Live BI Analytics</span>
+  <!-- Minimal Luxury Desktop Footer -->
+  <footer class="hidden lg:block border-t border-zinc-200 bg-white mt-16">
+    <div class="app-shell py-8 flex items-center justify-between gap-4 text-xs text-zinc-500">
+      <div class="flex items-center gap-3">
+        <span class="font-display font-extrabold tracking-tight text-zinc-900">SOLEMETRICS</span>
+        <span class="text-zinc-300">|</span>
+        <span>Multi-Brand Footwear Studio &amp; Executive BI</span>
       </div>
-      <div class="flex items-center gap-5 font-semibold">
-        <a href="{{ url_for('shop') }}" class="hover:text-indigo-600">Catalog</a>
-        <a href="{{ url_for('reviews_page') }}" class="hover:text-indigo-600">Verified Reviews</a>
-        <a href="{{ url_for('cart_page') }}" class="hover:text-indigo-600">Shopping Bag</a>
+      <div class="flex items-center gap-6 font-medium">
+        <a href="{{ url_for('shop') }}" class="hover:text-zinc-950 transition">Catalog</a>
+        <a href="{{ url_for('reviews_page') }}" class="hover:text-zinc-950 transition">Reviews</a>
+        <a href="{{ url_for('wishlist_page') }}" class="hover:text-zinc-950 transition">Saved</a>
+        <a href="{{ url_for('cart_page') }}" class="hover:text-zinc-950 transition">Bag</a>
       </div>
     </div>
   </footer>
 
-  <!-- Mobile Bottom App Tab Bar (Only on Phones/Tablets < 1024px) -->
-  <nav class="lg:hidden glass-bar fixed bottom-0 inset-x-0 z-40 border-t px-2 py-1.5">
+  <!-- Mobile Bottom App Dock (1.5px Hairline Icons + 4px Obsidian Active Dot) -->
+  <nav class="lg:hidden glass-bar fixed bottom-0 inset-x-0 z-40 border-t px-2 pt-2 pb-2">
     <div class="max-w-md mx-auto grid grid-cols-5 text-center">
       <a href="{{ url_for('home') }}"
-         class="flex flex-col items-center py-1 text-[10px] font-bold {{ 'text-indigo-600' if active_page == 'home' else 'text-slate-500' }}">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4 10v10h6v-6h4v6h6V10" />
+         class="flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'home' else 'text-zinc-400' }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" />
         </svg>
-        Home
+        <span>Home</span>
+        <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'home' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('shop') }}"
-         class="flex flex-col items-center py-1 text-[10px] font-bold {{ 'text-indigo-600' if active_page == 'shop' else 'text-slate-500' }}">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h6v6H4V6zm10 0h6v6h-6V6zM4 16h6v4H4v-4zm10 0h6v4h-6v-4z" />
+         class="flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'shop' else 'text-zinc-400' }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
         </svg>
-        Shop
+        <span>Explore</span>
+        <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'shop' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('wishlist_page') }}"
-         class="relative flex flex-col items-center py-1 text-[10px] font-bold {{ 'text-indigo-600' if active_page == 'wishlist' else 'text-slate-500' }}">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+         class="relative flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'wishlist' else 'text-zinc-400' }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
-        Saved
+        <span>Saved</span>
         {% if wishlist_count > 0 %}
-          <span class="absolute top-0.5 right-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-extrabold">{{ wishlist_count }}</span>
+          <span class="absolute top-0 right-4 w-1.5 h-1.5 rounded-full bg-zinc-950"></span>
         {% endif %}
+        <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'wishlist' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('cart_page') }}"
-         class="relative flex flex-col items-center py-1 text-[10px] font-bold {{ 'text-indigo-600' if active_page == 'cart' else 'text-slate-500' }}">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 5h12m-9 0a1 1 0 100 2 1 1 0 000-2zm8 0a1 1 0 100 2 1 1 0 000-2z" />
+         class="relative flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'cart' else 'text-zinc-400' }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0" />
         </svg>
-        Bag
+        <span>Bag</span>
         {% if cart_count > 0 %}
-          <span class="absolute top-0.5 right-4 px-1.5 rounded-full bg-indigo-600 text-white text-[9px] font-extrabold">{{ cart_count }}</span>
+          <span class="tabular-nums absolute -top-0.5 right-3.5 px-1 rounded-full bg-zinc-950 text-white text-[9px] font-extrabold">{{ cart_count }}</span>
         {% endif %}
+        <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'cart' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('admin_dashboard') if current_user and current_user.role == 'admin' else url_for('my_orders') }}"
-         class="flex flex-col items-center py-1 text-[10px] font-bold {{ 'text-indigo-600' if active_page in ('my-orders', 'admin') else 'text-slate-500' }}">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10L4 17V7m8 4L4 7" />
+         class="flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page in ('my-orders', 'admin') else 'text-zinc-400' }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="m3.3 7 8.7 5 8.7-5M12 22V12" />
         </svg>
-        {{ 'BI' if current_user and current_user.role == 'admin' else 'Orders' }}
+        <span>{{ 'Studio' if current_user and current_user.role == 'admin' else 'Orders' }}</span>
+        <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page in ('my-orders', 'admin') else 'bg-transparent' }}"></span>
       </a>
     </div>
   </nav>
 
   <script>
+    function syncThemeIcons() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const moon = document.getElementById('icon-moon');
+      const sun = document.getElementById('icon-sun');
+      if (moon && sun) {
+        moon.classList.toggle('hidden', isDark);
+        sun.classList.toggle('hidden', !isDark);
+      }
+    }
     function toggleThemeMode() {
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('sm_theme', isDark ? 'dark' : 'light');
-      document.getElementById('theme-icon').innerHTML = isDark ? '&#9728;' : '&#9790;';
+      syncThemeIcons();
     }
-    (function () {
-      const icon = document.getElementById('theme-icon');
-      if (icon && document.documentElement.classList.contains('dark')) {
-        icon.innerHTML = '&#9728;';
-      }
-    })();
+    syncThemeIcons();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }

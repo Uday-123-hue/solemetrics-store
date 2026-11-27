@@ -1,25 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 
 :root {
-  --bg-page: #f8fafc;
+  --bg-page: #fafafa;
   --bg-card: #ffffff;
-  --bg-subtle: #f1f5f9;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --accent: #4f46e5;
-  --accent-dark: #3730a3;
+  --bg-subtle: #f4f4f5;
+  --text-main: #09090b;
+  --text-muted: #71717a;
+  --border-color: #e4e4e7;
+  --obsidian: #09090b;
 }
 
 html.dark {
-  --bg-page: #09090b;
-  --bg-card: #121216;
-  --bg-subtle: #1c1c22;
-  --text-main: #f8fafc;
+  --bg-page: #070709;
+  --bg-card: #0f0f12;
+  --bg-subtle: #18181b;
+  --text-main: #fafafa;
   --text-muted: #a1a1aa;
   --border-color: #27272a;
-  --accent: #6366f1;
-  --accent-dark: #818cf8;
+  --obsidian: #fafafa;
 }
 
 * {
@@ -32,16 +30,21 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-page);
   color: var(--text-main);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   transition: background-color 0.2s ease, color 0.2s ease;
   overflow-x: hidden;
 }
 
 .font-display {
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
-/* Desktop & Mobile Adaptive Container */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Widescreen Adaptive Container */
 .app-shell {
   width: 100%;
   max-width: 1280px;
@@ -60,22 +63,32 @@ body {
 
 @media (min-width: 1024px) {
   .app-shell {
-    padding-left: 2.25rem;
-    padding-right: 2.25rem;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
   }
 }
 
-/* Frosted Glass Header & Bottom Bar */
+/* Ultra-Clean Frosted Glass Surface */
 .glass-bar {
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-color: rgba(226, 232, 240, 0.85);
+  background: rgba(250, 250, 250, 0.84);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(228, 228, 231, 0.85);
 }
 
 html.dark .glass-bar {
-  background: rgba(12, 12, 15, 0.86);
+  background: rgba(7, 7, 9, 0.84);
   border-color: rgba(39, 39, 42, 0.9);
+}
+
+/* Monochrome Luxury Button Inversion in Dark Mode */
+html.dark .btn-obsidian {
+  background-color: #fafafa !important;
+  color: #09090b !important;
+}
+
+html.dark .btn-obsidian:hover {
+  background-color: #e4e4e7 !important;
 }
 
 /* Dark Mode Surface Overrides */
@@ -84,67 +97,77 @@ html.dark .bg-white {
 }
 
 html.dark .bg-slate-50,
-html.dark .bg-slate-100 {
+html.dark .bg-slate-100,
+html.dark .bg-zinc-50,
+html.dark .bg-zinc-100 {
   background-color: var(--bg-subtle) !important;
 }
 
 html.dark .border-slate-100,
 html.dark .border-slate-200,
-html.dark .border-slate-300 {
+html.dark .border-slate-300,
+html.dark .border-zinc-100,
+html.dark .border-zinc-200 {
   border-color: var(--border-color) !important;
 }
 
 html.dark .text-slate-900,
-html.dark .text-slate-800 {
-  color: #f8fafc !important;
+html.dark .text-slate-800,
+html.dark .text-zinc-900,
+html.dark .text-zinc-800 {
+  color: #fafafa !important;
 }
 
 html.dark .text-slate-700,
-html.dark .text-slate-600 {
-  color: #cbd5e1 !important;
+html.dark .text-slate-600,
+html.dark .text-zinc-700,
+html.dark .text-zinc-600 {
+  color: #d4d4d8 !important;
 }
 
 html.dark .text-slate-500,
-html.dark .text-slate-400 {
-  color: #94a3b8 !important;
+html.dark .text-slate-400,
+html.dark .text-zinc-500,
+html.dark .text-zinc-400 {
+  color: #a1a1aa !important;
 }
 
 html.dark input,
 html.dark select,
 html.dark textarea {
-  background-color: #18181d !important;
-  color: #f8fafc !important;
-  border-color: #2e2e36 !important;
+  background-color: #141418 !important;
+  color: #fafafa !important;
+  border-color: #27272a !important;
 }
 
-/* Product Card Hover Micro-Interaction (Desktop Polish) */
+/* Editorial Product Card Elevation & Quick-Add Slide */
 .shoe-card {
-  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s ease, border-color 0.2s ease;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.22s ease;
 }
 
 @media (hover: hover) {
   .shoe-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 34px -14px rgba(15, 23, 42, 0.14);
-    border-color: #c7d2fe;
+    box-shadow: 0 22px 40px -18px rgba(9, 9, 11, 0.14);
+    border-color: #a1a1aa;
   }
   html.dark .shoe-card:hover {
-    box-shadow: 0 18px 34px -14px rgba(0, 0, 0, 0.65);
-    border-color: #4f46e5;
+    box-shadow: 0 22px 40px -18px rgba(0, 0, 0, 0.75);
+    border-color: #52525b;
   }
 }
 
 .shoe-card img {
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (hover: hover) {
   .shoe-card:hover img {
-    transform: scale(1.05);
+    transform: scale(1.045);
   }
 }
 
-/* Hide Horizontal Scrollbars cleanly */
+/* Hide Horizontal Scrollbars */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -153,20 +176,20 @@ html.dark textarea {
   scrollbar-width: none;
 }
 
-/* Subtle Custom Desktop Scrollbar */
+/* Subtle Desktop Scrollbar */
 @media (min-width: 1024px) {
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.4);
+    background: rgba(161, 161, 170, 0.4);
     border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.65);
+    background: rgba(113, 113, 122, 0.65);
   }
 }
