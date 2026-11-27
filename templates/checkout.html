@@ -77,36 +77,77 @@
 
 </div>
 
-<!-- SoleMetrics Pay Modal (z-[70] sits cleanly ABOVE header & bottom nav bar) -->
+<style>
+  @keyframes rzpSheetIn {
+    0% { opacity: 0; transform: translateY(28px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes rzpSpin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes rzpPopIn {
+    0% { opacity: 0; transform: scale(0.5); }
+    70% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes rzpCheckDraw {
+    0% { stroke-dashoffset: 36; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .rzp-sheet {
+    animation: rzpSheetIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .rzp-spinner {
+    animation: rzpSpin 0.8s linear infinite;
+  }
+  .rzp-success-badge {
+    animation: rzpPopIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .rzp-check-path {
+    stroke-dasharray: 36;
+    stroke-dashoffset: 36;
+    animation: rzpCheckDraw 0.42s 0.15s ease-out forwards;
+  }
+</style>
+
+<!-- SoleMetrics Pay Modal (Razorpay-Style Gateway Sheet — Above Mobile Bottom Bar) -->
 <div id="pay-modal"
      class="fixed inset-0 z-[70] hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-  <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[88dvh] flex flex-col">
+  <div class="rzp-sheet bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[88dvh] flex flex-col">
 
-    <!-- Dark Top Bar -->
-    <div class="bg-slate-950 text-white px-5 py-4 flex items-center justify-between gap-3 shrink-0">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center font-display font-extrabold text-base shrink-0">
-          S
+    <!-- Top Drag Pill + Dark Razorpay-Style Header -->
+    <div class="bg-slate-950 text-white px-5 pt-2.5 pb-4 shrink-0">
+      <div class="w-10 h-1 rounded-full bg-white/20 mx-auto mb-3 sm:hidden"></div>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center font-display font-extrabold text-base shrink-0 shadow-inner">
+            S
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h3 class="font-display font-extrabold text-sm leading-tight">SoleMetrics Pay</h3>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-extrabold uppercase tracking-wider">
+                Trusted
+              </span>
+            </div>
+            <p id="modal-subtext" class="text-[11px] text-slate-400 truncate mt-0.5">
+              {{ current_user.city or 'Kota' }} &bull; {{ current_user.email }}
+            </p>
+          </div>
         </div>
-        <div class="min-w-0">
-          <h3 class="font-display font-extrabold text-sm leading-tight">SoleMetrics Pay</h3>
-          <p id="modal-subtext" class="text-[11px] text-slate-400 truncate mt-0.5">
-            {{ current_user.city or 'Kota' }} &bull; {{ current_user.email }}
-          </p>
-        </div>
-      </div>
 
-      <div class="flex items-center gap-2.5 shrink-0">
-        <span class="font-display font-extrabold text-base sm:text-lg text-white">{{ grand_total | inr }}</span>
-        <button type="button" onclick="closePayModal()" aria-label="Close"
-                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold">
-          &times;
-        </button>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <span class="font-display font-extrabold text-base sm:text-lg text-white">{{ grand_total | inr }}</span>
+          <button type="button" id="modal-close-btn" onclick="closePayModal()" aria-label="Close"
+                  class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold">
+            &times;
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Scrollable Payment Body -->
-    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto">
+    <!-- VIEW 1: Payment Method Selection -->
+    <div id="pay-selection-view" class="p-4 sm:p-5 space-y-4 overflow-y-auto">
 
       <!-- Mode Tabs -->
       <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200/80">
@@ -197,15 +238,53 @@
         </div>
       </div>
 
-      <!-- Confirm & Pay Button (Always Visible & Accessible) -->
-      <button type="button" id="confirm-pay-btn" onclick="completePayment()"
+      <!-- Confirm & Pay Button -->
+      <button type="button" id="confirm-pay-btn" onclick="startRazorpayFlow()"
               class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-display font-extrabold text-sm shadow-md transition">
         Pay {{ grand_total | inr }} Securely &rarr;
       </button>
 
       <p class="text-center text-[10px] font-semibold text-slate-400">
-        256-bit Encrypted Checkout &bull; Instant PDF Invoice &amp; Email Confirmation
+        Secured by SoleMetrics Pay &bull; 256-Bit SSL Encrypted
       </p>
+    </div>
+
+    <!-- VIEW 2: Razorpay-Style Live Processing & Green Checkmark Animation -->
+    <div id="pay-processing-view" class="hidden p-7 sm:p-9 text-center space-y-4">
+      <!-- Spinning Gateway Ring -->
+      <div id="rzp-loader-box" class="space-y-4">
+        <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+          <div class="rzp-spinner absolute inset-0 rounded-full border-4 border-indigo-100 border-t-indigo-600"></div>
+          <span class="font-display font-extrabold text-indigo-600 text-sm">₹</span>
+        </div>
+        <div>
+          <h4 id="rzp-status-title" class="font-display font-extrabold text-base text-slate-900">
+            Connecting to Payment Gateway...
+          </h4>
+          <p id="rzp-status-sub" class="text-xs text-slate-500 mt-1">
+            Please do not close or press back
+          </p>
+        </div>
+        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
+          <div id="rzp-progress-bar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 28%;"></div>
+        </div>
+      </div>
+
+      <!-- Animated Green Checkmark -->
+      <div id="rzp-success-box" class="hidden space-y-3">
+        <div class="rzp-success-badge w-16 h-16 rounded-full bg-emerald-500 text-white mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3.2" viewBox="0 0 24 24">
+            <path class="rzp-check-path" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div>
+          <h4 class="font-display font-extrabold text-lg text-slate-900">Payment Successful!</h4>
+          <p id="rzp-txn-label" class="font-mono text-[11px] font-bold text-emerald-600 mt-0.5">
+            Ref: pay_SM884920
+          </p>
+          <p class="text-xs text-slate-500 mt-1">Generating your tax invoice &amp; receipt...</p>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -217,6 +296,11 @@
   function openPayModal() {
     const cityVal = document.getElementById('delivery_city').value.trim() || 'Kota';
     document.getElementById('modal-subtext').innerHTML = cityVal + ' &bull; {{ current_user.email }}';
+    document.getElementById('pay-selection-view').classList.remove('hidden');
+    document.getElementById('pay-processing-view').classList.add('hidden');
+    document.getElementById('rzp-loader-box').classList.remove('hidden');
+    document.getElementById('rzp-success-box').classList.add('hidden');
+    document.getElementById('modal-close-btn').classList.remove('hidden');
     document.getElementById('pay-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -257,19 +341,49 @@
     el.className = 'upi-app-btn py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/40 text-xs font-extrabold text-indigo-700';
   }
 
-  function completePayment() {
-    const btn = document.getElementById('confirm-pay-btn');
-    btn.disabled = true;
-    btn.innerHTML = 'Processing Order...';
-
+  function startRazorpayFlow() {
     const dbMode = selectedMode === 'NetBank' ? 'Card' : selectedMode;
-    document.getElementById('final_payment_method').value = dbMode;
-    document.getElementById('final_transaction_id').value =
-      selectedMode === 'Cash on Delivery'
-        ? 'COD_' + Math.floor(100000 + Math.random() * 900000)
-        : 'pay_SM' + Math.floor(100000 + Math.random() * 900000);
+    const txnId = selectedMode === 'Cash on Delivery'
+      ? 'COD_' + Math.floor(100000 + Math.random() * 900000)
+      : 'pay_SM' + Math.floor(100000 + Math.random() * 900000);
 
-    document.getElementById('checkout-form').submit();
+    document.getElementById('final_payment_method').value = dbMode;
+    document.getElementById('final_transaction_id').value = txnId;
+
+    // Switch modal to Razorpay processing view
+    document.getElementById('pay-selection-view').classList.add('hidden');
+    document.getElementById('modal-close-btn').classList.add('hidden');
+    document.getElementById('pay-processing-view').classList.remove('hidden');
+
+    const statusTitle = document.getElementById('rzp-status-title');
+    const statusSub = document.getElementById('rzp-status-sub');
+    const progressBar = document.getElementById('rzp-progress-bar');
+
+    if (selectedMode === 'Cash on Delivery') {
+      statusTitle.textContent = 'Confirming Cash on Delivery...';
+      statusSub.textContent = 'Reserving inventory for dispatch';
+    } else {
+      statusTitle.textContent = 'Verifying ' + selectedMode + ' Payment...';
+      statusSub.textContent = 'Authorizing ₹{{ grand_total }} with bank server';
+    }
+
+    setTimeout(() => {
+      progressBar.style.width = '78%';
+      statusTitle.textContent = selectedMode === 'Cash on Delivery'
+        ? 'Order Slot Locked!'
+        : 'Payment Authorized! Finalizing...';
+    }, 650);
+
+    setTimeout(() => {
+      progressBar.style.width = '100%';
+      document.getElementById('rzp-loader-box').classList.add('hidden');
+      document.getElementById('rzp-txn-label').textContent = 'Ref: ' + txnId;
+      document.getElementById('rzp-success-box').classList.remove('hidden');
+    }, 1350);
+
+    setTimeout(() => {
+      document.getElementById('checkout-form').submit();
+    }, 2250);
   }
 </script>
 {% endblock %}
