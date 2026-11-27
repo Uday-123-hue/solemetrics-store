@@ -1,421 +1,275 @@
 {% extends "base.html" %}
 {% block content %}
-<style>
-  @keyframes coinSpin3D {
-    0% { transform: perspective(600px) rotateY(0deg) translateY(0px); }
-    50% { transform: perspective(600px) rotateY(180deg) translateY(-6px); }
-    100% { transform: perspective(600px) rotateY(360deg) translateY(0px); }
-  }
+<div class="max-w-4xl mx-auto space-y-6">
 
-  @keyframes coinShadowPulse {
-    0%, 100% { transform: scale(1); opacity: 0.28; }
-    50% { transform: scale(0.72); opacity: 0.14; }
-  }
-
-  @keyframes checkPop {
-    0% { transform: scale(0.5); opacity: 0; }
-    70% { transform: scale(1.08); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  .rzp-coin {
-    width: 64px;
-    height: 64px;
-    border-radius: 9999px;
-    background: linear-gradient(145deg, #fde68a 0%, #f59e0b 48%, #b45309 100%);
-    border: 3px solid #fef3c7;
-    box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.75),
-                inset 0 -4px 8px rgba(120, 53, 15, 0.45),
-                0 10px 22px -6px rgba(245, 158, 11, 0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: coinSpin3D 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-    transform-style: preserve-3d;
-  }
-
-  .rzp-coin-inner {
-    width: 48px;
-    height: 48px;
-    border-radius: 9999px;
-    border: 1.5px dashed rgba(254, 243, 199, 0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fffbeb;
-    font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif;
-    font-weight: 800;
-    font-size: 24px;
-    text-shadow: 0 1px 2px rgba(120, 53, 15, 0.5);
-  }
-
-  .rzp-coin-shadow {
-    width: 44px;
-    height: 7px;
-    border-radius: 9999px;
-    background: #09090b;
-    margin: 10px auto 0;
-    animation: coinShadowPulse 1.15s ease-in-out infinite;
-  }
-
-  .rzp-check-pop {
-    animation: checkPop 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-</style>
-
-<div class="max-w-4xl mx-auto grid lg:grid-cols-12 gap-5 items-start">
-
-  <!-- Left: Minimal Order Summary -->
-  <div class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="font-display text-xl font-extrabold text-slate-900">Checkout</h1>
-        <p class="text-xs text-slate-500 mt-0.5">{{ current_user.name }} &bull; {{ current_user.email }}</p>
-      </div>
-      <a href="{{ url_for('cart_page') }}" class="text-xs font-bold text-indigo-600 hover:underline">Edit Bag</a>
+  <!-- Header -->
+  <div class="flex items-center justify-between gap-2">
+    <div>
+      <span class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-extrabold uppercase tracking-wider">
+        Secure Checkout
+      </span>
+      <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Checkout</h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Delivering to <b>{{ current_user.name }}</b> &bull; {{ current_user.email }}
+      </p>
     </div>
+    <a href="{{ url_for('cart_page') }}" class="text-xs font-extrabold text-indigo-600 hover:underline shrink-0">
+      &larr; Edit Bag
+    </a>
+  </div>
 
-    <div class="space-y-2.5">
+  <!-- Order Summary Card -->
+  <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
+    <div class="divide-y divide-slate-100">
       {% for item in items %}
-        <div class="flex items-center justify-between gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
-          <div class="flex items-center gap-3 min-w-0">
-            <img src="{{ item.product.image }}" onerror="this.src='{{ fallback_img }}'" alt="{{ item.product.name }}"
-                 class="w-12 h-12 rounded-xl object-cover border border-slate-200 bg-white shrink-0" />
-            <div class="min-w-0">
-              <p class="font-bold text-slate-900 text-xs sm:text-sm truncate">{{ item.product.name }}</p>
-              <p class="text-[11px] text-slate-500">{{ item.product.brand }} &bull; {{ item.size }} &bull; Qty {{ item.qty }}</p>
-            </div>
+        <div class="py-3.5 first:pt-0 last:pb-0 flex items-center gap-3.5">
+          <div class="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden shrink-0">
+            <img src="{{ item.product.image }}" onerror="this.src='{{ fallback_img }}'"
+                 alt="{{ item.product.name }}" class="w-full h-full object-cover" />
           </div>
-          <span class="font-extrabold text-slate-900 text-sm shrink-0">{{ item.subtotal | inr }}</span>
+          <div class="flex-1 min-w-0">
+            <span class="text-[10px] font-extrabold uppercase text-indigo-600 block">{{ item.product.brand }}</span>
+            <h3 class="font-bold text-sm text-slate-900 truncate">{{ item.product.name }}</h3>
+            <p class="text-xs text-slate-500 mt-0.5">{{ item.size }} &bull; Qty {{ item.qty }}</p>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="font-display font-extrabold text-sm text-slate-900">{{ item.subtotal | inr }}</span>
+          </div>
         </div>
       {% endfor %}
     </div>
 
-    <div class="border-t border-slate-200 pt-4 flex items-center justify-between">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total ({{ total_qty }} Pair{{ '' if total_qty == 1 else 's' }})</span>
-      <span class="font-display text-xl font-extrabold text-slate-900">{{ grand_total | inr }}</span>
+    <div class="border-t border-slate-200 pt-4 space-y-2 text-xs">
+      <div class="flex justify-between text-slate-500">
+        <span>Items ({{ total_qty }} {{ 'Pair' if total_qty == 1 else 'Pairs' }})</span>
+        <span class="font-bold text-slate-800">{{ grand_total | inr }}</span>
+      </div>
+      <div class="flex justify-between text-slate-500">
+        <span>Express Delivery</span>
+        <span class="font-extrabold text-emerald-600">FREE</span>
+      </div>
+      <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+        <span class="font-extrabold text-sm text-slate-900">Total Payable</span>
+        <span class="font-display text-2xl font-extrabold text-slate-900">{{ grand_total | inr }}</span>
+      </div>
     </div>
   </div>
 
-  <!-- Right: Minimal Delivery & Pay -->
-  <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
-    <h2 class="font-display text-lg font-extrabold text-slate-900">Delivery</h2>
+  <!-- Delivery City + Proceed to Pay Form -->
+  <form id="checkout-form" method="POST" action="{{ url_for('place_order') }}"
+        class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
+    <input type="hidden" name="payment_method" id="final_payment_method" value="UPI" />
+    <input type="hidden" name="transaction_id" id="final_transaction_id" value="" />
 
-    <form id="checkout-form" method="POST" action="{{ url_for('place_order') }}" class="space-y-4">
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1.5">City</label>
-        <input id="delivery-city" type="text" name="city" required value="{{ current_user.city }}" placeholder="Enter delivery city"
-               class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 text-sm" />
-      </div>
+    <div>
+      <label class="block text-xs font-extrabold text-slate-700 mb-1.5">Delivery City</label>
+      <input type="text" name="city" id="delivery_city" required
+             value="{{ current_user.city or 'Kota' }}"
+             placeholder="Enter delivery city"
+             class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+    </div>
 
-      <input type="hidden" id="final-payment-method" name="payment_method" value="UPI (GPay)" />
-      <input type="hidden" id="final-transaction-id" name="transaction_id" value="" />
-
-      <button type="button" onclick="openPaymentGateway()"
-              class="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-extrabold text-sm hover:bg-indigo-600 transition">
-        Pay {{ grand_total | inr }} &rarr;
-      </button>
-
-      <p class="text-[11px] text-center text-slate-400">
-        UPI &bull; Cards &bull; NetBanking &bull; COD
-      </p>
-    </form>
-  </div>
+    <button type="button" onclick="openPayModal()"
+            class="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-indigo-600 text-white font-display font-extrabold text-sm shadow-sm transition">
+      Proceed to Pay {{ grand_total | inr }} &rarr;
+    </button>
+  </form>
 
 </div>
 
-<!-- =========================================================================
-     IPHONE BOTTOM-SHEET PAYMENT MODAL WITH 3D COIN ANIMATION
-     ========================================================================= -->
-<div id="pg-backdrop" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-sm sm:p-4 no-print">
-  <div id="pg-modal" class="w-full sm:max-w-md bg-white rounded-t-[28px] sm:rounded-3xl border border-slate-200 shadow-2xl overflow-hidden transform transition-all duration-200 translate-y-6 sm:translate-y-0 sm:scale-95 opacity-0 flex flex-col pb-[env(safe-area-inset-bottom)]">
+<!-- SoleMetrics Pay Modal (z-[70] sits cleanly ABOVE header & bottom nav bar) -->
+<div id="pay-modal"
+     class="fixed inset-0 z-[70] hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+  <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[88dvh] flex flex-col">
 
-    <!-- Top Brand Header + iOS Sheet Grabber -->
-    <div class="bg-slate-900 text-white px-5 pt-2.5 pb-4 sm:py-4">
-      <div class="sm:hidden w-10 h-1 rounded-full bg-white/25 mx-auto mb-3"></div>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-[10px] bg-indigo-600 text-white font-display font-extrabold text-sm flex items-center justify-center shrink-0">
-            S
-          </div>
-          <div class="min-w-0">
-            <span class="font-display font-extrabold text-sm block leading-tight">SoleMetrics Pay</span>
-            <span class="text-[11px] text-slate-400 truncate block" id="pg-city-summary">{{ current_user.email }}</span>
-          </div>
+    <!-- Dark Top Bar -->
+    <div class="bg-slate-950 text-white px-5 py-4 flex items-center justify-between gap-3 shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center font-display font-extrabold text-base shrink-0">
+          S
         </div>
+        <div class="min-w-0">
+          <h3 class="font-display font-extrabold text-sm leading-tight">SoleMetrics Pay</h3>
+          <p id="modal-subtext" class="text-[11px] text-slate-400 truncate mt-0.5">
+            {{ current_user.city or 'Kota' }} &bull; {{ current_user.email }}
+          </p>
+        </div>
+      </div>
 
-        <div class="flex items-center gap-3 shrink-0">
-          <span class="font-display font-extrabold text-base text-white">{{ grand_total | inr }}</span>
-          <button type="button" id="pg-close-btn" onclick="closePaymentGateway()" aria-label="Close"
-                  class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center text-xs font-bold">
-            &#10005;
-          </button>
-        </div>
+      <div class="flex items-center gap-2.5 shrink-0">
+        <span class="font-display font-extrabold text-base sm:text-lg text-white">{{ grand_total | inr }}</span>
+        <button type="button" onclick="closePayModal()" aria-label="Close"
+                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold">
+          &times;
+        </button>
       </div>
     </div>
 
-    <!-- Payment Options View -->
-    <div id="pg-selection-view" class="p-5 space-y-4">
+    <!-- Scrollable Payment Body -->
+    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto">
 
-      <!-- 4 Clean Tabs -->
-      <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
-        <button type="button" data-pg-tab="upi" onclick="switchPgTab('upi')"
-                class="pg-tab-btn py-2 rounded-xl bg-white text-slate-900 shadow-sm">
+      <!-- Mode Tabs -->
+      <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200/80">
+        <button type="button" data-pay-tab="UPI" onclick="selectPayTab('UPI')"
+                class="pay-tab py-2 rounded-xl text-xs font-extrabold bg-white text-slate-900 shadow-sm">
           UPI
         </button>
-        <button type="button" data-pg-tab="card" onclick="switchPgTab('card')"
-                class="pg-tab-btn py-2 rounded-xl text-slate-600 hover:text-slate-900">
+        <button type="button" data-pay-tab="Card" onclick="selectPayTab('Card')"
+                class="pay-tab py-2 rounded-xl text-xs font-extrabold text-slate-600">
           Card
         </button>
-        <button type="button" data-pg-tab="netbanking" onclick="switchPgTab('netbanking')"
-                class="pg-tab-btn py-2 rounded-xl text-slate-600 hover:text-slate-900">
+        <button type="button" data-pay-tab="NetBank" onclick="selectPayTab('NetBank')"
+                class="pay-tab py-2 rounded-xl text-xs font-extrabold text-slate-600">
           NetBank
         </button>
-        <button type="button" data-pg-tab="cod" onclick="switchPgTab('cod')"
-                class="pg-tab-btn py-2 rounded-xl text-slate-600 hover:text-slate-900">
+        <button type="button" data-pay-tab="Cash on Delivery" onclick="selectPayTab('Cash on Delivery')"
+                class="pay-tab py-2 rounded-xl text-xs font-extrabold text-slate-600">
           COD
         </button>
       </div>
 
-      <!-- TAB 1: UPI -->
-      <div id="pg-panel-upi" class="pg-panel space-y-3.5">
-        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3.5">
-          <div class="w-16 h-16 rounded-xl bg-white p-1.5 border border-slate-200 shrink-0">
-            <svg viewBox="0 0 100 100" class="w-full h-full text-slate-900" fill="currentColor">
-              <rect x="6" y="6" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-              <rect x="14" y="14" width="12" height="12" rx="1"/>
-              <rect x="66" y="6" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-              <rect x="74" y="14" width="12" height="12" rx="1"/>
-              <rect x="6" y="66" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-              <rect x="14" y="74" width="12" height="12" rx="1"/>
-              <rect x="42" y="10" width="8" height="8"/><rect x="52" y="18" width="8" height="8"/>
-              <rect x="42" y="30" width="14" height="8"/><rect x="10" y="44" width="14" height="8"/>
-              <rect x="30" y="44" width="10" height="14"/><rect x="46" y="46" width="12" height="12"/>
-              <rect x="66" y="44" width="12" height="8"/><rect x="82" y="48" width="10" height="14"/>
-              <rect x="44" y="66" width="10" height="10"/><rect x="62" y="68" width="14" height="8"/>
-              <rect x="80" y="72" width="12" height="18"/><rect x="46" y="82" width="18" height="10"/>
+      <!-- UPI Panel -->
+      <div id="panel-UPI" class="pay-panel space-y-3">
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3.5">
+          <div class="w-14 h-14 rounded-xl bg-white border border-slate-200 p-1.5 shrink-0 flex items-center justify-center">
+            <svg viewBox="0 0 36 36" class="w-full h-full fill-slate-900">
+              <path d="M2 2h10v10H2V2zm2 2v6h6V4H4zm2 2h2v2H6V6zm18-4h10v10H24V2zm2 2v6h6V4h-6zm2 2h2v2h-2V6zM2 24h10v10H2V24zm2 2v6h6v-6H4zm2 2h2v2H6v-2zm10-24h4v4h-4V4zm0 8h4v4h-4v-4zm-4 4h4v4h-4v-4zm8 0h4v4h-4v-4zm4 4h4v4h-4v-4zm-12 4h4v4h-4v-4zm8 4h4v6h-4v-6zm6 2h4v4h-4v-4z"/>
             </svg>
           </div>
           <div>
-            <p class="text-xs font-extrabold text-slate-900">Scan QR Code</p>
+            <p class="font-extrabold text-xs text-slate-900">Scan QR Code</p>
             <p class="text-[11px] text-slate-500 mt-0.5">GPay, PhonePe, Paytm or BHIM</p>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 text-xs font-bold">
-          <button type="button" data-upi-app="GPay" onclick="selectUpiApp('GPay')"
-                  class="upi-app-btn py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700">
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="selectUpiApp(this)"
+                  class="upi-app-btn py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/40 text-xs font-extrabold text-indigo-700">
             GPay
           </button>
-          <button type="button" data-upi-app="PhonePe" onclick="selectUpiApp('PhonePe')"
-                  class="upi-app-btn py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700">
+          <button type="button" onclick="selectUpiApp(this)"
+                  class="upi-app-btn py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-slate-700">
             PhonePe
           </button>
-          <button type="button" data-upi-app="Paytm" onclick="selectUpiApp('Paytm')"
-                  class="upi-app-btn py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700">
+          <button type="button" onclick="selectUpiApp(this)"
+                  class="upi-app-btn py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-slate-700">
             Paytm
           </button>
         </div>
 
-        <input type="text" id="pg-upi-id" value="{{ current_user.email.split('@')[0] }}@okicici" placeholder="Enter UPI ID"
-               class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 text-xs font-semibold" />
+        <input type="text" id="upi_id_input"
+               value="{{ current_user.email.split('@')[0] }}@okicici"
+               placeholder="Enter UPI ID (e.g. name@okicici)"
+               class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500" />
       </div>
 
-      <!-- TAB 2: CARD -->
-      <div id="pg-panel-card" class="pg-panel hidden space-y-3">
-        <input type="text" id="pg-card-num" maxlength="19" value="4111 2222 3333 4444" oninput="formatCardInput(this)"
-               placeholder="Card Number" class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 text-xs font-mono font-bold" />
+      <!-- Card Panel -->
+      <div id="panel-Card" class="pay-panel hidden space-y-2.5">
+        <input type="text" maxlength="19" placeholder="Card Number (4532 •••• •••• 8842)"
+               class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold" />
         <div class="grid grid-cols-2 gap-2.5">
-          <input type="text" id="pg-card-exp" maxlength="5" value="09/29" placeholder="MM/YY"
-                 class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 text-xs font-mono font-bold" />
-          <input type="password" id="pg-card-cvv" maxlength="3" value="842" placeholder="CVV"
-                 class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 text-xs font-mono font-bold" />
+          <input type="text" maxlength="5" placeholder="MM / YY"
+                 class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold" />
+          <input type="password" maxlength="3" placeholder="CVV"
+                 class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold" />
+        </div>
+        <input type="text" value="{{ current_user.name }}" placeholder="Name on Card"
+               class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold" />
+      </div>
+
+      <!-- NetBanking Panel -->
+      <div id="panel-NetBank" class="pay-panel hidden space-y-2.5">
+        <select class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold bg-white">
+          <option>HDFC Bank</option>
+          <option>ICICI Bank</option>
+          <option>State Bank of India (SBI)</option>
+          <option>Axis Bank</option>
+          <option>Kotak Mahindra Bank</option>
+        </select>
+        <p class="text-[11px] text-slate-500">Instant bank redirect simulation with automated receipt.</p>
+      </div>
+
+      <!-- COD Panel -->
+      <div id="panel-Cash on Delivery" class="pay-panel hidden space-y-2">
+        <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+          <p class="font-extrabold">Pay Cash / UPI on Delivery</p>
+          <p class="text-[11px] mt-0.5">No advance charge. Pay {{ grand_total | inr }} when your footwear arrives.</p>
         </div>
       </div>
 
-      <!-- TAB 3: NETBANKING -->
-      <div id="pg-panel-netbanking" class="pg-panel hidden">
-        <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-          {% for bank in ['HDFC Bank', 'SBI', 'ICICI Bank', 'Axis Bank', 'Kotak Bank', 'PNB'] %}
-            <button type="button" data-bank="{{ bank }}" onclick="selectBank('{{ bank }}')"
-                    class="pg-bank-btn py-2.5 px-3 rounded-xl border text-left {{ 'border-indigo-600 bg-indigo-50 text-indigo-700' if loop.first else 'border-slate-200 bg-white text-slate-700' }}">
-              {{ bank }}
-            </button>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- TAB 4: COD -->
-      <div id="pg-panel-cod" class="pg-panel hidden">
-        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
-          Pay <b class="text-slate-900">{{ grand_total | inr }}</b> via cash or UPI at delivery.
-        </div>
-      </div>
-
-      <button type="button" id="pg-pay-now-btn" onclick="processDemoPayment()"
-              class="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-extrabold text-sm hover:bg-indigo-600 transition">
-        Pay {{ grand_total | inr }}
+      <!-- Confirm & Pay Button (Always Visible & Accessible) -->
+      <button type="button" id="confirm-pay-btn" onclick="completePayment()"
+              class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-display font-extrabold text-sm shadow-md transition">
+        Pay {{ grand_total | inr }} Securely &rarr;
       </button>
-    </div>
 
-    <!-- Razorpay-Style 3D Spinning Coin Processing View -->
-    <div id="pg-processing-view" class="hidden py-10 px-6 text-center space-y-4">
-      <div id="pg-coin-wrap" class="flex flex-col items-center justify-center">
-        <div class="rzp-coin">
-          <div class="rzp-coin-inner">&#8377;</div>
-        </div>
-        <div class="rzp-coin-shadow"></div>
-      </div>
-
-      <div id="pg-success-badge" class="hidden rzp-check-pop w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xl font-extrabold mx-auto shadow-lg">
-        &#10003;
-      </div>
-
-      <div class="space-y-1">
-        <h3 id="pg-status-title" class="font-display font-extrabold text-base text-slate-900">Verifying Payment...</h3>
-        <p id="pg-status-sub" class="text-xs text-slate-500">Do not press back or close this window</p>
-      </div>
+      <p class="text-center text-[10px] font-semibold text-slate-400">
+        256-bit Encrypted Checkout &bull; Instant PDF Invoice &amp; Email Confirmation
+      </p>
     </div>
 
   </div>
 </div>
 
 <script>
-  let activePgTab = 'upi';
-  let selectedUpiApp = 'GPay';
-  let selectedBank = 'HDFC Bank';
-  let isProcessingPayment = false;
+  let selectedMode = 'UPI';
 
-  function openPaymentGateway() {
-    const cityInput = document.getElementById('delivery-city');
-    if (!cityInput.checkValidity()) {
-      cityInput.reportValidity();
-      return;
-    }
-
-    document.getElementById('pg-city-summary').textContent =
-      cityInput.value.trim() + ' • {{ current_user.email }}';
-
-    const backdrop = document.getElementById('pg-backdrop');
-    const modal = document.getElementById('pg-modal');
-    backdrop.classList.remove('hidden');
-    backdrop.classList.add('flex');
-
-    requestAnimationFrame(() => {
-      modal.classList.remove('translate-y-6', 'sm:scale-95', 'opacity-0');
-      modal.classList.add('translate-y-0', 'sm:scale-100', 'opacity-100');
-    });
+  function openPayModal() {
+    const cityVal = document.getElementById('delivery_city').value.trim() || 'Kota';
+    document.getElementById('modal-subtext').innerHTML = cityVal + ' &bull; {{ current_user.email }}';
+    document.getElementById('pay-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   }
 
-  function closePaymentGateway() {
-    if (isProcessingPayment) return;
-    const backdrop = document.getElementById('pg-backdrop');
-    const modal = document.getElementById('pg-modal');
-    modal.classList.add('translate-y-6', 'sm:scale-95', 'opacity-0');
-    modal.classList.remove('translate-y-0', 'sm:scale-100', 'opacity-100');
-    setTimeout(() => {
-      backdrop.classList.add('hidden');
-      backdrop.classList.remove('flex');
-    }, 180);
+  function closePayModal() {
+    document.getElementById('pay-modal').classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
-  function switchPgTab(tab) {
-    activePgTab = tab;
-    document.querySelectorAll('.pg-panel').forEach((p) => p.classList.add('hidden'));
-    document.getElementById('pg-panel-' + tab).classList.remove('hidden');
-
-    document.querySelectorAll('.pg-tab-btn').forEach((btn) => {
-      const isMatch = btn.getAttribute('data-pg-tab') === tab;
-      btn.classList.toggle('bg-white', isMatch);
-      btn.classList.toggle('text-slate-900', isMatch);
-      btn.classList.toggle('shadow-sm', isMatch);
-      btn.classList.toggle('text-slate-600', !isMatch);
+  function selectPayTab(mode) {
+    selectedMode = mode;
+    document.querySelectorAll('.pay-tab').forEach((btn) => {
+      const active = btn.getAttribute('data-pay-tab') === mode;
+      btn.classList.toggle('bg-white', active);
+      btn.classList.toggle('text-slate-900', active);
+      btn.classList.toggle('shadow-sm', active);
+      btn.classList.toggle('text-slate-600', !active);
     });
 
-    const payBtn = document.getElementById('pg-pay-now-btn');
-    payBtn.textContent = tab === 'cod'
-      ? 'Place COD Order ({{ grand_total | inr }})'
-      : 'Pay {{ grand_total | inr }}';
-  }
-
-  function selectUpiApp(app) {
-    selectedUpiApp = app;
-    document.querySelectorAll('.upi-app-btn').forEach((btn) => {
-      const active = btn.getAttribute('data-upi-app') === app;
-      btn.classList.toggle('border-2', active);
-      btn.classList.toggle('border-indigo-600', active);
-      btn.classList.toggle('bg-indigo-50', active);
-      btn.classList.toggle('text-indigo-700', active);
-      btn.classList.toggle('border-slate-200', !active);
-      btn.classList.toggle('bg-white', !active);
-      btn.classList.toggle('text-slate-700', !active);
+    document.querySelectorAll('.pay-panel').forEach((panel) => {
+      panel.classList.add('hidden');
     });
-  }
+    const target = document.getElementById('panel-' + mode);
+    if (target) target.classList.remove('hidden');
 
-  function selectBank(bank) {
-    selectedBank = bank;
-    document.querySelectorAll('.pg-bank-btn').forEach((btn) => {
-      const active = btn.getAttribute('data-bank') === bank;
-      btn.classList.toggle('border-indigo-600', active);
-      btn.classList.toggle('bg-indigo-50', active);
-      btn.classList.toggle('text-indigo-700', active);
-      btn.classList.toggle('border-slate-200', !active);
-      btn.classList.toggle('bg-white', !active);
-      btn.classList.toggle('text-slate-700', !active);
-    });
-  }
-
-  function formatCardInput(el) {
-    const digits = el.value.replace(/\D/g, '').slice(0, 16);
-    el.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-  }
-
-  function processDemoPayment() {
-    if (isProcessingPayment) return;
-    isProcessingPayment = true;
-
-    let methodLabel = 'UPI';
-    if (activePgTab === 'upi') {
-      methodLabel = 'UPI (' + selectedUpiApp + ')';
-    } else if (activePgTab === 'card') {
-      const cardNum = (document.getElementById('pg-card-num').value || '').replace(/\s/g, '');
-      methodLabel = 'Card (•••• ' + (cardNum.slice(-4) || '4444') + ')';
-    } else if (activePgTab === 'netbanking') {
-      methodLabel = 'NetBanking (' + selectedBank + ')';
+    const cta = document.getElementById('confirm-pay-btn');
+    if (mode === 'Cash on Delivery') {
+      cta.innerHTML = 'Confirm COD Order ({{ grand_total | inr }}) &rarr;';
     } else {
-      methodLabel = 'Cash on Delivery';
+      cta.innerHTML = 'Pay {{ grand_total | inr }} Securely &rarr;';
     }
-
-    const randCode = Math.floor(100000 + Math.random() * 900000);
-    const txnId = (activePgTab === 'cod' ? 'COD-SM' : 'pay_SM') + randCode;
-
-    document.getElementById('final-payment-method').value = methodLabel;
-    document.getElementById('final-transaction-id').value = txnId;
-
-    document.getElementById('pg-selection-view').classList.add('hidden');
-    document.getElementById('pg-processing-view').classList.remove('hidden');
-    document.getElementById('pg-close-btn').classList.add('hidden');
-
-    const titleEl = document.getElementById('pg-status-title');
-    const subEl = document.getElementById('pg-status-sub');
-
-    titleEl.textContent = activePgTab === 'cod' ? 'Confirming Order...' : 'Processing Payment...';
-    subEl.textContent = methodLabel;
-
-    setTimeout(() => {
-      document.getElementById('pg-coin-wrap').classList.add('hidden');
-      document.getElementById('pg-success-badge').classList.remove('hidden');
-      titleEl.textContent = activePgTab === 'cod' ? 'Order Confirmed' : 'Payment Successful';
-      subEl.textContent = txnId;
-
-      setTimeout(() => {
-        document.getElementById('checkout-form').submit();
-      }, 650);
-    }, 1300);
   }
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closePaymentGateway();
-  });
+  function selectUpiApp(el) {
+    document.querySelectorAll('.upi-app-btn').forEach((b) => {
+      b.className = 'upi-app-btn py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-slate-700';
+    });
+    el.className = 'upi-app-btn py-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/40 text-xs font-extrabold text-indigo-700';
+  }
+
+  function completePayment() {
+    const btn = document.getElementById('confirm-pay-btn');
+    btn.disabled = true;
+    btn.innerHTML = 'Processing Order...';
+
+    const dbMode = selectedMode === 'NetBank' ? 'Card' : selectedMode;
+    document.getElementById('final_payment_method').value = dbMode;
+    document.getElementById('final_transaction_id').value =
+      selectedMode === 'Cash on Delivery'
+        ? 'COD_' + Math.floor(100000 + Math.random() * 900000)
+        : 'pay_SM' + Math.floor(100000 + Math.random() * 900000);
+
+    document.getElementById('checkout-form').submit();
+  }
 </script>
 {% endblock %}
