@@ -38,6 +38,7 @@ AGE_GROUPS = ["Under 18", "18-25", "26-40", "41-55", "55+"]
 GENDERS = ["Male", "Female", "Other"]
 UK_SIZES = ["UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11"]
 ORDER_STAGES = ["Confirmed", "Packed", "Shipped", "Delivered"]
+PAYMENT_MODES = ["UPI", "Card", "Cash on Delivery"]
 
 COMBO_ADDONS = [
     {
@@ -191,7 +192,6 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             body_text = resp.read().decode("utf-8", errors="ignore")
-            print(f"GMAIL WEBHOOK RESPONSE ({resp.status}): {body_text}")
             try:
                 parsed = json.loads(body_text)
                 if isinstance(parsed, dict) and parsed.get("status") == "error":
@@ -200,7 +200,6 @@ def send_order_confirmation_email(order_items: list, display_order_id: str, gran
                 pass
             return True, "Sent"
     except Exception as e:
-        print(f"GMAIL WEBHOOK ERROR: {e}")
         return False, str(e)
 
 
@@ -513,7 +512,7 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 6. PYTHON PLOTLY ADAPTIVE LIGHT/DARK MULTI-CHART GENERATOR
+# 6. PYTHON PLOTLY EXECUTIVE MULTI-CHART SUITE
 # =========================================================================
 def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
     if metric == "revenue":
@@ -654,33 +653,21 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(148,163,184,0.05)",
         font=dict(family="Inter, sans-serif", size=11, color="#52525b"),
-        height=360,
-        margin=dict(l=12, r=12, t=48, b=35),
+        height=340,
+        margin=dict(l=12, r=12, t=46, b=35),
         uniformtext_minsize=9,
         uniformtext_mode="hide",
         hoverlabel=dict(bgcolor="#18181b", font_size=12, font_color="#ffffff"),
-        transition=dict(duration=550, easing="cubic-in-out")
+        transition=dict(duration=500, easing="cubic-in-out")
     )
 
     if chart_type == "pie":
         fig.update_layout(
             showlegend=True,
-            legend=dict(
-                orientation="h",
-                yanchor="top",
-                y=-0.06,
-                xanchor="center",
-                x=0.5,
-                font=dict(size=10)
-            )
+            legend=dict(orientation="h", yanchor="top", y=-0.06, xanchor="center", x=0.5, font=dict(size=10))
         )
     else:
-        fig.update_xaxes(
-            showgrid=False,
-            tickangle=-35,
-            automargin=True,
-            tickfont=dict(size=10)
-        )
+        fig.update_xaxes(showgrid=False, tickangle=-35, automargin=True, tickfont=dict(size=10))
         y_max = 5.6 if mode == "ratings" else (max_val * 1.18 if max_val > 0 else 10)
         fig.update_yaxes(
             title_text="",
@@ -697,6 +684,114 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
         include_plotlyjs="cdn",
         config={"responsive": True, "displayModeBar": "hover", "displaylogo": False}
     )
+
+
+def build_secondary_charts(df: pd.DataFrame):
+    # 1. Revenue vs Gross Profit Grouped Bar by Brand
+    if not df.empty:
+        grp = df.groupby("brand", as_index=False).agg(rev=("totalAmount", "sum"), prof=("profit", "sum"))
+        grp = grp.sort_values(by="rev", ascending=False)
+        b_labels = list(grp["brand"])
+        rev_vals = [int(x) for x in grp["rev"]]
+        prof_vals = [int(x) for x in grp["prof"]]
+    else:
+        b_labels = BRANDS
+        rev_vals = [0] * len(BRANDS)
+        prof_vals = [0] * len(BRANDS)
+
+    fig_rev_prof = go.Figure(data=[
+        go.Bar(name="Revenue (₹)", x=b_labels, y=rev_vals, marker_color="#6366f1",
+               hovertemplate="<b>%{x}</b><br>Revenue: ₹%{y:,}<extra></extra>"),
+        go.Bar(name="Gross Profit (₹)", x=b_labels, y=prof_vals, marker_color="#10b981",
+               hovertemplate="<b>%{x}</b><br>Profit: ₹%{y:,}<extra></extra>")
+    ])
+    fig_rev_prof.update_layout(
+        title=dict(text="<b>Revenue vs. Gross Profit by Brand</b>", x=0.02, font=dict(size=13, color="#18181b")),
+        barmode="group",
+        autosize=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(148,163,184,0.05)",
+        font=dict(family="Inter, sans-serif", size=10, color="#52525b"),
+        height=290,
+        margin=dict(l=10, r=10, t=44, b=36),
+        legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="right", x=1, font=dict(size=10)),
+        hoverlabel=dict(bgcolor="#18181b", font_size=11, font_color="#ffffff")
+    )
+    fig_rev_prof.update_xaxes(showgrid=False, tickangle=-30, automargin=True)
+    fig_rev_prof.update_yaxes(gridcolor="#e4e4e7", automargin=True)
+    rev_prof_html = fig_rev_prof.to_html(
+        full_html=False, include_plotlyjs=False, config={"responsive": True, "displayModeBar": False}
+    )
+
+    # 2. Order Fulfillment Stage Donut
+    stage_counts = df["status"].value_counts().to_dict() if not df.empty else {}
+    s_labels = ORDER_STAGES
+    s_vals = [int(stage_counts.get(st, 0)) for st in ORDER_STAGES]
+    stage_colors = ["#6366f1", "#f59e0b", "#0ea5e9", "#10b981"]
+
+    fig_funnel = go.Figure(data=[
+        go.Pie(
+            labels=s_labels,
+            values=s_vals,
+            hole=0.56,
+            marker=dict(colors=stage_colors, line=dict(color="rgba(148,163,184,0.25)", width=1.5)),
+            textinfo="value+percent",
+            textposition="inside",
+            hovertemplate="<b>%{label}</b><br>Orders: %{value} (%{percent})<extra></extra>"
+        )
+    ])
+    fig_funnel.update_layout(
+        title=dict(text="<b>Order Fulfillment Pipeline</b>", x=0.02, font=dict(size=13, color="#18181b")),
+        autosize=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Inter, sans-serif", size=10, color="#52525b"),
+        height=290,
+        margin=dict(l=10, r=10, t=44, b=28),
+        legend=dict(orientation="h", yanchor="top", y=-0.04, xanchor="center", x=0.5, font=dict(size=10)),
+        hoverlabel=dict(bgcolor="#18181b", font_size=11, font_color="#ffffff")
+    )
+    funnel_html = fig_funnel.to_html(
+        full_html=False, include_plotlyjs=False, config={"responsive": True, "displayModeBar": False}
+    )
+
+    return rev_prof_html, funnel_html
+
+
+def filter_admin_orders(df: pd.DataFrame, args):
+    filter_brand = args.get("brand", "All")
+    filter_cat = args.get("category", "All")
+    filter_status = args.get("status", "All")
+    filter_payment = args.get("payment", "All")
+    date_from = args.get("date_from", "").strip()
+    date_to = args.get("date_to", "").strip()
+    search_q = args.get("q", "").strip().lower()
+
+    filtered = df.copy()
+    if not filtered.empty:
+        if filter_brand != "All":
+            filtered = filtered[filtered["brand"] == filter_brand]
+        if filter_cat != "All":
+            filtered = filtered[filtered["category"] == filter_cat]
+        if filter_status != "All":
+            filtered = filtered[filtered["status"] == filter_status]
+        if filter_payment != "All":
+            filtered = filtered[filtered["paymentMethod"] == filter_payment]
+        if date_from:
+            filtered = filtered[filtered["date"] >= date_from]
+        if date_to:
+            filtered = filtered[filtered["date"] <= date_to]
+        if search_q:
+            mask = (
+                filtered["orderId"].str.lower().str.contains(search_q)
+                | filtered["customerName"].str.lower().str.contains(search_q)
+                | filtered["customerEmail"].str.lower().str.contains(search_q)
+                | filtered["customerPhone"].str.lower().str.contains(search_q)
+                | filtered["productName"].str.lower().str.contains(search_q)
+                | filtered["city"].str.lower().str.contains(search_q)
+            )
+            filtered = filtered[mask]
+
+    return filtered
 
 
 # =========================================================================
@@ -820,11 +915,7 @@ def shop():
 def wishlist_page():
     w_ids = get_user_wishlist()
     saved_products = [ALL_CATALOG_MAP[pid] for pid in w_ids if pid in ALL_CATALOG_MAP]
-    return render_template(
-        "wishlist.html",
-        active_page="wishlist",
-        products=saved_products
-    )
+    return render_template("wishlist.html", active_page="wishlist", products=saved_products)
 
 
 @app.route("/toggle-wishlist/<product_id>", methods=["GET", "POST"])
@@ -861,7 +952,6 @@ def product_detail(product_id):
         flash("Footwear model not found.", "error")
         return redirect(url_for("shop"))
 
-    # Track Recently Viewed (latest first, max 6)
     rv = session.get("recently_viewed", [])
     if not isinstance(rv, list):
         rv = []
@@ -897,13 +987,7 @@ def product_detail(product_id):
 @app.route("/cart")
 def cart_page():
     items, total_qty, grand_total = get_cart_details()
-    return render_template(
-        "cart.html",
-        active_page="cart",
-        items=items,
-        total_qty=total_qty,
-        grand_total=grand_total
-    )
+    return render_template("cart.html", active_page="cart", items=items, total_qty=total_qty, grand_total=grand_total)
 
 
 @app.route("/add-to-cart/<product_id>", methods=["GET", "POST"])
@@ -926,11 +1010,7 @@ def add_to_cart(product_id):
     if item_key in cart:
         cart[item_key]["qty"] = min(10, int(cart[item_key].get("qty", 1)) + qty)
     else:
-        cart[item_key] = {
-            "product_id": product_id,
-            "size": size,
-            "qty": qty
-        }
+        cart[item_key] = {"product_id": product_id, "size": size, "qty": qty}
 
     session["cart"] = cart
     session.modified = True
@@ -966,12 +1046,11 @@ def add_bundle():
 
     if include_addon and addon_id in ALL_CATALOG_MAP:
         a = ALL_CATALOG_MAP[addon_id]
-        a_size = "One Size"
-        key = f"{addon_id}__{a_size}"
+        key = f"{addon_id}__One Size"
         if key in cart:
             cart[key]["qty"] = min(10, int(cart[key].get("qty", 1)) + 1)
         else:
-            cart[key] = {"product_id": addon_id, "size": a_size, "qty": 1}
+            cart[key] = {"product_id": addon_id, "size": "One Size", "qty": 1}
         added_names.append(a["name"])
 
     if not added_names:
@@ -1225,13 +1304,7 @@ def checkout(product_id=None):
         flash("Your cart is empty. Add footwear before checkout.", "info")
         return redirect(url_for("shop"))
 
-    return render_template(
-        "checkout.html",
-        active_page="cart",
-        items=items,
-        total_qty=total_qty,
-        grand_total=grand_total
-    )
+    return render_template("checkout.html", active_page="cart", items=items, total_qty=total_qty, grand_total=grand_total)
 
 
 @app.route("/place-order", methods=["POST"])
@@ -1450,17 +1523,11 @@ def my_orders():
     orders = my_df.to_dict(orient="records")
     img_map = {p["id"]: p["image"] for p in ALL_CATALOG_ITEMS}
 
-    return render_template(
-        "my_orders.html",
-        active_page="my-orders",
-        orders=orders,
-        img_map=img_map,
-        order_stages=ORDER_STAGES
-    )
+    return render_template("my_orders.html", active_page="my-orders", orders=orders, img_map=img_map, order_stages=ORDER_STAGES)
 
 
 # =========================================================================
-# 9. PRIVATE ADMIN ANALYTICS ROUTES
+# 9. PRIVATE ADMIN EXECUTIVE BI ROUTES
 # =========================================================================
 @app.route("/admin")
 def admin_dashboard():
@@ -1471,66 +1538,113 @@ def admin_dashboard():
 
     df = load_orders_df()
     rev_df = load_reviews_df()
+    customers = load_customers()
+
+    active_tab = request.args.get("tab", "overview")
+    if active_tab not in ("overview", "orders", "reviews"):
+        active_tab = "overview"
 
     chart_mode = request.args.get("chart", "category")
     chart_type = request.args.get("type", "bar")
-    metric = request.args.get("metric", "units")
+    metric = request.args.get("metric", "revenue")
+
     filter_brand = request.args.get("brand", "All")
     filter_cat = request.args.get("category", "All")
-    search_q = request.args.get("q", "").strip().lower()
+    filter_status = request.args.get("status", "All")
+    filter_payment = request.args.get("payment", "All")
+    date_from = request.args.get("date_from", "").strip()
+    date_to = request.args.get("date_to", "").strip()
+    search_q = request.args.get("q", "").strip()
 
-    total_revenue = int(df["totalAmount"].sum()) if not df.empty else 0
-    total_profit = int(df["profit"].sum()) if not df.empty else 0
+    # Global Slicer Filtering (Applies to KPIs, Charts, Matrices & Table)
+    filtered_df = filter_admin_orders(df, request.args)
+
+    total_revenue = int(filtered_df["totalAmount"].sum()) if not filtered_df.empty else 0
+    total_profit = int(filtered_df["profit"].sum()) if not filtered_df.empty else 0
     margin_pct = round((total_profit / total_revenue) * 100, 1) if total_revenue > 0 else 0.0
-    total_orders = int(len(df))
-    total_units = int(df["qty"].sum()) if not df.empty else 0
-    top_brand = df.groupby("brand")["qty"].sum().idxmax() if not df.empty else "N/A"
+    total_orders = int(len(filtered_df))
+    total_units = int(filtered_df["qty"].sum()) if not filtered_df.empty else 0
+    avg_order_val = int(round(total_revenue / total_orders)) if total_orders > 0 else 0
+    top_brand = filtered_df.groupby("brand")["qty"].sum().idxmax() if not filtered_df.empty else "N/A"
     avg_rating = round(float(rev_df["rating"].mean()), 1) if not rev_df.empty else 0.0
 
     kpis = [
-        {"label": "Total Revenue", "value": f"₹{total_revenue:,}", "sub": "Gross top-line sales"},
+        {"label": "Total Revenue", "value": f"₹{total_revenue:,}", "sub": f"AOV: ₹{avg_order_val:,}"},
         {"label": "Gross Profit", "value": f"₹{total_profit:,}", "sub": f"{margin_pct}% Net Margin"},
-        {"label": "Total Orders", "value": total_orders, "sub": "Confirmed orders"},
-        {"label": "Pairs Sold", "value": total_units, "sub": "Total units shipped"},
+        {"label": "Orders", "value": total_orders, "sub": f"Out of {len(df)} total"},
+        {"label": "Pairs Sold", "value": total_units, "sub": "Total footwear units"},
         {"label": "Top Brand", "value": top_brand, "sub": "Highest unit demand"},
         {"label": "Avg Rating", "value": f"{avg_rating} ★", "sub": f"{len(rev_df)} customer reviews"}
     ]
 
-    chart_html = build_animated_chart_html(df, chart_mode, chart_type, metric, rev_df)
+    chart_html = build_animated_chart_html(filtered_df, chart_mode, chart_type, metric, rev_df)
+    rev_prof_html, funnel_html = build_secondary_charts(filtered_df)
 
-    filtered_df = df.copy()
-    if filter_brand != "All" and not filtered_df.empty:
-        filtered_df = filtered_df[filtered_df["brand"] == filter_brand]
-    if filter_cat != "All" and not filtered_df.empty:
-        filtered_df = filtered_df[filtered_df["category"] == filter_cat]
-    if search_q and not filtered_df.empty:
-        mask = (
-            filtered_df["orderId"].str.lower().str.contains(search_q)
-            | filtered_df["customerName"].str.lower().str.contains(search_q)
-            | filtered_df["customerEmail"].str.lower().str.contains(search_q)
-            | filtered_df["productName"].str.lower().str.contains(search_q)
-            | filtered_df["city"].str.lower().str.contains(search_q)
-            | filtered_df["ageGroup"].str.lower().str.contains(search_q)
-            | filtered_df["gender"].str.lower().str.contains(search_q)
-        )
-        filtered_df = filtered_df[mask]
+    # Brand Profitability Matrix
+    brand_matrix = []
+    if not filtered_df.empty:
+        bm_df = filtered_df.groupby("brand", as_index=False).agg(
+            orders=("orderId", "count"),
+            units=("qty", "sum"),
+            revenue=("totalAmount", "sum"),
+            profit=("profit", "sum")
+        ).sort_values(by="revenue", ascending=False)
+        for row in bm_df.to_dict(orient="records"):
+            rev_val = int(row["revenue"])
+            prof_val = int(row["profit"])
+            m_pct = round((prof_val / rev_val) * 100, 1) if rev_val > 0 else 0.0
+            brand_matrix.append({
+                "brand": row["brand"],
+                "orders": int(row["orders"]),
+                "units": int(row["units"]),
+                "revenue": rev_val,
+                "profit": prof_val,
+                "margin": m_pct
+            })
+
+    # VIP Customers & Repeat Buyer Rate
+    vip_customers = []
+    repeat_rate = 0.0
+    if not filtered_df.empty:
+        cust_grp = filtered_df.groupby(["customerEmail", "customerName"], as_index=False).agg(
+            orders=("orderId", "count"),
+            units=("qty", "sum"),
+            spend=("totalAmount", "sum"),
+            fav_brand=("brand", lambda s: s.mode().iloc[0] if not s.mode().empty else "Nike")
+        ).sort_values(by="spend", ascending=False)
+        total_unique_buyers = len(cust_grp)
+        repeat_buyers = int((cust_grp["orders"] >= 2).sum())
+        repeat_rate = round((repeat_buyers / total_unique_buyers) * 100, 1) if total_unique_buyers > 0 else 0.0
+        vip_customers = cust_grp.head(5).to_dict(orient="records")
 
     return render_template(
         "admin.html",
         active_page="admin",
+        active_tab=active_tab,
         kpis=kpis,
         chart_mode=chart_mode,
         chart_type=chart_type,
         metric=metric,
         chart_html=chart_html,
+        rev_prof_html=rev_prof_html,
+        funnel_html=funnel_html,
+        brand_matrix=brand_matrix,
+        vip_customers=vip_customers,
+        repeat_rate=repeat_rate,
+        registered_count=len(customers),
         orders=filtered_df.to_dict(orient="records"),
         reviews=rev_df.to_dict(orient="records"),
-        total_orders_count=total_orders,
+        total_orders_count=len(df),
         brands=BRANDS,
         categories=CATEGORIES,
+        payment_modes=PAYMENT_MODES,
         filter_brand=filter_brand,
         filter_cat=filter_cat,
-        search_q=request.args.get("q", ""),
+        filter_status=filter_status,
+        filter_payment=filter_payment,
+        date_from=date_from,
+        date_to=date_to,
+        search_q=search_q,
         order_stages=ORDER_STAGES
     )
 
@@ -1546,8 +1660,8 @@ def admin_update_status(order_id):
     df.loc[df["orderId"] == order_id, "status"] = new_status
     write_local_excel_files(df)
     firebase_request(f"orders/{order_id}/status", "PUT", new_status)
-    flash(f"Order #{order_id} status updated to {new_status}.", "success")
-    return redirect(url_for("admin_dashboard"))
+    flash(f"Order #{order_id} updated to {new_status}.", "success")
+    return redirect(request.referrer or url_for("admin_dashboard", tab="orders"))
 
 
 @app.route("/admin/delete-order/<order_id>", methods=["POST"])
@@ -1561,7 +1675,7 @@ def admin_delete_order(order_id):
     write_local_excel_files(df)
     firebase_request(f"orders/{order_id}", "DELETE")
     flash(f"Order #{order_id} deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(request.referrer or url_for("admin_dashboard", tab="orders"))
 
 
 @app.route("/admin/delete-review/<review_id>", methods=["POST"])
@@ -1575,7 +1689,7 @@ def admin_delete_review(review_id):
     write_local_excel_files(load_orders_df(), reviews_df=rev_df)
     firebase_request(f"reviews/{review_id}", "DELETE")
     flash(f"Review #{review_id} deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_dashboard", tab="reviews"))
 
 
 @app.route("/admin/reset-demo", methods=["POST"])
@@ -1602,6 +1716,23 @@ def admin_download_excel():
 
     load_orders_df()
     return send_file(EXCEL_FILE, as_attachment=True, download_name="SoleMetrics_Orders_Master.xlsx")
+
+
+@app.route("/admin/download-csv")
+def admin_download_csv():
+    user = session.get("user")
+    if not user or user.get("role") != "admin":
+        return redirect(url_for("login_page", tab="customer-login"))
+
+    df = load_orders_df()
+    filtered_df = filter_admin_orders(df, request.args)
+    csv_bytes = filtered_df.to_csv(index=False).encode("utf-8")
+    return send_file(
+        io.BytesIO(csv_bytes),
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name="SoleMetrics_Filtered_Orders.csv"
+    )
 
 
 # =========================================================================
@@ -1805,19 +1936,14 @@ def pwa_manifest():
             {"src": "/icon-512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
         ]
     }
-    resp = app.response_class(
-        response=json.dumps(manifest),
-        status=200,
-        mimetype="application/manifest+json"
-    )
-    return resp
+    return app.response_class(response=json.dumps(manifest), status=200, mimetype="application/manifest+json")
 
 
 @app.route("/sw.js")
 def pwa_service_worker():
     sw_code = """
-const CACHE_NAME = 'solemetrics-app-v2';
-const STATIC_ASSETS = ['/static/style.css', '/icon-192.png?v=2', '/icon-512.png?v=2'];
+const CACHE_NAME = 'solemetrics-app-v3';
+const STATIC_ASSETS = ['/static/style.css?v=3', '/icon-192.png?v=2', '/icon-512.png?v=2'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
