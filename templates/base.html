@@ -14,6 +14,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="SoleMetrics" />
 
+  <style>
+    @media all and (display-mode: standalone) {
+      [data-install-trigger] {
+        display: none !important;
+      }
+    }
+  </style>
+
   <script>
     (function () {
       var saved = localStorage.getItem('solemetrics-theme') || 'system';
@@ -92,7 +100,7 @@
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
         <button type="button" data-install-trigger onclick="triggerPwaInstall()"
-                class="hidden px-2.5 sm:px-3.5 py-1.5 rounded-full sm:rounded-xl bg-indigo-600 text-white text-[11px] sm:text-xs font-extrabold items-center gap-1 shadow-sm hover:bg-indigo-700 whitespace-nowrap shrink-0">
+                class="inline-flex px-2.5 sm:px-3.5 py-1.5 rounded-full sm:rounded-xl bg-indigo-600 text-white text-[11px] sm:text-xs font-extrabold items-center gap-1 shadow-sm hover:bg-indigo-700 whitespace-nowrap shrink-0">
           <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
           </svg>
@@ -317,18 +325,21 @@
 
     let deferredInstallPrompt = null;
 
-    function showInstallButtons() {
-      document.querySelectorAll('[data-install-trigger]').forEach((el) => {
-        el.classList.remove('hidden');
-        el.classList.add('inline-flex');
-      });
-    }
-
     function hideInstallButtons() {
       document.querySelectorAll('[data-install-trigger]').forEach((el) => {
         el.classList.add('hidden');
         el.classList.remove('inline-flex');
       });
+    }
+
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.startsWith('android-app://');
+
+    if (isStandalone) {
+      localStorage.setItem('solemetrics-installed', '1');
+      hideInstallButtons();
     }
 
     if ('serviceWorker' in navigator) {
@@ -340,27 +351,27 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
-      if (!window.matchMedia('(display-mode: standalone)').matches && window.navigator.standalone !== true) {
-        showInstallButtons();
-      }
+      localStorage.removeItem('solemetrics-installed');
     });
 
     window.addEventListener('appinstalled', () => {
       deferredInstallPrompt = null;
+      localStorage.setItem('solemetrics-installed', '1');
       hideInstallButtons();
     });
 
     async function triggerPwaInstall() {
-      if (!deferredInstallPrompt) {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          localStorage.setItem('solemetrics-installed', '1');
+          hideInstallButtons();
+        }
+        deferredInstallPrompt = null;
+      } else {
         hideInstallButtons();
-        return;
       }
-      deferredInstallPrompt.prompt();
-      const choice = await deferredInstallPrompt.userChoice;
-      if (choice.outcome === 'accepted') {
-        hideInstallButtons();
-      }
-      deferredInstallPrompt = null;
     }
 
     (function () {
