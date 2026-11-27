@@ -91,9 +91,9 @@
       <!-- Right Hairline Action Controls -->
       <div class="flex items-center gap-1.5 sm:gap-2">
 
-        <!-- Get App Button (Automatically hides when running inside installed standalone app) -->
+        <!-- Direct Native PWA Install Button (Shown ONLY when browser native install is ready — Zero popups) -->
         <button type="button" id="get-app-btn" onclick="triggerInstallApp()"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-zinc-300 bg-white hover:border-zinc-950 text-[11px] sm:text-xs font-extrabold text-zinc-900 transition shrink-0">
+                class="hidden items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-zinc-300 bg-white hover:border-zinc-950 text-[11px] sm:text-xs font-extrabold text-zinc-900 transition shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
           </svg>
@@ -102,7 +102,7 @@
 
         <!-- Mobile Reviews Pill -->
         <a href="{{ url_for('reviews_page') }}"
-           class="hidden sm:inline-flex lg:hidden px-3 py-1.5 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
+           class="lg:hidden px-3 py-1.5 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
           Reviews
         </a>
 
@@ -202,36 +202,6 @@
     </div>
   </footer>
 
-  <!-- Luxury PWA Install Guide Modal (Fallback for iOS Safari / Manual Add to Home Screen) -->
-  <div id="install-guide-modal"
-       class="fixed inset-0 z-[75] hidden bg-zinc-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl border border-zinc-200 shadow-2xl p-6 space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <img src="/icon-192.png?v=3" alt="SoleMetrics App" class="w-11 h-11 rounded-2xl border border-zinc-200" />
-          <div>
-            <h3 class="font-display font-extrabold text-base text-zinc-900">Install SoleMetrics</h3>
-            <p class="text-[11px] text-zinc-500">Full-Screen Native App Experience</p>
-          </div>
-        </div>
-        <button type="button" onclick="closeInstallModal()"
-                class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-700 font-bold flex items-center justify-center">
-          &times;
-        </button>
-      </div>
-
-      <div id="install-steps-body" class="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-700 space-y-2 leading-relaxed">
-        <p><b>Android (Chrome / Edge):</b> Tap the browser menu (<b>&#8942;</b>) at the top-right and select <b>"Add to Home screen"</b> or <b>"Install app"</b>.</p>
-        <p><b>iPhone / iPad (Safari):</b> Tap the <b>Share</b> icon at the bottom bar and choose <b>"Add to Home Screen"</b>.</p>
-      </div>
-
-      <button type="button" onclick="closeInstallModal()"
-              class="btn-obsidian w-full py-3 rounded-full bg-zinc-950 text-white text-xs font-extrabold">
-        Got It
-      </button>
-    </div>
-  </div>
-
   <!-- Mobile Bottom App Dock (1.5px Hairline Icons + 4px Obsidian Active Dot) -->
   <nav class="lg:hidden glass-bar fixed bottom-0 inset-x-0 z-40 border-t px-2 pt-2 pb-2">
     <div class="max-w-md mx-auto grid grid-cols-5 text-center">
@@ -309,7 +279,7 @@
     }
     syncThemeIcons();
 
-    // PWA Install Prompt & Standalone Detection
+    // Direct Native PWA Install Only (Zero Custom Guide Popups)
     let deferredInstallPrompt = null;
     const getAppBtn = document.getElementById('get-app-btn');
 
@@ -321,38 +291,32 @@
       );
     }
 
-    if (isStandaloneApp() && getAppBtn) {
-      getAppBtn.style.display = 'none';
-    }
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
       if (getAppBtn && !isStandaloneApp()) {
-        getAppBtn.style.display = 'inline-flex';
+        getAppBtn.classList.remove('hidden');
+        getAppBtn.classList.add('inline-flex');
       }
     });
 
     window.addEventListener('appinstalled', () => {
       deferredInstallPrompt = null;
-      if (getAppBtn) getAppBtn.style.display = 'none';
+      if (getAppBtn) {
+        getAppBtn.classList.add('hidden');
+        getAppBtn.classList.remove('inline-flex');
+      }
     });
 
     async function triggerInstallApp() {
-      if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-        const choice = await deferredInstallPrompt.userChoice;
-        if (choice && choice.outcome === 'accepted' && getAppBtn) {
-          getAppBtn.style.display = 'none';
-        }
-        deferredInstallPrompt = null;
-      } else {
-        document.getElementById('install-guide-modal').classList.remove('hidden');
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted' && getAppBtn) {
+        getAppBtn.classList.add('hidden');
+        getAppBtn.classList.remove('inline-flex');
       }
-    }
-
-    function closeInstallModal() {
-      document.getElementById('install-guide-modal').classList.add('hidden');
+      deferredInstallPrompt = null;
     }
 
     if ('serviceWorker' in navigator) {
