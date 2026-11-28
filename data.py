@@ -1,7 +1,7 @@
 # Admin Username & Password
 ADMIN_CREDENTIALS = {
-    "username": "admin",
-    "password": "admin123"
+    "username": "uday",
+    "password": "uday123"
 }
 
 # Optional: Firebase Realtime Database URL (Local mode ke liye khali chhod sakte ho)
