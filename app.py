@@ -11,7 +11,6 @@ import urllib.request
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import pandas as pd
-import plotly.graph_objects as go
 from fpdf import FPDF
 
 from data import (
@@ -512,9 +511,9 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 6. PYTHON PLOTLY EXECUTIVE MULTI-CHART SUITE (INLINE PLOTLYJS EMBEDDED)
+# 6. LIGHTWEIGHT BI CHART DATA PAYLOAD BUILDERS (100% RELIABLE ON MOBILE APP)
 # =========================================================================
-def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
+def build_bi_charts_payload(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> dict:
     if metric == "revenue":
         col = "totalAmount"
         y_label = "Revenue (₹)"
@@ -588,105 +587,6 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
             values.append(running)
         title = f"Cumulative {y_label}"
 
-    palette = [
-        "#09090b", "#3f3f46", "#71717a", "#10b981", "#27272a",
-        "#52525b", "#059669", "#a1a1aa", "#18181b", "#d4d4d8"
-    ]
-    if mode == "ratings":
-        text_labels = [f"{v}★" if v > 0 else "" for v in values]
-    elif is_currency:
-        text_labels = [f"₹{v:,}" if v > 0 else "" for v in values]
-    else:
-        text_labels = [str(v) if v > 0 else "" for v in values]
-
-    if chart_type == "bar":
-        bar_colors = [palette[i % len(palette)] for i in range(len(labels))]
-        trace = go.Bar(
-            x=labels,
-            y=values,
-            text=text_labels,
-            textposition="auto",
-            marker=dict(color=bar_colors),
-            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
-        )
-    elif chart_type == "area":
-        trace = go.Scatter(
-            x=labels,
-            y=values,
-            mode="lines+markers",
-            fill="tozeroy",
-            fillcolor="rgba(9, 9, 11, 0.12)",
-            line=dict(color="#09090b", width=2.8, shape="spline"),
-            marker=dict(size=7, color="#09090b", line=dict(width=2, color="#ffffff")),
-            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
-        )
-    elif chart_type == "pie":
-        trace = go.Pie(
-            labels=labels,
-            values=values,
-            hole=0.54,
-            marker=dict(colors=palette, line=dict(color="rgba(148,163,184,0.25)", width=1.5)),
-            textinfo="percent",
-            textposition="inside",
-            hovertemplate="<b>%{label}</b><br>" + y_label + ": %{value} (%{percent})<extra></extra>"
-        )
-    else:
-        trace = go.Scatter(
-            x=labels,
-            y=values,
-            mode="lines+markers",
-            line=dict(color="#09090b", width=2.8, shape="spline"),
-            marker=dict(size=8, color="#09090b", line=dict(width=2, color="#ffffff")),
-            hovertemplate="<b>%{x}</b><br>" + y_label + ": %{y}<extra></extra>"
-        )
-
-    fig = go.Figure(data=[trace])
-    max_val = max(values) if values else 10
-
-    fig.update_layout(
-        title=dict(
-            text=f"<b>{title}</b>",
-            x=0.02,
-            font=dict(size=14, color="#18181b", family="Plus Jakarta Sans, Inter, sans-serif")
-        ),
-        autosize=True,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(148,163,184,0.04)",
-        font=dict(family="Inter, sans-serif", size=11, color="#52525b"),
-        height=340,
-        margin=dict(l=12, r=12, t=46, b=35),
-        uniformtext_minsize=9,
-        uniformtext_mode="hide",
-        hoverlabel=dict(bgcolor="#09090b", font_size=12, font_color="#ffffff"),
-        transition=dict(duration=500, easing="cubic-in-out")
-    )
-
-    if chart_type == "pie":
-        fig.update_layout(
-            showlegend=True,
-            legend=dict(orientation="h", yanchor="top", y=-0.06, xanchor="center", x=0.5, font=dict(size=10))
-        )
-    else:
-        fig.update_xaxes(showgrid=False, tickangle=-35, automargin=True, tickfont=dict(size=10))
-        y_max = 5.6 if mode == "ratings" else (max_val * 1.18 if max_val > 0 else 10)
-        fig.update_yaxes(
-            title_text="",
-            gridcolor="#e4e4e7",
-            zeroline=True,
-            zerolinecolor="#d4d4d8",
-            automargin=True,
-            tickfont=dict(size=10),
-            range=[0, y_max]
-        )
-
-    return fig.to_html(
-        full_html=False,
-        include_plotlyjs=True,
-        config={"responsive": True, "displayModeBar": "hover", "displaylogo": False}
-    )
-
-
-def build_secondary_charts(df: pd.DataFrame):
     if not df.empty:
         grp = df.groupby("brand", as_index=False).agg(rev=("totalAmount", "sum"), prof=("profit", "sum"))
         grp = grp.sort_values(by="rev", ascending=False)
@@ -698,61 +598,30 @@ def build_secondary_charts(df: pd.DataFrame):
         rev_vals = [0] * len(BRANDS)
         prof_vals = [0] * len(BRANDS)
 
-    fig_rev_prof = go.Figure(data=[
-        go.Bar(name="Revenue (₹)", x=b_labels, y=rev_vals, marker_color="#09090b",
-               hovertemplate="<b>%{x}</b><br>Revenue: ₹%{y:,}<extra></extra>"),
-        go.Bar(name="Gross Profit (₹)", x=b_labels, y=prof_vals, marker_color="#10b981",
-               hovertemplate="<b>%{x}</b><br>Profit: ₹%{y:,}<extra></extra>")
-    ])
-    fig_rev_prof.update_layout(
-        title=dict(text="<b>Revenue vs. Gross Profit by Brand</b>", x=0.02, font=dict(size=13, color="#18181b")),
-        barmode="group",
-        autosize=True,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(148,163,184,0.04)",
-        font=dict(family="Inter, sans-serif", size=10, color="#52525b"),
-        height=290,
-        margin=dict(l=10, r=10, t=44, b=36),
-        legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="right", x=1, font=dict(size=10)),
-        hoverlabel=dict(bgcolor="#09090b", font_size=11, font_color="#ffffff")
-    )
-    fig_rev_prof.update_xaxes(showgrid=False, tickangle=-30, automargin=True)
-    fig_rev_prof.update_yaxes(gridcolor="#e4e4e7", automargin=True)
-    rev_prof_html = fig_rev_prof.to_html(
-        full_html=False, include_plotlyjs=False, config={"responsive": True, "displayModeBar": False}
-    )
-
     stage_counts = df["status"].value_counts().to_dict() if not df.empty else {}
     s_labels = ORDER_STAGES
     s_vals = [int(stage_counts.get(st, 0)) for st in ORDER_STAGES]
-    stage_colors = ["#09090b", "#52525b", "#a1a1aa", "#10b981"]
 
-    fig_funnel = go.Figure(data=[
-        go.Pie(
-            labels=s_labels,
-            values=s_vals,
-            hole=0.58,
-            marker=dict(colors=stage_colors, line=dict(color="rgba(148,163,184,0.25)", width=1.5)),
-            textinfo="value+percent",
-            textposition="inside",
-            hovertemplate="<b>%{label}</b><br>Orders: %{value} (%{percent})<extra></extra>"
-        )
-    ])
-    fig_funnel.update_layout(
-        title=dict(text="<b>Order Fulfillment Pipeline</b>", x=0.02, font=dict(size=13, color="#18181b")),
-        autosize=True,
-        paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", size=10, color="#52525b"),
-        height=290,
-        margin=dict(l=10, r=10, t=44, b=28),
-        legend=dict(orientation="h", yanchor="top", y=-0.04, xanchor="center", x=0.5, font=dict(size=10)),
-        hoverlabel=dict(bgcolor="#09090b", font_size=11, font_color="#ffffff")
-    )
-    funnel_html = fig_funnel.to_html(
-        full_html=False, include_plotlyjs=False, config={"responsive": True, "displayModeBar": False}
-    )
-
-    return rev_prof_html, funnel_html
+    return {
+        "primary": {
+            "labels": labels,
+            "values": values,
+            "title": title,
+            "yLabel": y_label,
+            "chartType": chart_type,
+            "isCurrency": is_currency,
+            "isRatings": mode == "ratings"
+        },
+        "revProf": {
+            "brands": b_labels,
+            "revenue": rev_vals,
+            "profit": prof_vals
+        },
+        "funnel": {
+            "stages": s_labels,
+            "counts": s_vals
+        }
+    }
 
 
 def filter_admin_orders(df: pd.DataFrame, args):
@@ -1570,8 +1439,7 @@ def admin_dashboard():
         {"label": "Avg Rating", "value": f"{avg_rating} ★", "sub": f"{len(rev_df)} customer reviews"}
     ]
 
-    chart_html = build_animated_chart_html(filtered_df, chart_mode, chart_type, metric, rev_df)
-    rev_prof_html, funnel_html = build_secondary_charts(filtered_df)
+    charts_payload = build_bi_charts_payload(filtered_df, chart_mode, chart_type, metric, rev_df)
 
     brand_matrix = []
     if not filtered_df.empty:
@@ -1615,9 +1483,7 @@ def admin_dashboard():
         chart_mode=chart_mode,
         chart_type=chart_type,
         metric=metric,
-        chart_html=chart_html,
-        rev_prof_html=rev_prof_html,
-        funnel_html=funnel_html,
+        charts_payload=charts_payload,
         brand_matrix=brand_matrix,
         vip_customers=vip_customers,
         repeat_rate=repeat_rate,
@@ -1679,7 +1545,7 @@ def admin_delete_review(review_id):
     write_local_excel_files(load_orders_df(), reviews_df=rev_df)
     firebase_request(f"reviews/{review_id}", "DELETE")
     flash(f"Review #{review_id} deleted.", "info")
-    return redirect(url_for("admin_dashboard"))
+    return redirect(request.referrer or url_for("admin_dashboard"))
 
 
 @app.route("/admin/reset-demo", methods=["POST"])
@@ -1784,13 +1650,11 @@ def _sample_sneaker_icon(nx: float, ny: float):
     if corner_dist > radius:
         return (0, 0, 0, 0)
 
-    # Matte Obsidian Luxury Studio Surface with Subtle Top Studio Sheen
     sheen = max(0.0, 1.0 - math.hypot(nx - 0.35, ny - 0.25) * 1.35)
     bg_r = min(255, int(9 + sheen * 24))
     bg_g = min(255, int(9 + sheen * 24))
     bg_b = min(255, int(11 + sheen * 28))
 
-    # Brushed Titanium Hairline Rim
     if corner_dist > radius - 0.022:
         bg_r = min(255, int(bg_r * 0.45 + 161 * 0.55))
         bg_g = min(255, int(bg_g * 0.45 + 161 * 0.55))
@@ -1802,7 +1666,6 @@ def _sample_sneaker_icon(nx: float, ny: float):
     u = 0.50 + rx * ca - ry * sa
     v = 0.52 + rx * sa + ry * ca
 
-    # Sculpted Midsole + Titanium Air Unit
     if _point_in_poly(u, v, _MIDSOLE_POLY):
         if v > 0.648:
             return (161, 161, 170, 255)
@@ -1810,7 +1673,6 @@ def _sample_sneaker_icon(nx: float, ny: float):
             return (24, 24, 27, 255)
         return (244, 244, 245, 255)
 
-    # Pure White Sneaker Upper + Obsidian Precision Swoosh
     if _point_in_poly(u, v, _UPPER_POLY):
         if _point_in_poly(u, v, _SWOOSH_POLY):
             return (9, 9, 11, 255)
@@ -1934,7 +1796,7 @@ def pwa_manifest():
 @app.route("/sw.js")
 def pwa_service_worker():
     sw_code = """
-const CACHE_NAME = 'solemetrics-app-v4';
+const CACHE_NAME = 'solemetrics-app-v5';
 const STATIC_ASSETS = ['/static/style.css?v=5', '/icon-192.png?v=3', '/icon-512.png?v=3'];
 
 self.addEventListener('install', (event) => {
