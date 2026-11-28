@@ -26,7 +26,7 @@
       }
     };
   </script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=5" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6" />
 
   <script>
     (function () {
@@ -37,90 +37,87 @@
     })();
   </script>
 </head>
-<body class="min-h-screen flex flex-col pb-24 lg:pb-0">
+<body class="min-h-screen flex flex-col pb-20 lg:pb-0">
 
-  <!-- Top Luxury Hairline Header -->
+  <!-- Slim Mobile Header / Widescreen Desktop Header -->
   <header class="glass-bar sticky top-0 z-40 border-b">
-    <div class="app-shell h-16 lg:h-[72px] flex items-center justify-between gap-3">
+    <div class="app-shell h-13 sm:h-15 lg:h-[68px] flex items-center justify-between gap-2">
 
-      <!-- Precision Geometric Brand Mark + Wordmark -->
-      <a href="{{ url_for('home') }}" class="flex items-center gap-2.5 shrink-0 group">
-        <div class="w-9 h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center border border-zinc-800 shadow-xs group-hover:scale-105 transition">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Brand Mark + Wordmark -->
+      <a href="{{ url_for('home') }}" class="flex items-center gap-2 shrink-0">
+        <div class="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center border border-zinc-800">
+          <svg class="w-4 h-4 lg:w-5 lg:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 15.5h18l-1.2-3.2c-.5-1.2-1.6-2-2.9-2.2l-3.9-.6-2.4-2.5H7.2L6 10.5H4.5A1.5 1.5 0 0 0 3 12v3.5Z" />
             <path d="M3 17.5h18" />
           </svg>
         </div>
         <div>
-          <span class="font-display font-extrabold text-sm sm:text-lg tracking-tight text-zinc-900 block leading-none">
+          <span class="font-display font-extrabold text-sm lg:text-base tracking-tight text-zinc-900 block leading-none">
             SOLEMETRICS
           </span>
-          <span class="hidden sm:block text-[9px] font-bold uppercase tracking-[0.22em] text-zinc-400 mt-1">
+          <span class="hidden lg:block text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 mt-0.5">
             FOOTWEAR STUDIO
           </span>
         </div>
       </a>
 
-      <!-- Desktop Floating Frosted Pill Navigation -->
+      <!-- Desktop Floating Pill Navigation -->
       <nav class="hidden lg:flex items-center gap-1 bg-zinc-100/90 p-1 rounded-full border border-zinc-200/80">
         <a href="{{ url_for('home') }}"
-           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'home' else 'text-zinc-600 hover:text-zinc-950' }}">
+           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white' if active_page == 'home' else 'text-zinc-600 hover:text-zinc-950' }}">
           Home
         </a>
         <a href="{{ url_for('shop') }}"
-           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'shop' else 'text-zinc-600 hover:text-zinc-950' }}">
+           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white' if active_page == 'shop' else 'text-zinc-600 hover:text-zinc-950' }}">
           Catalog
         </a>
         <a href="{{ url_for('reviews_page') }}"
-           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'reviews' else 'text-zinc-600 hover:text-zinc-950' }}">
+           class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white' if active_page == 'reviews' else 'text-zinc-600 hover:text-zinc-950' }}">
           Reviews
         </a>
         {% if current_user and current_user.role == 'customer' %}
           <a href="{{ url_for('my_orders') }}"
-             class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'my-orders' else 'text-zinc-600 hover:text-zinc-950' }}">
+             class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white' if active_page == 'my-orders' else 'text-zinc-600 hover:text-zinc-950' }}">
             Orders
           </a>
         {% elif current_user and current_user.role == 'admin' %}
           <a href="{{ url_for('admin_dashboard') }}"
-             class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white shadow-xs' if active_page == 'admin' else 'text-zinc-600 hover:text-zinc-950' }}">
+             class="px-4 py-1.5 rounded-full text-xs font-bold transition {{ 'bg-zinc-950 text-white' if active_page == 'admin' else 'text-zinc-600 hover:text-zinc-950' }}">
             BI Studio
           </a>
         {% endif %}
       </nav>
 
-      <!-- Right Hairline Action Controls -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
+      <!-- Right Compact Controls -->
+      <div class="flex items-center gap-1.5">
 
-        <!-- Direct Native PWA Install Button (Shown ONLY when browser native install is ready — Zero popups) -->
+        <!-- Native Direct Install Button (Only visible when browser native prompt is ready) -->
         <button type="button" id="get-app-btn" onclick="triggerInstallApp()"
-                class="hidden items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-zinc-300 bg-white hover:border-zinc-950 text-[11px] sm:text-xs font-extrabold text-zinc-900 transition shrink-0">
+                class="hidden items-center gap-1 px-2.5 py-1.5 rounded-full border border-zinc-300 bg-white text-[11px] font-extrabold text-zinc-900 shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
           </svg>
           <span>Get App</span>
         </button>
 
-        <!-- Mobile Reviews Pill -->
+        <!-- Mobile Reviews Link -->
         <a href="{{ url_for('reviews_page') }}"
-           class="lg:hidden px-3 py-1.5 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
+           class="lg:hidden px-2.5 py-1 rounded-full border border-zinc-200 bg-white text-[11px] font-bold text-zinc-700">
           Reviews
         </a>
 
-        <!-- Desktop Saved Heart Button -->
-        <a href="{{ url_for('wishlist_page') }}" title="Saved Footwear"
-           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 text-xs font-bold text-zinc-800 transition">
+        <!-- Desktop Saved -->
+        <a href="{{ url_for('wishlist_page') }}"
+           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 text-xs font-bold text-zinc-800 transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span>Saved</span>
-          {% if wishlist_count > 0 %}
-            <span class="tabular-nums text-[10px] font-extrabold text-zinc-500">({{ wishlist_count }})</span>
-          {% endif %}
+          <span>Saved{% if wishlist_count > 0 %} ({{ wishlist_count }}){% endif %}</span>
         </a>
 
-        <!-- Desktop Shopping Bag Button -->
-        <a href="{{ url_for('cart_page') }}" title="Shopping Bag"
-           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 text-xs font-bold text-zinc-800 transition">
+        <!-- Desktop Bag -->
+        <a href="{{ url_for('cart_page') }}"
+           class="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 text-xs font-bold text-zinc-800 transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0" />
           </svg>
@@ -128,33 +125,33 @@
           <span class="tabular-nums px-1.5 py-0.5 rounded-full bg-zinc-950 text-white text-[10px] font-extrabold">{{ cart_count }}</span>
         </a>
 
-        <!-- Theme Toggle Button -->
+        <!-- Theme Toggle -->
         <button type="button" onclick="toggleThemeMode()" aria-label="Toggle Theme"
-                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-zinc-200 bg-white hover:border-zinc-900 flex items-center justify-center text-zinc-800 transition shrink-0">
-          <svg id="icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+                class="w-8 h-8 rounded-full border border-zinc-200 bg-white flex items-center justify-center text-zinc-800 shrink-0">
+          <svg id="icon-moon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
-          <svg id="icon-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <svg id="icon-sun" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="4" />
             <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41" />
           </svg>
         </button>
 
-        <!-- Auth Action -->
+        <!-- Auth -->
         {% if current_user %}
           {% if current_user.role == 'admin' %}
             <a href="{{ url_for('admin_dashboard') }}"
-               class="lg:hidden px-2.5 py-1.5 rounded-full bg-zinc-950 text-white text-[11px] font-extrabold">
+               class="lg:hidden px-2.5 py-1 rounded-full bg-zinc-950 text-white text-[11px] font-extrabold">
               BI
             </a>
           {% endif %}
           <a href="{{ url_for('logout') }}"
-             class="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-zinc-200 bg-white hover:border-rose-500 hover:text-rose-600 text-zinc-800 text-[11px] sm:text-xs font-bold transition">
+             class="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-zinc-200 bg-white text-zinc-800 text-[11px] sm:text-xs font-bold">
             Logout
           </a>
         {% else %}
           <a href="{{ url_for('login_page') }}"
-             class="btn-obsidian px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-zinc-950 hover:bg-zinc-800 text-white text-[11px] sm:text-xs font-bold transition">
+             class="btn-obsidian px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-zinc-950 text-white text-[11px] sm:text-xs font-bold">
             Sign In
           </a>
         {% endif %}
@@ -163,17 +160,17 @@
     </div>
   </header>
 
-  <!-- Minimal Toast Notifications -->
+  <!-- Toast Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <div class="app-shell pt-4 space-y-2">
+      <div class="app-shell pt-3 space-y-2">
         {% for category, message in messages %}
-          <div class="px-4 py-3 rounded-2xl text-xs font-semibold border flex items-center justify-between gap-2 bg-white shadow-xs
+          <div class="px-3.5 py-2.5 rounded-xl text-xs font-semibold border flex items-center justify-between gap-2 bg-white
                       {{ 'border-emerald-300 text-emerald-800' if category == 'success'
                          else 'border-rose-300 text-rose-800' if category == 'error'
                          else 'border-zinc-200 text-zinc-800' }}">
             <span>{{ message }}</span>
-            <button type="button" onclick="this.parentElement.remove()" class="font-bold opacity-50 hover:opacity-100">&times;</button>
+            <button type="button" onclick="this.parentElement.remove()" class="font-bold opacity-50">&times;</button>
           </div>
         {% endfor %}
       </div>
@@ -181,33 +178,33 @@
   {% endwith %}
 
   <!-- Main Workspace -->
-  <main class="app-shell flex-1 py-6 sm:py-8 lg:py-10">
+  <main class="app-shell flex-1 py-4 sm:py-6 lg:py-8">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Minimal Luxury Desktop Footer -->
-  <footer class="hidden lg:block border-t border-zinc-200 bg-white mt-16">
-    <div class="app-shell py-8 flex items-center justify-between gap-4 text-xs text-zinc-500">
+  <!-- Desktop Footer -->
+  <footer class="hidden lg:block border-t border-zinc-200 bg-white mt-14">
+    <div class="app-shell py-7 flex items-center justify-between gap-4 text-xs text-zinc-500">
       <div class="flex items-center gap-3">
-        <span class="font-display font-extrabold tracking-tight text-zinc-900">SOLEMETRICS</span>
+        <span class="font-display font-extrabold text-zinc-900">SOLEMETRICS</span>
         <span class="text-zinc-300">|</span>
         <span>Multi-Brand Footwear Studio &amp; Executive BI</span>
       </div>
       <div class="flex items-center gap-6 font-medium">
-        <a href="{{ url_for('shop') }}" class="hover:text-zinc-950 transition">Catalog</a>
-        <a href="{{ url_for('reviews_page') }}" class="hover:text-zinc-950 transition">Reviews</a>
-        <a href="{{ url_for('wishlist_page') }}" class="hover:text-zinc-950 transition">Saved</a>
-        <a href="{{ url_for('cart_page') }}" class="hover:text-zinc-950 transition">Bag</a>
+        <a href="{{ url_for('shop') }}" class="hover:text-zinc-950">Catalog</a>
+        <a href="{{ url_for('reviews_page') }}" class="hover:text-zinc-950">Reviews</a>
+        <a href="{{ url_for('wishlist_page') }}" class="hover:text-zinc-950">Saved</a>
+        <a href="{{ url_for('cart_page') }}" class="hover:text-zinc-950">Bag</a>
       </div>
     </div>
   </footer>
 
-  <!-- Mobile Bottom App Dock (1.5px Hairline Icons + 4px Obsidian Active Dot) -->
-  <nav class="lg:hidden glass-bar fixed bottom-0 inset-x-0 z-40 border-t px-2 pt-2 pb-2">
+  <!-- Compact Mobile Bottom App Dock -->
+  <nav class="lg:hidden glass-bar fixed bottom-0 inset-x-0 z-40 border-t px-1.5 pt-1.5 pb-1.5">
     <div class="max-w-md mx-auto grid grid-cols-5 text-center">
       <a href="{{ url_for('home') }}"
-         class="flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'home' else 'text-zinc-400' }}">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+         class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'home' else 'text-zinc-400' }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" />
         </svg>
         <span>Home</span>
@@ -215,48 +212,45 @@
       </a>
 
       <a href="{{ url_for('shop') }}"
-         class="flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'shop' else 'text-zinc-400' }}">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+         class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'shop' else 'text-zinc-400' }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1.5" />
           <rect x="14" y="3" width="7" height="7" rx="1.5" />
           <rect x="3" y="14" width="7" height="7" rx="1.5" />
           <rect x="14" y="14" width="7" height="7" rx="1.5" />
         </svg>
-        <span>Explore</span>
+        <span>Shop</span>
         <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'shop' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('wishlist_page') }}"
-         class="relative flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'wishlist' else 'text-zinc-400' }}">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+         class="relative flex flex-col items-center gap-0.5 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'wishlist' else 'text-zinc-400' }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
         <span>Saved</span>
-        {% if wishlist_count > 0 %}
-          <span class="absolute top-0 right-4 w-1.5 h-1.5 rounded-full bg-zinc-950"></span>
-        {% endif %}
         <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'wishlist' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('cart_page') }}"
-         class="relative flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'cart' else 'text-zinc-400' }}">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+         class="relative flex flex-col items-center gap-0.5 text-[10px] font-bold {{ 'text-zinc-950' if active_page == 'cart' else 'text-zinc-400' }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0" />
         </svg>
         <span>Bag</span>
         {% if cart_count > 0 %}
-          <span class="tabular-nums absolute -top-0.5 right-3.5 px-1 rounded-full bg-zinc-950 text-white text-[9px] font-extrabold">{{ cart_count }}</span>
+          <span class="tabular-nums absolute -top-0.5 right-3.5 px-1 rounded-full bg-zinc-950 text-white text-[8px] font-extrabold">{{ cart_count }}</span>
         {% endif %}
         <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page == 'cart' else 'bg-transparent' }}"></span>
       </a>
 
       <a href="{{ url_for('admin_dashboard') if current_user and current_user.role == 'admin' else url_for('my_orders') }}"
-         class="flex flex-col items-center gap-1 text-[10px] font-bold {{ 'text-zinc-950' if active_page in ('my-orders', 'admin') else 'text-zinc-400' }}">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+         class="flex flex-col items-center gap-0.5 text-[10px] font-bold {{ 'text-zinc-950' if active_page in ('my-orders', 'admin') else 'text-zinc-400' }}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="m3.3 7 8.7 5 8.7-5M12 22V12" />
         </svg>
-        <span>{{ 'Studio' if current_user and current_user.role == 'admin' else 'Orders' }}</span>
+        <span>{{ 'BI' if current_user and current_user.role == 'admin' else 'Orders' }}</span>
         <span class="w-1 h-1 rounded-full {{ 'bg-zinc-950' if active_page in ('my-orders', 'admin') else 'bg-transparent' }}"></span>
       </a>
     </div>
@@ -279,7 +273,6 @@
     }
     syncThemeIcons();
 
-    // Direct Native PWA Install Only (Zero Custom Guide Popups)
     let deferredInstallPrompt = null;
     const getAppBtn = document.getElementById('get-app-btn');
 
@@ -319,8 +312,11 @@
       deferredInstallPrompt = null;
     }
 
+    // Force-refresh stale PWA Service Worker caches so installed app never freezes
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js?v=6').then((reg) => {
+        reg.update();
+      }).catch(() => {});
     }
   </script>
 </body>

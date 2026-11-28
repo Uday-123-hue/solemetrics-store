@@ -1,81 +1,76 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="space-y-10 lg:space-y-14">
+<div class="space-y-6 sm:space-y-8 lg:space-y-12">
 
-  <!-- Editorial Monochrome Hero Showcase -->
-  <section class="relative overflow-hidden rounded-[28px] bg-zinc-950 text-white p-6 sm:p-9 lg:p-12 border border-zinc-800/90">
-    <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+  <!-- Compact Mobile Hero / Widescreen Desktop Hero -->
+  <section class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-zinc-950 text-white p-4 sm:p-8 lg:p-11 border border-zinc-800">
+    <div class="grid lg:grid-cols-12 gap-5 lg:gap-10 items-center">
 
-      <!-- Left Editorial Copy & Live Search -->
-      <div class="lg:col-span-7 space-y-5">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-zinc-200 text-[10px] font-bold uppercase tracking-[0.18em]">
+      <div class="lg:col-span-7 space-y-3.5 sm:space-y-4">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-zinc-200 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.16em]">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          Curated Edition &bull; 10 Global Brands
+          10 Authentic Brands &bull; Pan-India Express
         </div>
 
-        <h1 class="font-display text-3xl sm:text-4xl lg:text-[46px] font-extrabold leading-[1.08] tracking-tight text-white">
+        <h1 class="font-display text-2xl sm:text-3xl lg:text-[44px] font-extrabold leading-[1.12] tracking-tight text-white">
           Engineered Form.<br />
           <span class="text-zinc-400">Uncompromising Stride.</span>
         </h1>
 
         <p class="text-xs sm:text-sm text-zinc-400 max-w-lg leading-relaxed">
-          Precision-crafted sneakers, orthopedic walkers, and everyday silhouettes from Nike, Adidas, Puma, Skechers, and Crocs—delivered with instant GST invoices.
+          Curated sneakers, orthopedic walkers, and everyday silhouettes from Nike, Adidas, Puma, Skechers &amp; Crocs.
         </p>
 
-        <!-- Minimalist Live Search Bar -->
+        <!-- Live Search Bar -->
         <div class="relative max-w-lg">
           <form action="{{ url_for('shop') }}" method="GET"
-                class="flex items-center bg-white/10 focus-within:bg-white focus-within:text-zinc-950 border border-white/15 rounded-2xl p-1.5 transition">
-            <svg class="w-4 h-4 ml-3 text-zinc-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                class="flex items-center bg-white/10 focus-within:bg-white focus-within:text-zinc-950 border border-white/15 rounded-xl sm:rounded-2xl p-1 transition">
+            <svg class="w-4 h-4 ml-2.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8" />
               <path stroke-linecap="round" d="m21 21-4.35-4.35" />
             </svg>
             <input type="text" name="q" id="home-live-search" autocomplete="off"
-                   placeholder="Search silhouette, brand, or UK size..."
-                   class="flex-1 px-3 py-2 text-xs sm:text-sm bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none font-medium" />
+                   placeholder="Search shoe, brand, or UK size..."
+                   class="flex-1 px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none font-medium" />
             <button type="submit"
-                    class="px-4 py-2 rounded-xl bg-white text-zinc-950 text-xs font-extrabold hover:bg-zinc-200 transition shrink-0">
+                    class="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-white text-zinc-950 text-xs font-extrabold hover:bg-zinc-200 transition shrink-0">
               Search
             </button>
           </form>
           <div id="home-search-dropdown"
-               class="hidden absolute left-0 right-0 mt-2 bg-white text-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden z-30 divide-y divide-zinc-100">
+               class="hidden absolute left-0 right-0 mt-1.5 bg-white text-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden z-30 divide-y divide-zinc-100">
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 pt-1">
+        <div class="flex items-center gap-2.5 pt-0.5">
           <a href="{{ url_for('shop') }}"
-             class="px-5 py-3 rounded-full bg-white text-zinc-950 font-display font-extrabold text-xs hover:bg-zinc-200 transition">
-            Explore Collection &rarr;
+             class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white text-zinc-950 font-display font-extrabold text-xs hover:bg-zinc-200 transition">
+            Explore Catalog &rarr;
           </a>
           <a href="{{ url_for('reviews_page') }}"
-             class="px-5 py-3 rounded-full border border-white/15 hover:border-white/40 text-zinc-200 font-bold text-xs transition">
-            Verified Reviews
+             class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border border-white/15 hover:border-white/40 text-zinc-200 font-bold text-xs transition">
+            Reviews
           </a>
         </div>
       </div>
 
-      <!-- Right Studio Spotlight Card -->
+      <!-- Spotlight Card (Hidden on tiny phones so page stays compact, shown on tablet/desktop) -->
       {% if featured %}
         {% set hero_shoe = featured[0] %}
-        <div class="lg:col-span-5">
+        <div class="hidden sm:block lg:col-span-5">
           <a href="{{ url_for('product_detail', product_id=hero_shoe.id) }}"
-             class="block bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-3xl p-4 sm:p-5 transition group">
-            <div class="aspect-[16/11] rounded-2xl overflow-hidden bg-zinc-900 mb-4">
+             class="block bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-2xl p-4 transition group">
+            <div class="aspect-[16/10] rounded-xl overflow-hidden bg-zinc-900 mb-3">
               <img src="{{ hero_shoe.image }}" onerror="this.src='{{ fallback_img }}'"
                    alt="{{ hero_shoe.name }}"
                    class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
             </div>
-            <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center justify-between gap-2">
               <div class="min-w-0">
-                <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400 block">
-                  {{ hero_shoe.brand }} &bull; Studio Pick
-                </span>
-                <h2 class="font-display font-bold text-base sm:text-lg text-white truncate mt-0.5">
-                  {{ hero_shoe.name }}
-                </h2>
+                <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400 block">{{ hero_shoe.brand }}</span>
+                <h2 class="font-display font-bold text-base text-white truncate">{{ hero_shoe.name }}</h2>
               </div>
-              <span class="tabular-nums px-3.5 py-2 rounded-full bg-white text-zinc-950 font-display font-extrabold text-xs sm:text-sm shrink-0">
+              <span class="tabular-nums px-3 py-1.5 rounded-full bg-white text-zinc-950 font-display font-extrabold text-xs shrink-0">
                 {{ hero_shoe.price | inr }}
               </span>
             </div>
@@ -87,106 +82,86 @@
   </section>
 
   <!-- Shop by Brand Strip -->
-  <section class="space-y-3.5">
+  <section class="space-y-2.5">
     <div class="flex items-center justify-between">
-      <div>
-        <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400 block">Partners</span>
-        <h2 class="font-display text-lg sm:text-xl font-extrabold text-zinc-900">Shop by Brand</h2>
-      </div>
-      <a href="{{ url_for('shop') }}" class="text-xs font-bold text-zinc-600 hover:text-zinc-950 transition">
-        All Brands &rarr;
-      </a>
+      <h2 class="font-display text-base sm:text-lg font-extrabold text-zinc-900">Shop by Brand</h2>
+      <a href="{{ url_for('shop') }}" class="text-[11px] font-bold text-zinc-500 hover:text-zinc-950">All &rarr;</a>
     </div>
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+    <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-0.5">
       {% for b in brands %}
         <a href="{{ url_for('shop', brand=b) }}"
-           class="px-4 py-2.5 rounded-full bg-white border border-zinc-200/90 hover:border-zinc-950 text-xs font-bold text-zinc-900 whitespace-nowrap shrink-0 transition">
-          {{ b }} <span class="tabular-nums text-zinc-400 font-medium ml-1">{{ brand_counts[b] }}</span>
+           class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white border border-zinc-200 hover:border-zinc-950 text-[11px] sm:text-xs font-bold text-zinc-900 whitespace-nowrap shrink-0 transition">
+          {{ b }} <span class="tabular-nums text-zinc-400 font-medium ml-0.5">{{ brand_counts[b] }}</span>
         </a>
       {% endfor %}
     </div>
   </section>
 
-  <!-- Curated Categories Grid -->
-  <section class="space-y-3.5">
-    <div>
-      <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400 block">Silhouettes</span>
-      <h2 class="font-display text-lg sm:text-xl font-extrabold text-zinc-900">Browse Categories</h2>
-    </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+  <!-- Browse Categories -->
+  <section class="space-y-2.5">
+    <h2 class="font-display text-base sm:text-lg font-extrabold text-zinc-900">Categories</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
       {% for c in categories %}
         <a href="{{ url_for('shop', category=c.name) }}"
-           class="p-4 rounded-2xl bg-white border border-zinc-200/80 hover:border-zinc-950 transition flex items-center justify-between gap-2 group">
-          <div>
-            <span class="font-display font-bold text-xs sm:text-sm text-zinc-900 block">{{ c.name }}</span>
-            <span class="text-[11px] text-zinc-400 block mt-0.5">{{ c.tagline if c.tagline is defined else 'Explore' }}</span>
+           class="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-zinc-200/80 hover:border-zinc-950 transition flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="font-display font-bold text-xs sm:text-sm text-zinc-900 block truncate">{{ c.name }}</span>
+            <span class="text-[10px] sm:text-[11px] text-zinc-400 block truncate">{{ c.tagline if c.tagline is defined else 'Explore' }}</span>
           </div>
-          <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-950 group-hover:translate-x-0.5 transition shrink-0"
-               fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
-          </svg>
+          <span class="text-zinc-400 text-xs shrink-0">&rarr;</span>
         </a>
       {% endfor %}
     </div>
   </section>
 
-  <!-- Editorial Featured Footwear Grid (4:5 Portrait Studio Cards) -->
-  <section class="space-y-4">
-    <div class="flex items-end justify-between">
-      <div>
-        <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400 block">Selection</span>
-        <h2 class="font-display text-lg sm:text-xl font-extrabold text-zinc-900">Featured Footwear</h2>
-      </div>
+  <!-- Featured Footwear Grid -->
+  <section class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h2 class="font-display text-base sm:text-lg font-extrabold text-zinc-900">Featured Footwear</h2>
       <a href="{{ url_for('shop') }}"
-         class="btn-obsidian px-4 py-2 rounded-full bg-zinc-950 text-white text-xs font-bold hover:bg-zinc-800 transition">
-        View Full Catalog
+         class="btn-obsidian px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-zinc-950 text-white text-[11px] sm:text-xs font-bold">
+        See All
       </a>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
       {% for p in featured %}
-        <div class="shoe-card group bg-white rounded-3xl border border-zinc-200/80 overflow-hidden flex flex-col justify-between">
+        <div class="shoe-card group bg-white rounded-2xl sm:rounded-3xl border border-zinc-200/80 overflow-hidden flex flex-col justify-between">
           <div>
-            <div class="relative aspect-[4/4.3] bg-zinc-100 overflow-hidden">
+            <div class="relative aspect-square bg-zinc-100 overflow-hidden">
               <a href="{{ url_for('product_detail', product_id=p.id) }}">
                 <img src="{{ p.image }}" onerror="this.src='{{ fallback_img }}'"
                      alt="{{ p.name }}" class="w-full h-full object-cover" />
               </a>
 
-              <!-- Minimalist Wishlist Heart SVG -->
               <a href="{{ url_for('toggle_wishlist', product_id=p.id) }}"
                  aria-label="Save footwear"
-                 class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs border border-zinc-200/60 flex items-center justify-center transition
-                        {{ 'text-rose-600' if p.id in wishlist_ids else 'text-zinc-700 hover:text-zinc-950' }}">
-                <svg class="w-4 h-4" fill="{{ 'currentColor' if p.id in wishlist_ids else 'none' }}" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+                 class="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 border border-zinc-200/60 flex items-center justify-center
+                        {{ 'text-rose-600' if p.id in wishlist_ids else 'text-zinc-700' }}">
+                <svg class="w-3.5 h-3.5" fill="{{ 'currentColor' if p.id in wishlist_ids else 'none' }}" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               </a>
 
-              <!-- Slide-Up Quick Add Glass Pill on Desktop Hover -->
               <a href="{{ url_for('add_to_cart', product_id=p.id) }}"
-                 class="hidden lg:flex items-center justify-center gap-1.5 absolute inset-x-3 bottom-3 py-2 rounded-full bg-zinc-950/90 backdrop-blur-md text-white text-[11px] font-bold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition duration-200">
-                <span>Quick Add to Bag</span>
-                <span>+</span>
+                 class="hidden lg:flex items-center justify-center gap-1 absolute inset-x-3 bottom-2.5 py-2 rounded-full bg-zinc-950/90 text-white text-[11px] font-bold opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition">
+                <span>Quick Add +</span>
               </a>
             </div>
 
-            <div class="p-3.5 sm:p-4 space-y-1">
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">{{ p.brand }}</span>
-                <span class="text-[10px] font-medium text-zinc-400">{{ p.category }}</span>
-              </div>
+            <div class="p-2.5 sm:p-3.5 space-y-0.5">
+              <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400 block">{{ p.brand }}</span>
               <a href="{{ url_for('product_detail', product_id=p.id) }}"
-                 class="font-display font-bold text-xs sm:text-sm text-zinc-900 line-clamp-1 hover:underline block">
+                 class="font-display font-bold text-xs sm:text-sm text-zinc-900 line-clamp-1 block">
                 {{ p.name }}
               </a>
             </div>
           </div>
 
-          <div class="px-3.5 sm:px-4 pb-4 pt-0.5 flex items-center justify-between gap-2">
-            <span class="tabular-nums font-display font-extrabold text-sm sm:text-base text-zinc-900">{{ p.price | inr }}</span>
+          <div class="px-2.5 sm:px-3.5 pb-2.5 sm:pb-3.5 flex items-center justify-between gap-1.5">
+            <span class="tabular-nums font-display font-extrabold text-xs sm:text-sm text-zinc-900">{{ p.price | inr }}</span>
             <a href="{{ url_for('add_to_cart', product_id=p.id) }}"
-               class="lg:hidden w-8 h-8 rounded-full bg-zinc-950 text-white flex items-center justify-center text-sm font-bold">
+               class="lg:hidden w-7 h-7 rounded-full bg-zinc-950 text-white flex items-center justify-center text-xs font-bold">
               +
             </a>
           </div>
@@ -195,19 +170,19 @@
     </div>
   </section>
 
-  <!-- Recently Viewed Shelf -->
+  <!-- Recently Viewed -->
   {% if recently_viewed_products %}
-    <section class="space-y-3 pt-2">
-      <h2 class="font-display text-base sm:text-lg font-extrabold text-zinc-900">Recently Viewed</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <section class="space-y-2.5">
+      <h2 class="font-display text-sm sm:text-base font-extrabold text-zinc-900">Recently Viewed</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
         {% for rv in recently_viewed_products %}
           <a href="{{ url_for('product_detail', product_id=rv.id) }}"
-             class="p-2.5 rounded-2xl bg-white border border-zinc-200/80 hover:border-zinc-950 transition flex items-center gap-2.5">
+             class="p-2 rounded-xl bg-white border border-zinc-200/80 flex items-center gap-2">
             <img src="{{ rv.image }}" onerror="this.src='{{ fallback_img }}'"
-                 alt="{{ rv.name }}" class="w-11 h-11 rounded-xl object-cover shrink-0 bg-zinc-100" />
+                 alt="{{ rv.name }}" class="w-10 h-10 rounded-lg object-cover shrink-0 bg-zinc-100" />
             <div class="min-w-0">
-              <p class="font-bold text-xs text-zinc-900 truncate">{{ rv.name }}</p>
-              <p class="tabular-nums text-[11px] font-bold text-zinc-500">{{ rv.price | inr }}</p>
+              <p class="font-bold text-[11px] text-zinc-900 truncate">{{ rv.name }}</p>
+              <p class="tabular-nums text-[10px] font-bold text-zinc-500">{{ rv.price | inr }}</p>
             </div>
           </a>
         {% endfor %}
@@ -237,16 +212,16 @@
       ).slice(0, 5);
 
       if (!matches.length) {
-        dropdown.innerHTML = '<div class="p-3.5 text-xs text-zinc-500">No matching footwear found</div>';
+        dropdown.innerHTML = '<div class="p-3 text-xs text-zinc-500">No matching footwear found</div>';
       } else {
         dropdown.innerHTML = matches
           .map(
             (m) => `
-            <a href="/product/${m.id}" class="flex items-center gap-3 p-3 hover:bg-zinc-50 transition">
-              <img src="${m.image}" class="w-10 h-10 rounded-xl object-cover bg-zinc-100 shrink-0" />
+            <a href="/product/${m.id}" class="flex items-center gap-2.5 p-2.5 hover:bg-zinc-50">
+              <img src="${m.image}" class="w-9 h-9 rounded-lg object-cover bg-zinc-100 shrink-0" />
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-zinc-900 truncate">${m.name}</p>
-                <p class="text-[11px] text-zinc-400">${m.brand} &bull; ${m.category}</p>
+                <p class="text-[10px] text-zinc-400">${m.brand} &bull; ${m.category}</p>
               </div>
               <span class="tabular-nums text-xs font-extrabold text-zinc-900">&#8377;${m.price.toLocaleString('en-IN')}</span>
             </a>`
