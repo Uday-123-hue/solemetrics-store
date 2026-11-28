@@ -1,62 +1,62 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="space-y-5 sm:space-y-6">
+<div class="space-y-6">
 
   <!-- Executive Header + Export Actions -->
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
     <div>
-      <span class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-extrabold uppercase tracking-wider">
-        Executive Business Intelligence
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-[0.18em]">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        Executive BI Studio
       </span>
-      <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
-        Sales, Profit &amp; Demand Analytics
+      <h1 class="font-display text-xl sm:text-3xl font-extrabold text-zinc-900 mt-1.5">
+        Sales, Profit, Ratings &amp; Demand Analytics
       </h1>
-      <p class="text-xs text-slate-500 mt-0.5">
-        Live Pandas + Plotly analytics synced with <code class="font-mono">orders.xlsx</code> &bull; {{ registered_count }} registered accounts
+      <p class="text-xs text-zinc-500 mt-0.5">
+        Live Pandas analytics synced with <code class="font-mono">orders.xlsx</code> &bull; {{ registered_count }} registered accounts
       </p>
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
       <a href="{{ url_for('admin_download_excel') }}"
-         class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-extrabold hover:opacity-95 shadow-sm">
+         class="btn-obsidian px-3.5 py-2 rounded-full bg-zinc-950 text-white text-xs font-extrabold hover:opacity-90 transition">
         &darr; Master Excel (.xlsx)
       </a>
       <a href="{{ url_for('admin_download_csv', brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-         class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-extrabold hover:border-indigo-500">
+         class="px-3.5 py-2 rounded-full bg-white border border-zinc-200 text-zinc-800 text-xs font-bold hover:border-zinc-950 transition">
         &darr; Filtered CSV
       </a>
       <form method="POST" action="{{ url_for('admin_reset_demo') }}"
             onsubmit="return confirm('Restore initial demo orders and reviews?')">
         <button type="submit"
-                class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold hover:bg-rose-50 hover:text-rose-700">
+                class="px-3.5 py-2 rounded-full bg-zinc-100 text-zinc-600 text-xs font-bold hover:bg-rose-50 hover:text-rose-700 transition">
           Reset Demo
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Global Power BI Slicer Bar (Filters KPIs, Charts & Table Simultaneously) -->
+  <!-- Global Power BI Slicer Bar -->
   <form method="GET" action="{{ url_for('admin_dashboard') }}"
-        class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 space-y-3">
-    <input type="hidden" name="tab" value="{{ active_tab }}" />
+        class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-3">
     <input type="hidden" name="chart" value="{{ chart_mode }}" />
     <input type="hidden" name="type" value="{{ chart_type }}" />
     <input type="hidden" name="metric" value="{{ metric }}" />
 
     <div class="flex items-center justify-between">
-      <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Global Data Slicers</span>
+      <span class="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">Global Data Slicers</span>
       {% if filter_brand != 'All' or filter_cat != 'All' or filter_status != 'All' or filter_payment != 'All' or date_from or date_to or search_q %}
-        <a href="{{ url_for('admin_dashboard', tab=active_tab, chart=chart_mode, type=chart_type, metric=metric) }}"
+        <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric=metric) }}"
            class="text-xs font-extrabold text-rose-600 hover:underline">
           Clear All Filters &times;
         </a>
       {% endif %}
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
       <div>
-        <label class="block text-[10px] font-bold text-slate-400 mb-1">Brand</label>
-        <select name="brand" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+        <label class="block text-[10px] font-bold text-zinc-400 mb-1">Brand</label>
+        <select name="brand" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white">
           <option value="All">All Brands</option>
           {% for b in brands %}
             <option value="{{ b }}" {{ 'selected' if filter_brand == b else '' }}>{{ b }}</option>
@@ -65,8 +65,8 @@
       </div>
 
       <div>
-        <label class="block text-[10px] font-bold text-slate-400 mb-1">Category</label>
-        <select name="category" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+        <label class="block text-[10px] font-bold text-zinc-400 mb-1">Category</label>
+        <select name="category" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white">
           <option value="All">All Categories</option>
           {% for c in categories %}
             <option value="{{ c.name }}" {{ 'selected' if filter_cat == c.name else '' }}>{{ c.name }}</option>
@@ -75,8 +75,8 @@
       </div>
 
       <div>
-        <label class="block text-[10px] font-bold text-slate-400 mb-1">Order Status</label>
-        <select name="status" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+        <label class="block text-[10px] font-bold text-zinc-400 mb-1">Order Status</label>
+        <select name="status" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white">
           <option value="All">All Stages</option>
           {% for st in order_stages %}
             <option value="{{ st }}" {{ 'selected' if filter_status == st else '' }}>{{ st }}</option>
@@ -85,8 +85,8 @@
       </div>
 
       <div>
-        <label class="block text-[10px] font-bold text-slate-400 mb-1">Payment Mode</label>
-        <select name="payment" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+        <label class="block text-[10px] font-bold text-zinc-400 mb-1">Payment Mode</label>
+        <select name="payment" onchange="this.form.submit()" class="w-full px-2.5 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white">
           <option value="All">All Modes</option>
           {% for pm in payment_modes %}
             <option value="{{ pm }}" {{ 'selected' if filter_payment == pm else '' }}>{{ pm }}</option>
@@ -95,400 +95,521 @@
       </div>
 
       <div>
-        <label class="block text-[10px] font-bold text-slate-400 mb-1">From Date</label>
+        <label class="block text-[10px] font-bold text-zinc-400 mb-1">From Date</label>
         <input type="date" name="date_from" value="{{ date_from }}" onchange="this.form.submit()"
-               class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white" />
+               class="w-full px-2.5 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white" />
       </div>
 
       <div>
-        <label class="block text-[10px] font-bold text-slate-400 mb-1">To Date</label>
+        <label class="block text-[10px] font-bold text-zinc-400 mb-1">To Date</label>
         <input type="date" name="date_to" value="{{ date_to }}" onchange="this.form.submit()"
-               class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white" />
+               class="w-full px-2.5 py-2 rounded-xl border border-zinc-200 text-xs font-bold bg-white" />
       </div>
     </div>
 
     <div class="flex gap-2 pt-0.5">
       <input type="text" name="q" value="{{ search_q }}"
-             placeholder="Search Order ID, Customer Name, Phone, Email, City, or Shoe..."
-             class="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium" />
+             placeholder="Search Order ID, Customer, Phone, City, or Shoe..."
+             class="flex-1 px-3 py-2 rounded-xl border border-zinc-200 text-xs font-medium" />
       <button type="submit"
-              class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-extrabold hover:bg-indigo-600 shrink-0">
+              class="btn-obsidian px-4 py-2 rounded-xl bg-zinc-950 text-white text-xs font-extrabold shrink-0">
         Apply
       </button>
     </div>
   </form>
 
-  <!-- 6 Executive KPI Cards (2-col Mobile, 3-col Tablet, 6-col Laptop) -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+  <!-- 6 Executive KPI Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
     {% for k in kpis %}
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-1">
-        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">{{ k.label }}</span>
-        <span class="font-display text-lg sm:text-xl font-extrabold text-slate-900 block truncate">{{ k.value }}</span>
-        <span class="text-[11px] font-semibold text-emerald-600 block truncate">{{ k.sub }}</span>
+      <div class="bg-white p-3.5 rounded-2xl border border-zinc-200/80 space-y-0.5">
+        <span class="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400 block">{{ k.label }}</span>
+        <span class="tabular-nums font-display text-base sm:text-xl font-extrabold text-zinc-900 block truncate">{{ k.value }}</span>
+        <span class="text-[10px] sm:text-[11px] font-semibold text-emerald-600 block truncate">{{ k.sub }}</span>
       </div>
     {% endfor %}
   </div>
 
-  <!-- iOS Segmented Workspace Tabs -->
-  <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 overflow-x-auto no-scrollbar">
-    <a href="{{ url_for('admin_dashboard', tab='overview', chart=chart_mode, type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-       class="flex-1 text-center px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_tab == 'overview' else 'text-slate-600 hover:text-slate-900' }}">
-      Overview BI &amp; Charts
-    </a>
-    <a href="{{ url_for('admin_dashboard', tab='orders', chart=chart_mode, type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-       class="flex-1 text-center px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_tab == 'orders' else 'text-slate-600 hover:text-slate-900' }}">
-      Orders Manager ({{ orders | length }})
-    </a>
-    <a href="{{ url_for('admin_dashboard', tab='reviews', chart=chart_mode, type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-       class="flex-1 text-center px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap {{ 'bg-white text-slate-900 shadow-sm' if active_tab == 'reviews' else 'text-slate-600 hover:text-slate-900' }}">
-      Reviews ({{ reviews | length }})
-    </a>
-  </div>
-
-  <!-- =======================================================================
-       TAB 1: OVERVIEW BI (PRIMARY PLOTLY + DUAL CHARTS + BRAND MATRIX + VIP)
-       ======================================================================= -->
-  {% if active_tab == 'overview' %}
-
-    <!-- Primary Interactive Chart Card -->
-    <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div>
-          <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Interactive BI Visualization</h2>
-          <p class="text-xs text-slate-500">Switch dimension, metric, or chart geometry</p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Metric Switcher -->
-          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-            {% for m_key, m_label in [('revenue', 'Revenue'), ('profit', 'Profit'), ('units', 'Units')] %}
-              <a href="{{ url_for('admin_dashboard', tab='overview', chart=chart_mode, type=chart_type, metric=m_key, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-                 class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold {{ 'bg-slate-900 text-white' if metric == m_key else 'text-slate-600' }}">
-                {{ m_label }}
-              </a>
-            {% endfor %}
-          </div>
-
-          <!-- Chart Type Switcher -->
-          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-            {% for t_key, t_label in [('bar', 'Bar'), ('line', 'Line'), ('area', 'Area'), ('pie', 'Donut')] %}
-              <a href="{{ url_for('admin_dashboard', tab='overview', chart=chart_mode, type=t_key, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-                 class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold {{ 'bg-indigo-600 text-white' if chart_type == t_key else 'text-slate-600' }}">
-                {{ t_label }}
-              </a>
-            {% endfor %}
-          </div>
-        </div>
+  <!-- Primary Interactive Chart Card (100% Zero-CDN Native SVG Renderer) -->
+  <div class="bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-3.5">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+      <div>
+        <h2 class="font-display text-sm sm:text-lg font-extrabold text-zinc-900">
+          {{ charts_payload.primary.title }}
+        </h2>
+        <p class="text-[11px] text-zinc-500">Analyze Units Sold, Revenue, Gross Profit, or Brand Star Ratings</p>
       </div>
 
-      <!-- Dimension Pills -->
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-        {% set dims = [
-          ('category', 'Category'),
-          ('brand', 'Brand'),
-          ('city', 'City'),
-          ('model', 'Top Models'),
-          ('size', 'UK Size'),
-          ('age', 'Age Group'),
-          ('gender', 'Gender'),
-          ('payment', 'Payment'),
-          ('timeline', 'Timeline'),
-          ('ratings', 'Star Ratings')
-        ] %}
-        {% for d_key, d_label in dims %}
-          <a href="{{ url_for('admin_dashboard', tab='overview', chart=d_key, type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
-             class="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 border {{ 'bg-slate-900 text-white border-slate-900' if chart_mode == d_key else 'bg-slate-50 text-slate-600 border-slate-200 hover:border-indigo-500' }}">
-            {{ d_label }}
-          </a>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <div class="flex items-center bg-zinc-100 p-0.5 rounded-full border border-zinc-200/80">
+          {% for m_key, m_label in [('revenue', 'Revenue'), ('profit', 'Profit'), ('units', 'Units')] %}
+            <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=chart_type, metric=m_key, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
+               class="px-2.5 py-1 rounded-full text-[11px] font-bold transition {{ 'bg-zinc-950 text-white' if metric == m_key else 'text-zinc-600 hover:text-zinc-950' }}">
+              {{ m_label }}
+            </a>
+          {% endfor %}
+        </div>
+
+        <div class="flex items-center bg-zinc-100 p-0.5 rounded-full border border-zinc-200/80">
+          {% for t_key, t_label in [('bar', 'Bar'), ('line', 'Line'), ('area', 'Area'), ('pie', 'Donut')] %}
+            <a href="{{ url_for('admin_dashboard', chart=chart_mode, type=t_key, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
+               class="px-2.5 py-1 rounded-full text-[11px] font-bold transition {{ 'bg-zinc-950 text-white' if chart_type == t_key else 'text-zinc-600 hover:text-zinc-950' }}">
+              {{ t_label }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+      {% set dims = [
+        ('category', 'Category'),
+        ('brand', 'Brand'),
+        ('city', 'City'),
+        ('model', 'Top Models'),
+        ('size', 'UK Size'),
+        ('age', 'Age Group'),
+        ('gender', 'Gender'),
+        ('payment', 'Payment'),
+        ('timeline', 'Timeline'),
+        ('ratings', 'Star Ratings')
+      ] %}
+      {% for d_key, d_label in dims %}
+        <a href="{{ url_for('admin_dashboard', chart=d_key, type=chart_type, metric=metric, brand=filter_brand, category=filter_cat, status=filter_status, payment=filter_payment, date_from=date_from, date_to=date_to, q=search_q) }}"
+           class="px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 border transition {{ 'bg-zinc-950 text-white border-zinc-950' if chart_mode == d_key else 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-950' }}">
+          {{ d_label }}
+        </a>
+      {% endfor %}
+    </div>
+
+    <div id="primary-svg-host" class="w-full rounded-2xl border border-zinc-100 bg-zinc-50/40 p-2 sm:p-4 overflow-hidden"></div>
+  </div>
+
+  <!-- Dual Side-by-Side Executive Charts -->
+  <div class="grid lg:grid-cols-2 gap-3.5 sm:gap-5">
+    <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-2">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display text-sm font-extrabold text-zinc-900">Revenue vs. Gross Profit by Brand</h3>
+        <div class="flex items-center gap-3 text-[10px] font-bold text-zinc-500">
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-zinc-900"></span>Revenue</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-emerald-500"></span>Profit</span>
+        </div>
+      </div>
+      <div id="revprof-svg-host" class="w-full overflow-hidden"></div>
+    </div>
+
+    <div class="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-2">
+      <h3 class="font-display text-sm font-extrabold text-zinc-900">Order Fulfillment Pipeline</h3>
+      <div id="funnel-svg-host" class="w-full overflow-hidden"></div>
+    </div>
+  </div>
+
+  <!-- Brand Profitability Matrix + VIP Customers -->
+  <div class="grid lg:grid-cols-12 gap-3.5 sm:gap-5 items-start">
+    <div class="lg:col-span-7 bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="font-display text-sm sm:text-base font-extrabold text-zinc-900">Brand Profitability &amp; Margin Matrix</h3>
+          <p class="text-[11px] text-zinc-500">Live P&amp;L breakdown across active filters</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-800 text-[10px] font-bold">
+          {{ brand_matrix | length }} Brands
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-zinc-200 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <th class="py-2 pr-2">Brand</th>
+              <th class="py-2 px-2 text-center">Units</th>
+              <th class="py-2 px-2 text-right">Revenue</th>
+              <th class="py-2 px-2 text-right">Profit</th>
+              <th class="py-2 pl-2 text-right">Margin</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100">
+            {% for bm in brand_matrix %}
+              <tr>
+                <td class="py-2 pr-2 font-bold text-zinc-900">{{ bm.brand }}</td>
+                <td class="tabular-nums py-2 px-2 text-center font-semibold text-zinc-600">{{ bm.units }}</td>
+                <td class="tabular-nums py-2 px-2 text-right font-bold text-zinc-900">{{ bm.revenue | inr }}</td>
+                <td class="tabular-nums py-2 px-2 text-right font-extrabold text-emerald-600">{{ bm.profit | inr }}</td>
+                <td class="tabular-nums py-2 pl-2 text-right">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ 'bg-emerald-50 text-emerald-700' if bm.margin >= 35 else 'bg-zinc-100 text-zinc-700' }}">
+                    {{ bm.margin }}%
+                  </span>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="py-6 text-center text-zinc-400">No data matches current filters</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="lg:col-span-5 bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="font-display text-sm sm:text-base font-extrabold text-zinc-900">Top VIP Customers</h3>
+          <p class="text-[11px] text-zinc-500">Highest lifetime spenders</p>
+        </div>
+        <span class="tabular-nums px-2.5 py-1 rounded-full bg-zinc-950 text-white text-[10px] font-bold">
+          Repeat: {{ repeat_rate }}%
+        </span>
+      </div>
+
+      <div class="space-y-2">
+        {% for vip in vip_customers %}
+          <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-bold text-xs text-zinc-900 truncate">{{ vip.customerName }}</p>
+              <p class="text-[11px] text-zinc-500 truncate">
+                {{ vip.orders }} order{{ '' if vip.orders == 1 else 's' }} &bull; Fav: <b>{{ vip.fav_brand }}</b>
+              </p>
+            </div>
+            <span class="tabular-nums font-display font-extrabold text-xs text-zinc-900 shrink-0">{{ vip.spend | inr }}</span>
+          </div>
+        {% else %}
+          <p class="text-xs text-zinc-400 py-4 text-center">No customer records in this slice</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Orders & Fulfillment Section -->
+  <div class="bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-3.5">
+    <div>
+      <h2 class="font-display text-sm sm:text-lg font-extrabold text-zinc-900">Live Orders &amp; Fulfillment ({{ orders | length }})</h2>
+      <p class="text-[11px] text-zinc-500">Showing {{ orders | length }} of {{ total_orders_count }} orders</p>
+    </div>
+
+    {% if orders %}
+      <div class="lg:hidden space-y-2.5">
+        {% for o in orders %}
+          <div class="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="font-mono text-xs font-extrabold text-zinc-900">#{{ o.orderId }}</span>
+                <span class="text-[10px] text-zinc-400 ml-1">{{ o.date }}</span>
+                <h3 class="font-bold text-xs text-zinc-900 mt-0.5">{{ o.productName }}</h3>
+                <p class="text-[11px] text-zinc-500">{{ o.brand }} &bull; {{ o.size }} &bull; Qty {{ o.qty }}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="tabular-nums font-display font-extrabold text-xs text-zinc-900 block">{{ o.totalAmount | inr }}</span>
+                <span class="tabular-nums text-[10px] font-bold text-emerald-600">+{{ o.profit | inr }}</span>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-600 border-t border-zinc-200/80 pt-2 flex items-center justify-between">
+              <span><b>{{ o.customerName }}</b> ({{ o.city }})</span>
+              <span class="font-semibold text-zinc-500">{{ o.paymentMethod }}</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <form method="POST" action="{{ url_for('admin_update_status', order_id=o.orderId) }}" class="flex-1 flex gap-1.5">
+                <select name="status" class="flex-1 px-2 py-1.5 rounded-xl border border-zinc-300 text-xs font-bold bg-white">
+                  {% for st in order_stages %}
+                    <option value="{{ st }}" {{ 'selected' if o.status == st else '' }}>{{ st }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn-obsidian px-3 py-1.5 rounded-xl bg-zinc-950 text-white text-xs font-extrabold">
+                  Save
+                </button>
+              </form>
+
+              <a href="{{ url_for('download_invoice_pdf', order_id=o.orderId) }}"
+                 class="px-2.5 py-1.5 rounded-xl bg-white border border-zinc-200 text-xs font-bold text-zinc-800">
+                PDF
+              </a>
+
+              <form method="POST" action="{{ url_for('admin_delete_order', order_id=o.orderId) }}"
+                    onsubmit="return confirm('Delete order #{{ o.orderId }}?')">
+                <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-extrabold">
+                  &times;
+                </button>
+              </form>
+            </div>
+          </div>
         {% endfor %}
       </div>
 
-      <div class="w-full overflow-hidden rounded-2xl border border-slate-100">
-        {{ chart_html | safe }}
-      </div>
-    </div>
-
-    <!-- Dual Side-by-Side Executive Charts (Responsive 1-col Mobile, 2-col Laptop) -->
-    <div class="grid lg:grid-cols-2 gap-4 sm:gap-5">
-      <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 overflow-hidden">
-        {{ rev_prof_html | safe }}
-      </div>
-      <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 overflow-hidden">
-        {{ funnel_html | safe }}
-      </div>
-    </div>
-
-    <!-- Brand Profitability Matrix + VIP Repeat Customers -->
-    <div class="grid lg:grid-cols-12 gap-4 sm:gap-5 items-start">
-
-      <!-- Left (7 cols): Brand Profitability Matrix -->
-      <div class="lg:col-span-7 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-display text-base font-extrabold text-slate-900">Brand Profitability &amp; Margin Matrix</h3>
-            <p class="text-[11px] text-slate-500">Live P&amp;L breakdown across active filters</p>
-          </div>
-          <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-extrabold">
-            {{ brand_matrix | length }} Brands
-          </span>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead>
-              <tr class="border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                <th class="py-2.5 pr-3">Brand</th>
-                <th class="py-2.5 px-2 text-center">Units</th>
-                <th class="py-2.5 px-2 text-right">Revenue</th>
-                <th class="py-2.5 px-2 text-right">Profit</th>
-                <th class="py-2.5 pl-2 text-right">Margin</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              {% for bm in brand_matrix %}
-                <tr>
-                  <td class="py-2.5 pr-3 font-extrabold text-slate-900">{{ bm.brand }}</td>
-                  <td class="py-2.5 px-2 text-center font-semibold text-slate-600">{{ bm.units }}</td>
-                  <td class="py-2.5 px-2 text-right font-bold text-slate-900">{{ bm.revenue | inr }}</td>
-                  <td class="py-2.5 px-2 text-right font-extrabold text-emerald-600">{{ bm.profit | inr }}</td>
-                  <td class="py-2.5 pl-2 text-right">
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ 'bg-emerald-50 text-emerald-700' if bm.margin >= 35 else 'bg-amber-50 text-amber-700' }}">
-                      {{ bm.margin }}%
-                    </span>
-                  </td>
-                </tr>
-              {% else %}
-                <tr>
-                  <td colspan="5" class="py-6 text-center text-slate-400">No data matches current filters</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Right (5 cols): VIP Customers & Repeat Rate -->
-      <div class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 space-y-3.5">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-display text-base font-extrabold text-slate-900">Top VIP Customers</h3>
-            <p class="text-[11px] text-slate-500">Highest lifetime spenders</p>
-          </div>
-          <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-extrabold">
-            Repeat Rate: {{ repeat_rate }}%
-          </span>
-        </div>
-
-        <div class="space-y-2.5">
-          {% for vip in vip_customers %}
-            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
-              <div class="min-w-0">
-                <p class="font-extrabold text-xs text-slate-900 truncate">{{ vip.customerName }}</p>
-                <p class="text-[11px] text-slate-500 truncate">
-                  {{ vip.orders }} order{{ '' if vip.orders == 1 else 's' }} &bull; Fav: <b>{{ vip.fav_brand }}</b>
-                </p>
-              </div>
-              <span class="font-display font-extrabold text-xs text-slate-900 shrink-0">{{ vip.spend | inr }}</span>
-            </div>
-          {% else %}
-            <p class="text-xs text-slate-400 py-4 text-center">No customer records in this slice</p>
-          {% endfor %}
-        </div>
-      </div>
-
-    </div>
-
-  <!-- =======================================================================
-       TAB 2: ORDERS MANAGER (RESPONSIVE TABLE + MOBILE CARDS + INVOICE + SMS)
-       ======================================================================= -->
-  {% elif active_tab == 'orders' %}
-
-    <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Live Orders &amp; Fulfillment</h2>
-          <p class="text-xs text-slate-500">Showing {{ orders | length }} of {{ total_orders_count }} orders</p>
-        </div>
-      </div>
-
-      {% if orders %}
-        <!-- Mobile Card List (Clean Touch View on Phones) -->
-        <div class="lg:hidden space-y-3">
-          {% for o in orders %}
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <span class="font-mono text-xs font-extrabold text-indigo-600">#{{ o.orderId }}</span>
-                  <span class="text-[11px] text-slate-400 ml-1.5">{{ o.date }}</span>
-                  <h3 class="font-extrabold text-sm text-slate-900 mt-0.5">{{ o.productName }}</h3>
-                  <p class="text-xs text-slate-500">{{ o.brand }} &bull; {{ o.size }} &bull; Qty {{ o.qty }}</p>
-                </div>
-                <div class="text-right shrink-0">
-                  <span class="font-display font-extrabold text-sm text-slate-900 block">{{ o.totalAmount | inr }}</span>
-                  <span class="text-[10px] font-bold text-emerald-600">+{{ o.profit | inr }} profit</span>
-                </div>
-              </div>
-
-              <div class="text-xs text-slate-600 border-t border-slate-200/80 pt-2 flex items-center justify-between">
-                <span><b>{{ o.customerName }}</b> ({{ o.city }})</span>
-                <span class="text-[11px] font-semibold text-slate-500">{{ o.paymentMethod }}</span>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-2 pt-1">
-                <form method="POST" action="{{ url_for('admin_update_status', order_id=o.orderId) }}" class="flex-1 flex gap-1.5">
-                  <select name="status" class="flex-1 px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white">
-                    {% for st in order_stages %}
-                      <option value="{{ st }}" {{ 'selected' if o.status == st else '' }}>{{ st }}</option>
-                    {% endfor %}
-                  </select>
-                  <button type="submit" class="px-3 py-2 rounded-xl bg-slate-900 text-white text-xs font-extrabold">
-                    Save
-                  </button>
-                </form>
-
-                <a href="{{ url_for('download_invoice_pdf', order_id=o.orderId) }}"
-                   class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-extrabold text-slate-800">
-                  PDF
-                </a>
-
-                {% if o.customerPhone %}
-                  <a href="sms:{{ o.customerPhone }}?body={{ ('Hi ' + o.customerName + ', your SoleMetrics order #' + o.orderId + ' (' + o.productName + ') is currently ' + o.status + '. Thank you for shopping with us!') | urlencode }}"
-                     class="px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-extrabold">
-                    SMS
-                  </a>
-                {% endif %}
-
-                <form method="POST" action="{{ url_for('admin_delete_order', order_id=o.orderId) }}"
-                      onsubmit="return confirm('Delete order #{{ o.orderId }}?')">
-                  <button type="submit" class="px-2.5 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-extrabold">
-                    &times;
-                  </button>
-                </form>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-
-        <!-- Desktop Data Table (Full Power BI Grid on Laptops) -->
-        <div class="hidden lg:block overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead>
-              <tr class="border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                <th class="py-3 pr-3">Order &amp; Date</th>
-                <th class="py-3 px-2">Customer</th>
-                <th class="py-3 px-2">Footwear</th>
-                <th class="py-3 px-2 text-right">Amount / Profit</th>
-                <th class="py-3 px-2">Stage</th>
-                <th class="py-3 pl-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              {% for o in orders %}
-                <tr class="hover:bg-slate-50/80">
-                  <td class="py-3 pr-3">
-                    <span class="font-mono font-extrabold text-indigo-600 block">#{{ o.orderId }}</span>
-                    <span class="text-[11px] text-slate-400">{{ o.date }}</span>
-                  </td>
-                  <td class="py-3 px-2">
-                    <span class="font-bold text-slate-900 block">{{ o.customerName }}</span>
-                    <span class="text-[11px] text-slate-500">{{ o.city }} &bull; {{ o.customerPhone }}</span>
-                  </td>
-                  <td class="py-3 px-2">
-                    <span class="font-bold text-slate-900 block">{{ o.brand }} &mdash; {{ o.productName }}</span>
-                    <span class="text-[11px] text-slate-500">{{ o.size }} &bull; Qty {{ o.qty }} &bull; {{ o.paymentMethod }}</span>
-                  </td>
-                  <td class="py-3 px-2 text-right">
-                    <span class="font-extrabold text-slate-900 block">{{ o.totalAmount | inr }}</span>
-                    <span class="text-[11px] font-bold text-emerald-600">+{{ o.profit | inr }}</span>
-                  </td>
-                  <td class="py-3 px-2">
-                    <form method="POST" action="{{ url_for('admin_update_status', order_id=o.orderId) }}" class="flex items-center gap-1.5">
-                      <select name="status" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
-                        {% for st in order_stages %}
-                          <option value="{{ st }}" {{ 'selected' if o.status == st else '' }}>{{ st }}</option>
-                        {% endfor %}
-                      </select>
-                      <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-slate-900 text-white text-[11px] font-extrabold hover:bg-indigo-600">
-                        Save
+      <div class="hidden lg:block overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-zinc-200 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <th class="py-3 pr-3">Order &amp; Date</th>
+              <th class="py-3 px-2">Customer</th>
+              <th class="py-3 px-2">Footwear</th>
+              <th class="py-3 px-2 text-right">Amount / Profit</th>
+              <th class="py-3 px-2">Stage</th>
+              <th class="py-3 pl-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100">
+            {% for o in orders %}
+              <tr class="hover:bg-zinc-50/80">
+                <td class="py-3 pr-3">
+                  <span class="font-mono font-extrabold text-zinc-900 block">#{{ o.orderId }}</span>
+                  <span class="text-[11px] text-zinc-400">{{ o.date }}</span>
+                </td>
+                <td class="py-3 px-2">
+                  <span class="font-bold text-zinc-900 block">{{ o.customerName }}</span>
+                  <span class="text-[11px] text-zinc-500">{{ o.city }} &bull; {{ o.customerPhone }}</span>
+                </td>
+                <td class="py-3 px-2">
+                  <span class="font-bold text-zinc-900 block">{{ o.brand }} &mdash; {{ o.productName }}</span>
+                  <span class="text-[11px] text-zinc-500">{{ o.size }} &bull; Qty {{ o.qty }} &bull; {{ o.paymentMethod }}</span>
+                </td>
+                <td class="tabular-nums py-3 px-2 text-right">
+                  <span class="font-extrabold text-zinc-900 block">{{ o.totalAmount | inr }}</span>
+                  <span class="text-[11px] font-bold text-emerald-600">+{{ o.profit | inr }}</span>
+                </td>
+                <td class="py-3 px-2">
+                  <form method="POST" action="{{ url_for('admin_update_status', order_id=o.orderId) }}" class="flex items-center gap-1.5">
+                    <select name="status" class="px-2.5 py-1.5 rounded-xl border border-zinc-200 text-xs font-bold bg-white">
+                      {% for st in order_stages %}
+                        <option value="{{ st }}" {{ 'selected' if o.status == st else '' }}>{{ st }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-obsidian px-2.5 py-1.5 rounded-xl bg-zinc-950 text-white text-[11px] font-bold">
+                      Save
+                    </button>
+                  </form>
+                </td>
+                <td class="py-3 pl-2 text-right">
+                  <div class="inline-flex items-center gap-1.5">
+                    <a href="{{ url_for('download_invoice_pdf', order_id=o.orderId) }}"
+                       class="px-2.5 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold">
+                      PDF
+                    </a>
+                    <form method="POST" action="{{ url_for('admin_delete_order', order_id=o.orderId) }}"
+                          onsubmit="return confirm('Delete order #{{ o.orderId }}?')">
+                      <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold">
+                        Delete
                       </button>
                     </form>
-                  </td>
-                  <td class="py-3 pl-2 text-right">
-                    <div class="inline-flex items-center gap-1.5">
-                      <a href="{{ url_for('download_invoice_pdf', order_id=o.orderId) }}"
-                         class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold">
-                        PDF
-                      </a>
-                      {% if o.customerPhone %}
-                        <a href="sms:{{ o.customerPhone }}?body={{ ('Hi ' + o.customerName + ', your SoleMetrics order #' + o.orderId + ' (' + o.productName + ') is currently ' + o.status + '. Thank you for shopping with us!') | urlencode }}"
-                           class="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold">
-                          SMS
-                        </a>
-                      {% endif %}
-                      <form method="POST" action="{{ url_for('admin_delete_order', order_id=o.orderId) }}"
-                            onsubmit="return confirm('Delete order #{{ o.orderId }}?')">
-                        <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold">
-                          Delete
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="py-10 text-center text-xs text-slate-400">
-          No orders match the selected filters.
-        </div>
-      {% endif %}
-    </div>
-
-  <!-- =======================================================================
-       TAB 3: REVIEWS MODERATION
-       ======================================================================= -->
-  {% elif active_tab == 'reviews' %}
-
-    <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-display text-base sm:text-lg font-extrabold text-slate-900">Customer Reviews Moderation</h2>
-          <p class="text-xs text-slate-500">{{ reviews | length }} published reviews synced with Excel &amp; Firebase</p>
-        </div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
+    {% else %}
+      <div class="py-8 text-center text-xs text-zinc-400">No orders match the selected filters.</div>
+    {% endif %}
+  </div>
 
-      {% if reviews %}
-        <div class="grid sm:grid-cols-2 gap-3.5">
-          {% for r in reviews %}
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between gap-3">
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between gap-2 text-xs">
-                  <span class="font-extrabold text-slate-900">{{ r.customerName }}</span>
-                  <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-extrabold">{{ r.rating }} / 5 &#9733;</span>
-                </div>
-                <p class="text-[11px] font-bold text-indigo-600">{{ r.brand }} &bull; {{ r.productName }}</p>
-                <p class="text-xs text-slate-600 leading-relaxed">{{ r.comment }}</p>
+  <!-- Customer Reviews Moderation -->
+  <div class="bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-zinc-200/80 space-y-3.5">
+    <h2 class="font-display text-sm sm:text-lg font-extrabold text-zinc-900">Customer Reviews Moderation ({{ reviews | length }})</h2>
+    {% if reviews %}
+      <div class="grid sm:grid-cols-2 gap-3">
+        {% for r in reviews %}
+          <div class="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 flex flex-col justify-between gap-2.5">
+            <div class="space-y-1">
+              <div class="flex items-center justify-between gap-2 text-xs">
+                <span class="font-bold text-zinc-900">{{ r.customerName }}</span>
+                <span class="tabular-nums px-2 py-0.5 rounded-full bg-zinc-950 text-white font-bold text-[10px]">{{ r.rating }} / 5 &#9733;</span>
               </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-slate-200/80 text-[11px] text-slate-400">
-                <span>{{ r.date }} &bull; {{ 'Verified Buyer' if r.verifiedBuyer == 'Yes' else 'Guest' }}</span>
-                <form method="POST" action="{{ url_for('admin_delete_review', review_id=r.reviewId) }}"
-                      onsubmit="return confirm('Delete this review?')">
-                  <button type="submit" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-bold">
-                    Delete
-                  </button>
-                </form>
-              </div>
+              <p class="text-[11px] font-bold text-zinc-500">{{ r.brand }} &bull; {{ r.productName }}</p>
+              <p class="text-xs text-zinc-600 leading-relaxed">{{ r.comment }}</p>
             </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="py-8 text-center text-xs text-slate-400">No reviews available.</p>
-      {% endif %}
-    </div>
-
-  {% endif %}
+            <div class="flex items-center justify-between pt-2 border-t border-zinc-200/80 text-[10px] text-zinc-400">
+              <span>{{ r.date }} &bull; {{ 'Verified Buyer' if r.verifiedBuyer == 'Yes' else 'Guest' }}</span>
+              <form method="POST" action="{{ url_for('admin_delete_review', review_id=r.reviewId) }}"
+                    onsubmit="return confirm('Delete this review?')">
+                <button type="submit" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 font-bold">Delete</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="py-6 text-center text-xs text-zinc-400">No reviews available.</p>
+    {% endif %}
+  </div>
 
 </div>
+
+<!-- 100% Zero-CDN Native Inline SVG Chart Engine (Works Offline & Inside Installed PWA) -->
+<script>
+  (function () {
+    const DATA = {{ charts_payload | tojson }};
+    const isDark = document.documentElement.classList.contains('dark');
+    const ink = isDark ? '#fafafa' : '#09090b';
+    const subInk = isDark ? '#a1a1aa' : '#71717a';
+    const gridCol = isDark ? '#27272a' : '#e4e4e7';
+    const colors = [ink, '#10b981', '#52525b', '#71717a', '#059669', '#3f3f46', '#a1a1aa', '#34d399', '#27272a', '#d4d4d8'];
+
+    function fmtVal(v, isCurr, isRat) {
+      if (isRat) return v + '★';
+      if (isCurr) {
+        if (v >= 100000) return '₹' + (v / 100000).toFixed(1) + 'L';
+        if (v >= 1000) return '₹' + Math.round(v / 1000) + 'k';
+        return '₹' + v;
+      }
+      return String(v);
+    }
+
+    function drawDonut(hostId, labels, values, isCurr, isRat) {
+      const host = document.getElementById(hostId);
+      if (!host) return;
+      const total = values.reduce((a, b) => a + b, 0);
+      if (!total) {
+        host.innerHTML = '<div class="py-12 text-center text-xs text-zinc-400">No chart data available</div>';
+        return;
+      }
+      const cx = 120, cy = 115, r = 74, sw = 28;
+      const circ = 2 * Math.PI * r;
+      let offset = 0;
+      let arcs = '';
+      labels.forEach((lbl, i) => {
+        const val = values[i] || 0;
+        if (!val) return;
+        const dash = (val / total) * circ;
+        const col = colors[i % colors.length];
+        arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}"
+                   stroke-dasharray="${dash.toFixed(2)} ${circ.toFixed(2)}"
+                   stroke-dashoffset="${(-offset).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})" />`;
+        offset += dash;
+      });
+
+      const legend = labels.map((lbl, i) => {
+        const val = values[i] || 0;
+        const pct = Math.round((val / total) * 100);
+        return `<div class="flex items-center justify-between gap-2 text-[11px]">
+          <span class="flex items-center gap-1.5 truncate font-semibold" style="color:${ink}">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${colors[i % colors.length]}"></span>
+            <span class="truncate">${lbl}</span>
+          </span>
+          <span class="tabular-nums font-bold shrink-0" style="color:${subInk}">${fmtVal(val, isCurr, isRat)} (${pct}%)</span>
+        </div>`;
+      }).join('');
+
+      host.innerHTML = `
+        <div class="grid sm:grid-cols-12 gap-4 items-center py-2">
+          <div class="sm:col-span-5 flex justify-center">
+            <svg viewBox="0 0 240 230" class="w-48 h-48">
+              ${arcs}
+              <text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="${subInk}" font-size="10" font-weight="700">TOTAL</text>
+              <text x="${cx}" y="${cy + 14}" text-anchor="middle" fill="${ink}" font-size="14" font-weight="800">${fmtVal(total, isCurr, isRat)}</text>
+            </svg>
+          </div>
+          <div class="sm:col-span-7 space-y-1.5 max-h-52 overflow-y-auto pr-1">${legend}</div>
+        </div>`;
+    }
+
+    function drawPrimary() {
+      const host = document.getElementById('primary-svg-host');
+      if (!host) return;
+      const p = DATA.primary;
+      const labels = p.labels || [];
+      const values = p.values || [];
+      if (!labels.length) {
+        host.innerHTML = '<div class="py-12 text-center text-xs text-zinc-400">No data available</div>';
+        return;
+      }
+      if (p.chartType === 'pie') {
+        drawDonut('primary-svg-host', labels, values, p.isCurrency, p.isRatings);
+        return;
+      }
+
+      const W = 760, H = 260, padL = 52, padR = 16, padT = 26, padB = 56;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const maxVal = p.isRatings ? 5 : Math.max(10, ...values) * 1.15;
+
+      let grid = '';
+      for (let g = 0; g <= 4; g++) {
+        const y = padT + (plotH * g) / 4;
+        const v = maxVal * (1 - g / 4);
+        grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="${gridCol}" stroke-width="1" />`;
+        grid += `<text x="${padL - 8}" y="${y + 3}" text-anchor="end" fill="${subInk}" font-size="10" font-weight="600">${fmtVal(Math.round(v * 10) / 10, p.isCurrency, p.isRatings)}</text>`;
+      }
+
+      const step = plotW / labels.length;
+      let shapes = '';
+      let pts = [];
+
+      labels.forEach((lbl, i) => {
+        const val = values[i] || 0;
+        const cx = padL + step * i + step / 2;
+        const barH = (val / maxVal) * plotH;
+        const y = padT + plotH - barH;
+        pts.push(`${cx.toFixed(1)},${y.toFixed(1)}`);
+
+        if (p.chartType === 'bar') {
+          const bw = Math.min(34, step * 0.58);
+          const col = colors[i % colors.length];
+          shapes += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, barH).toFixed(1)}" rx="5" fill="${col}" />`;
+        }
+
+        if (val > 0) {
+          shapes += `<text x="${cx.toFixed(1)}" y="${Math.max(12, y - 6).toFixed(1)}" text-anchor="middle" fill="${ink}" font-size="9.5" font-weight="700">${fmtVal(val, p.isCurrency, p.isRatings)}</text>`;
+        }
+
+        const shortLbl = lbl.length > 10 ? lbl.slice(0, 9) + '…' : lbl;
+        shapes += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 16}" text-anchor="end" transform="rotate(-28 ${cx.toFixed(1)} ${padT + plotH + 16})" fill="${subInk}" font-size="10" font-weight="600">${shortLbl}</text>`;
+      });
+
+      if (p.chartType === 'line' || p.chartType === 'area') {
+        if (p.chartType === 'area' && pts.length > 1) {
+          const firstX = padL + step / 2;
+          const lastX = padL + step * (labels.length - 1) + step / 2;
+          const baseY = padT + plotH;
+          shapes = `<polygon points="${firstX},${baseY} ${pts.join(' ')} ${lastX},${baseY}" fill="${ink}" fill-opacity="0.12" />` + shapes;
+        }
+        shapes += `<polyline fill="none" stroke="${ink}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" points="${pts.join(' ')}" />`;
+        pts.forEach((pt) => {
+          const [px, py] = pt.split(',');
+          shapes += `<circle cx="${px}" cy="${py}" r="4" fill="${ink}" />`;
+        });
+      }
+
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto block">${grid}${shapes}</svg>`;
+    }
+
+    function drawRevProf() {
+      const host = document.getElementById('revprof-svg-host');
+      if (!host) return;
+      const rp = DATA.revProf;
+      const brands = rp.brands || [];
+      if (!brands.length) return;
+
+      const W = 540, H = 235, padL = 48, padR = 12, padT = 16, padB = 50;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const maxVal = Math.max(10, ...rp.revenue, ...rp.profit) * 1.15;
+
+      let svg = '';
+      for (let g = 0; g <= 3; g++) {
+        const y = padT + (plotH * g) / 3;
+        const v = maxVal * (1 - g / 3);
+        svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="${gridCol}" stroke-width="1" />`;
+        svg += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" fill="${subInk}" font-size="9.5" font-weight="600">${fmtVal(Math.round(v), true, false)}</text>`;
+      }
+
+      const step = plotW / brands.length;
+      brands.forEach((b, i) => {
+        const cx = padL + step * i + step / 2;
+        const bw = Math.min(14, step * 0.32);
+        const h1 = ((rp.revenue[i] || 0) / maxVal) * plotH;
+        const h2 = ((rp.profit[i] || 0) / maxVal) * plotH;
+        svg += `<rect x="${(cx - bw - 1).toFixed(1)}" y="${(padT + plotH - h1).toFixed(1)}" width="${bw}" height="${Math.max(2, h1).toFixed(1)}" rx="3" fill="${ink}" />`;
+        svg += `<rect x="${(cx + 1).toFixed(1)}" y="${(padT + plotH - h2).toFixed(1)}" width="${bw}" height="${Math.max(2, h2).toFixed(1)}" rx="3" fill="#10b981" />`;
+        svg += `<text x="${cx.toFixed(1)}" y="${padT + plotH + 14}" text-anchor="end" transform="rotate(-30 ${cx.toFixed(1)} ${padT + plotH + 14})" fill="${subInk}" font-size="9.5" font-weight="600">${b}</text>`;
+      });
+
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto block">${svg}</svg>`;
+    }
+
+    drawPrimary();
+    drawRevProf();
+    drawDonut('funnel-svg-host', DATA.funnel.stages || [], DATA.funnel.counts || [], false, false);
+  })();
+</script>
 {% endblock %}
