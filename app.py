@@ -512,7 +512,7 @@ def load_orders_df() -> pd.DataFrame:
 
 
 # =========================================================================
-# 6. PYTHON PLOTLY EXECUTIVE MULTI-CHART SUITE
+# 6. PYTHON PLOTLY EXECUTIVE MULTI-CHART SUITE (INLINE PLOTLYJS EMBEDDED)
 # =========================================================================
 def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metric: str, rev_df: pd.DataFrame = None) -> str:
     if metric == "revenue":
@@ -681,7 +681,7 @@ def build_animated_chart_html(df: pd.DataFrame, mode: str, chart_type: str, metr
 
     return fig.to_html(
         full_html=False,
-        include_plotlyjs="cdn",
+        include_plotlyjs=True,
         config={"responsive": True, "displayModeBar": "hover", "displaylogo": False}
     )
 
